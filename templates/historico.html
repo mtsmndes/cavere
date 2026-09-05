@@ -1,31 +1,31 @@
 {% extends "base.html" %}
 {% block content %}
 
-<!-- Page Header -->
-<div class="cv-page-header">
+<!-- Page Header (Seções 7.C e 7.F) -->
+<div class="cv-page-banner">
     <div>
-        <h1 class="cv-page-title">Historico Geral de Cautelas</h1>
-        <p class="cv-page-subtitle">Registro auditavel de saidas, devolucoes e termos gerados</p>
+        <h1 class="cv-page-title">Histórico Geral de Cautelas</h1>
+        <p class="cv-page-subtitle">Registro auditável de saídas, devoluções e termos gerados</p>
     </div>
     <div style="min-width:260px;">
         <div class="input-group input-group-sm">
             <span class="input-group-text"><i class="bi bi-search"></i></span>
             <input type="text" id="filtroTexto" class="form-control"
-                placeholder="Filtrar por RDO, responsavel, SN..." onkeyup="aplicarFiltros()">
+                placeholder="Filtrar por RDO, responsável, SN..." onkeyup="aplicarFiltros()">
         </div>
     </div>
 </div>
 
-<!-- KPI Cards -->
+<!-- KPI Cards (Seções 7.C e 7.F) -->
 <div class="row g-3" style="margin-bottom:var(--space-6);">
     <div class="col-sm-4">
         <div class="cv-kpi" onclick="filtrarStatus('Todos')">
             <div style="display:flex; align-items:center; justify-content:space-between;">
                 <div>
                     <div class="cv-kpi-label">Total Registrado</div>
-                    <div class="cv-kpi-value">{{ contadores.Total }}</div>
+                    <div class="cv-kpi-value-hero">{{ contadores.Total }}</div>
                 </div>
-                <div class="cv-kpi-icon" style="background:var(--status-neutral-bg); color:var(--status-neutral-text);">
+                <div class="cv-kpi-badge neutral">
                     <i class="bi bi-collection"></i>
                 </div>
             </div>
@@ -36,9 +36,9 @@
             <div style="display:flex; align-items:center; justify-content:space-between;">
                 <div>
                     <div class="cv-kpi-label">Em Campo (Ativos)</div>
-                    <div class="cv-kpi-value" style="color:var(--status-info-text);">{{ contadores['Em Campo'] }}</div>
+                    <div class="cv-kpi-value-hero" style="color:#1e40af;">{{ contadores['Em Campo'] }}</div>
                 </div>
-                <div class="cv-kpi-icon" style="background:var(--status-info-bg); color:var(--status-info-text);">
+                <div class="cv-kpi-badge blue">
                     <i class="bi bi-broadcast"></i>
                 </div>
             </div>
@@ -48,10 +48,10 @@
         <div class="cv-kpi" onclick="filtrarStatus('Devolvido')">
             <div style="display:flex; align-items:center; justify-content:space-between;">
                 <div>
-                    <div class="cv-kpi-label">Devolvidos a Base</div>
-                    <div class="cv-kpi-value" style="color:var(--status-success-text);">{{ contadores.Devolvido }}</div>
+                    <div class="cv-kpi-label">Devolvidos à Base</div>
+                    <div class="cv-kpi-value-hero" style="color:#166534;">{{ contadores.Devolvido }}</div>
                 </div>
-                <div class="cv-kpi-icon" style="background:var(--status-success-bg); color:var(--status-success-text);">
+                <div class="cv-kpi-badge accent">
                     <i class="bi bi-check2-circle"></i>
                 </div>
             </div>
@@ -66,28 +66,33 @@
             <div style="width:32px;height:32px;border-radius:var(--radius-md);background:var(--status-success-bg);display:flex;align-items:center;justify-content:center;color:var(--status-success-text);">
                 <i class="bi bi-file-earmark-check"></i>
             </div>
-            <div style="font-size:0.9375rem; font-weight:600;">Base de Cautelas Registradas</div>
-            <span class="badge-notion badge-notion-gray">{{ cautelas|length }} registros</span>
+            <div>
+                <div style="font-size:0.9375rem; font-weight:600;">Base de Cautelas Registradas</div>
+                <div style="font-size:0.8125rem; color:var(--text-secondary);">Histórico geral de termos auditáveis</div>
+            </div>
         </div>
-        <div class="btn-group btn-group-sm">
-            <button type="button" class="btn btn-secondary active" id="filtroBtnTodos" onclick="filtrarStatus('Todos')">Todos</button>
-            <button type="button" class="btn btn-secondary" id="filtroBtnCampo" onclick="filtrarStatus('Em Campo')">Em Campo</button>
-            <button type="button" class="btn btn-secondary" id="filtroBtnDevolvidos" onclick="filtrarStatus('Devolvido')">Devolvidos</button>
+        <div style="display:flex; align-items:center; gap:var(--space-3);">
+            <span class="badge-notion badge-notion-gray">{{ cautelas|length }} registros</span>
+            <div class="btn-group btn-group-sm">
+                <button type="button" class="btn btn-secondary active" id="filtroBtnTodos" onclick="filtrarStatus('Todos')">Todos</button>
+                <button type="button" class="btn btn-secondary" id="filtroBtnCampo" onclick="filtrarStatus('Em Campo')">Em Campo</button>
+                <button type="button" class="btn btn-secondary" id="filtroBtnDevolvidos" onclick="filtrarStatus('Devolvido')">Devolvidos</button>
+            </div>
         </div>
     </div>
     <div style="overflow-x:auto;">
         {% if cautelas %}
-        <table class="table table-hover align-middle" id="tabelaHistorico">
+        <table class="table table-hover align-middle table-enterprise cv-table-uniform mb-0" id="tabelaHistorico">
             <thead>
                 <tr>
                     <th class="ps-4">ID</th>
                     <th>Equipamento</th>
-                    <th>Responsavel</th>
+                    <th>Responsável</th>
                     <th>RDO Vinculado</th>
-                    <th>Data Saida</th>
-                    <th>Situacao / Devolucao</th>
+                    <th>Data de Saída</th>
+                    <th>Situação / Devolução</th>
                     <th class="text-center">Termo PDF</th>
-                    <th class="text-center pe-4">Acao</th>
+                    <th class="text-center pe-4">Ação</th>
                 </tr>
             </thead>
             <tbody>
@@ -102,13 +107,13 @@
                     </td>
                     <td>
                         <div style="display:flex; align-items:center; gap:var(--space-2);">
-                            <div style="width:24px;height:24px;border-radius:50%;background:var(--canvas);border:1px solid var(--border-default);display:flex;align-items:center;justify-content:center;font-size:0.7rem;color:var(--text-muted);">
-                                <i class="bi bi-person"></i>
+                            <div style="width:26px;height:26px;border-radius:50%;background:rgba(0, 200, 83, 0.12);color:var(--color-accent-hover);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;">
+                                {{ c.coordenador[0]|upper if c.coordenador else '?' }}
                             </div>
-                            <span style="font-size:0.875rem;">{{ c.coordenador }}</span>
+                            <span style="font-size:0.875rem; font-weight:500;">{{ c.coordenador }}</span>
                         </div>
                     </td>
-                    <td><code style="font-size:0.8rem;">{{ c.rdo }}</code></td>
+                    <td><code>{{ c.rdo }}</code></td>
                     <td><div style="font-size:0.875rem;">{{ c.data_saida }}</div></td>
                     <td>
                         {% if c.status == 'Devolvido' %}
@@ -119,8 +124,8 @@
                     </td>
                     <td class="text-center">
                         {% if c.pdf_nome %}
-                        <a href="/cautelas/{{ c.pdf_nome }}" target="_blank" class="btn btn-secondary btn-sm" style="font-size:0.8rem; padding:4px 10px;" title="Visualizar PDF">
-                            <i class="bi bi-file-earmark-pdf" style="color:var(--status-danger-text);"></i> PDF
+                        <a href="/cautelas/{{ c.pdf_nome }}" target="_blank" class="cv-btn-action cv-btn-action-secondary" style="height:28px; font-size:0.75rem; padding:0 8px;" title="Visualizar Termo em PDF">
+                            <i class="bi bi-file-earmark-pdf text-danger"></i> PDF
                         </a>
                         {% else %}
                         <span style="color:var(--text-muted);">-</span>
@@ -128,11 +133,11 @@
                     </td>
                     <td class="text-center pe-4">
                         {% if c.status == 'Em Campo' and c.id_equipamento %}
-                        <a href="/devolver/{{ c.id_equipamento }}" class="btn btn-secondary btn-sm" style="font-size:0.8rem; padding:4px 10px;" title="Registrar devolucao">
-                            <i class="bi bi-arrow-return-left"></i> Devolver
+                        <a href="/devolver/{{ c.id_equipamento }}" class="cv-btn-action cv-btn-action-secondary" style="height:28px; font-size:0.75rem; padding:0 8px;" title="Registrar devolução de ativo">
+                            <i class="bi bi-arrow-return-left text-danger"></i> Devolver
                         </a>
                         {% else %}
-                        <span style="font-size:0.8125rem; color:var(--text-muted);"><i class="bi bi-check2 text-success me-1"></i>Concluido</span>
+                        <span style="font-size:0.8125rem; color:var(--text-muted);"><i class="bi bi-check2 text-success me-1"></i>Concluído</span>
                         {% endif %}
                     </td>
                 </tr>
@@ -143,7 +148,7 @@
         <div class="cv-empty-state">
             <div class="cv-empty-icon"><i class="bi bi-clock-history"></i></div>
             <div class="cv-empty-title">Nenhuma cautela registrada</div>
-            <div class="cv-empty-text">O historico completo de cautelas emitidas aparecera aqui.</div>
+            <div class="cv-empty-text">O histórico completo de cautelas emitidas aparecerá aqui.</div>
         </div>
         {% endif %}
     </div>

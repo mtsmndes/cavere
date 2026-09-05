@@ -1,39 +1,45 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6 col-lg-5">
-        <div class="d-flex align-items-center gap-2 mb-3">
-            <a href="/" class="text-muted text-decoration-none small">
-                <i class="bi bi-arrow-left me-1"></i> Painel
-            </a>
-            <span class="text-muted small">/</span>
-            <span class="small fw-semibold" style="color: #373530;">Novo Coordenador</span>
-        </div>
+<div style="max-width:520px; margin:0 auto;">
 
-        <div class="card">
-            <div class="card-header">
-                <div class="d-flex align-items-center gap-2">
-                    <i class="bi bi-person-plus text-secondary"></i>
-                    <span class="fw-semibold">Cadastrar Novo Coordenador</span>
+    <!-- Breadcrumb -->
+    <div class="cv-breadcrumb">
+        <a href="/"><i class="bi bi-grid-1x2 me-1"></i>Painel Principal</a>
+        <span class="sep">/</span>
+        <span class="current">Novo Coordenador</span>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <div style="display:flex; align-items:center; gap:var(--space-3);">
+                <div style="width:36px;height:36px;border-radius:var(--radius-md);background:rgba(0, 200, 83, 0.12);display:flex;align-items:center;justify-content:center;color:var(--color-accent-hover);box-shadow:0 2px 6px rgba(0,200,83,0.15);">
+                    <i class="bi bi-person-plus fs-5"></i>
+                </div>
+                <div>
+                    <div style="font-size:1rem; font-weight:700; color:var(--text-primary);">Cadastrar Novo Coordenador</div>
+                    <div style="font-size:0.8125rem; color:var(--text-secondary);">Registro de responsável operacional</div>
                 </div>
             </div>
-            <div class="card-body p-4">
-                <form action="/salvar-coordenador" method="POST">
-                    <div class="mb-3">
-                        <label class="form-label">Nome Completo</label>
-                        <input type="text" class="form-control" name="nome" placeholder="Ex: Carlos Silva" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">CPF ou Matrícula</label>
-                        <input type="text" class="form-control" name="cpf" placeholder="Ex: 123.456.789-00 ou M12345" required>
-                    </div>
+        </div>
 
-                    <div class="d-flex justify-content-between align-items-center pt-3 border-top" style="border-color: #e1e1df !important;">
-                        <a href="/" class="btn btn-notion-secondary btn-sm">Cancelar</a>
-                        <button type="submit" class="btn btn-notion-brand btn-sm px-4">Salvar Coordenador</button>
-                    </div>
-                </form>
-            </div>
+        <div class="card-body">
+            <form action="/salvar-coordenador" method="POST">
+                <div style="margin-bottom:var(--space-4);">
+                    <label class="form-label" for="campoNome">Nome Completo <span style="color:var(--status-danger-text);">*</span></label>
+                    <input type="text" class="form-control" name="nome" id="campoNome" placeholder="Ex: Carlos Silva Mendes" required>
+                </div>
+                <div style="margin-bottom:var(--space-5);">
+                    <label class="form-label" for="campoCpf">CPF ou Matrícula <span style="color:var(--status-danger-text);">*</span></label>
+                    <input type="text" class="form-control" name="cpf" id="campoCpf" placeholder="Ex: 123.456.789-00 ou M12345" required>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; padding-top:var(--space-4); border-top:1px solid var(--border-subtle);">
+                    <a href="/" class="btn btn-secondary btn-sm">Cancelar</a>
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="bi bi-person-check"></i> Salvar Coordenador
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

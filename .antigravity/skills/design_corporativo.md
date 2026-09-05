@@ -142,3 +142,114 @@ Usar exclusivamente múltiplos desta escala — nunca valores arbitrários (`pad
 - Toda tela nova deve ser validada mentalmente contra esta skill antes de ser entregue: tipografia, cores, espaçamento, elevação, estados (vazio/erro/carregando) e acessibilidade.
 - Ao gerar componentes reutilizáveis, documentar variantes (default, hover, active, disabled, error) explicitamente no código, não deixar implícito.
 - Nomear classes/variáveis em inglês e de forma semântica (`--surface-card`, `--text-muted`), evitando nomes genéricos como `.box1` ou `.blue-thing`.
+
+---
+
+## 6. Regras Anti-"Vibe Code" (checklist obrigatório de revisão)
+
+Estas regras existem porque paleta de cores correta NÃO é suficiente — o que denuncia
+conteúdo gerado por IA é a estrutura e a disciplina de layout. Todo template deve
+passar por esta checklist antes de ser considerado pronto.
+
+### A. Altura de linha fixa em tabelas
+- Nenhuma linha de tabela pode crescer livremente por conter uma lista de itens dentro da célula.
+- Se uma célula precisar listar múltiplos itens (ex: itens de um pedido/solicitação), mostrar
+  apenas um resumo compacto (`0/4 atendidos`, `2/2`) na própria linha, com um botão/ícone
+  "ver detalhes" que abre um popover, drawer ou linha expansível — nunca empilhar a lista
+  verticalmente dentro da célula.
+- Toda linha da mesma tabela deve ter a mesma altura (ou variação mínima e proposital).
+
+### B. Um sinal visual por informação, não vários repetidos
+- Progresso já comunicado por uma barra + fração (`2/2`) não deve ser repetido em badges
+  individuais por item (ex: não colocar um badge verde de check em cada item da lista
+  quando a barra de progresso já existe). Escolher **uma** representação e manter texto
+  simples para os detalhes.
+- Badges/pílulas só devem ser usadas quando o dado realmente varia entre linhas. Se uma
+  coluna inteira mostra sempre o mesmo valor (ex: toda linha com "Alta" prioridade), isso é
+  sinal de que o dado não está sendo usado de verdade — sinalizar isso ao usuário em vez de
+  simplesmente estilizar um valor estático.
+
+### C. Um botão de ação primária por linha/estado
+- Cada linha de tabela ou card deve ter no máximo **uma** ação primária visualmente
+  dominante (botão sólido). Ações secundárias (fechar, ver detalhes, cancelar) usam sempre
+  o mesmo estilo secundário/outline definido na Seção 3.D — nunca inventar uma nova forma
+  de botão para um novo estado.
+- A ação primária deve mudar de **texto/cor conforme o estado** (ex: "Atender", "Concluído",
+  "Fechar"), mas manter a **mesma forma/tamanho** de componente em todas as linhas da tabela.
+  Misturar pílula + outline + botão sólido escuro na mesma coluna é proibido.
+
+### D. Revisão obrigatória de idioma
+- Todo texto de interface (menus, títulos, labels, botões, mensagens) deve ser revisado
+  para acentuação correta em português antes de ser entregue: "Gestão", "Cadastros",
+  "Visão", "Usuários", "Ação", "Não" — nunca "Gestao", "Visao", "Usuarios", "Acao".
+- Padronizar capitalização: Title Case para títulos de botões/seções (ex: "Novo Equipamento",
+  "Cadastrar Usuário"), nunca misturar Title Case com frases em minúsculas na mesma tela.
+
+### E. Densidade de informação vs. ruído
+- Antes de finalizar uma tela, contar quantos elementos coloridos (badges, pílulas, ícones
+  de status) aparecem por linha. Mais de 2-3 elementos coloridos por linha é excesso — reduzir
+  para texto neutro ou consolidar em um único indicador.
+- Perguntar sempre: "esse elemento visual está comunicando um dado que muda, ou é decoração
+  repetida?" Se for decoração repetida, remover.
+
+---
+
+## 7. Sofisticação Visual e Profundidade (evitar o "flat branco genérico")
+
+"Clean corporativo" NÃO significa "tudo branco e plano". O erro comum é confundir
+minimalismo com ausência de hierarquia visual. Esta seção corrige telas que ficam
+"estouradas" (excesso de branco sem contraste, botões sem peso, sem profundidade).
+
+### A. Sidebar com contraste real
+- A sidebar de navegação deve usar fundo escuro `#0f172a` (Slate 900) — não branco.
+  Isso cria uma âncora visual forte e imediatamente tira a sensação de "template cru".
+- Texto de itens inativos: `#94a3b8`. Item ativo: fundo `rgba(0,200,83,0.12)`, texto
+  `#ffffff` ou `#4ade80`, ícone na cor de acento, borda esquerda de `3px` em `#00C853`.
+- Logotipo/nome do sistema no topo da sidebar em branco, com o ícone em destaque
+  dentro de um badge com leve gradiente do accent (`linear-gradient(135deg, #00C853, #00b048)`).
+
+### B. Botões com peso e profundidade reais
+- Botão primário: fundo em **gradiente sutil**, não cor sólida chapada —
+  `linear-gradient(135deg, #00C853 0%, #00b048 100%)`.
+- Sombra colorida (não cinza) no botão primário: `box-shadow: 0 4px 12px rgba(0,200,83,0.3)`,
+  aumentando para `0 6px 16px rgba(0,200,83,0.4)` no hover, junto com `translateY(-1px)`.
+- Padding generoso: mínimo `10px 20px`, nunca botões "apertados". Ícone + texto com
+  gap de `8px`, ícone sempre com o mesmo peso visual do texto (não fino demais).
+- Botão secundário: borda `1.5px` (não `1px`) para ter presença, fundo `#ffffff`,
+  hover com fundo `#f8fafc` E leve elevação de sombra (não só troca de cor).
+- Nunca deixar um botão "flutuando" sem nenhuma sombra — todo botão clicável tem
+  ao menos uma sombra Nível 0.5 sutil para parecer tátil.
+
+### C. Camadas de superfície (parar de usar branco puro em tudo)
+- Canvas de fundo: `#f1f5f9` (levemente mais escuro que o `#f8fafc` original) para os
+  cards brancos se destacarem de verdade por contraste.
+- Cabeçalho de página (título + descrição + ações): pode receber uma faixa de fundo
+  sutil (`#ffffff` com borda inferior `2px solid #f1f5f9`) para se separar do conteúdo,
+  em vez de tudo flutuar no mesmo branco do canvas.
+- Cards de KPI/métrica: ícone dentro de um badge circular colorido com fundo em
+  gradiente suave da cor semântica (ex: `radial-gradient` do accent a 12% de opacidade),
+  não apenas um ícone solto cinza ao lado do número.
+
+### D. Tabelas com mais presença visual
+- Header de tabela: considerar fundo `#0f172a` com texto branco em telas de alta
+  densidade operacional (dashboards de operação), OU manter `#f8fafc` mas com borda
+  inferior mais grossa (`2px`) para dar mais separação — nunca uma linha `1px` fraca
+  que faz a tabela parecer "sem acabamento".
+- Barras de progresso: usar gradiente (`linear-gradient(90deg, #00C853, #00e676)`) em vez
+  de cor sólida chapada, com leve `border-radius` e altura mínima de `8px` (nunca fios finos).
+- Linhas com prioridade alta/crítica podem receber uma borda esquerda colorida de `3px`
+  na linha inteira (não só um badge), reforçando hierarquia sem poluir com mais badges.
+
+### E. Micro-interações obrigatórias
+- Todo elemento interativo (botão, linha de tabela, card clicável) precisa de transição
+  perceptível (`0.2s ease`) em pelo menos duas propriedades (ex: cor + sombra, ou
+  transform + sombra) — hover que só muda opacidade de forma imperceptível é proibido.
+- Ícones de ação (editar, fechar, expandir) devem ter um estado de hover com fundo
+  circular sutil (`rgba(0,0,0,0.05)`), nunca ficar "soltos" sem feedback visual.
+
+### F. Tipografia com mais impacto
+- Números de destaque em cards de KPI podem subir para `2.25rem`/peso `800` (acima do
+  teto da Seção 1) especificamente nesses cards — eles são o elemento hero da tela e
+  devem competir visualmente com o resto, não ficar do mesmo tamanho que um subtítulo.
+- Títulos de página (`Painel de Operações`, etc.) podem usar peso `800` em vez de `700`
+  para dar mais presença ao topo da hierarquia.

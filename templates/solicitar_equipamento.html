@@ -6,17 +6,17 @@
     <div class="cv-breadcrumb">
         <a href="/meus-chamados"><i class="bi bi-card-checklist me-1"></i>Meus Chamados</a>
         <span class="sep">/</span>
-        <span class="current">Nova Solicitacao de Equipamento</span>
+        <span class="current">Nova Solicitação de Equipamento</span>
     </div>
 
     <div class="card">
         <div class="card-header">
             <div style="display:flex; align-items:center; gap:var(--space-3);">
-                <div style="width:32px;height:32px;border-radius:var(--radius-md);background:var(--color-accent-bg);display:flex;align-items:center;justify-content:center;color:var(--color-accent-hover);">
-                    <i class="bi bi-inbox"></i>
+                <div style="width:36px;height:36px;border-radius:var(--radius-md);background:rgba(0, 200, 83, 0.12);display:flex;align-items:center;justify-content:center;color:var(--color-accent-hover);box-shadow:0 2px 6px rgba(0,200,83,0.15);">
+                    <i class="bi bi-inbox fs-5"></i>
                 </div>
                 <div>
-                    <div style="font-size:0.9375rem; font-weight:600;">Abertura de Chamado de Equipamento</div>
+                    <div style="font-size:1rem; font-weight:700; color:var(--text-primary);">Abertura de Chamado de Equipamento</div>
                     <div style="font-size:0.8125rem; color:var(--text-secondary);">Solicitante: <strong>{{ nome_coordenador }}</strong> (#{{ id_coordenador }})</div>
                 </div>
             </div>
@@ -26,24 +26,24 @@
         <div class="card-body">
             <form action="/solicitar-equipamento" method="POST" id="formSolicitacao">
 
-                <!-- Secao 1: Ativo & Quantidade -->
+                <!-- Seção 1: Ativo & Quantidade -->
                 <div style="margin-bottom:var(--space-6);">
                     <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-4); padding-bottom:var(--space-3); border-bottom:1px solid var(--border-subtle);">
-                        <span style="display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--color-accent);color:#fff;font-size:0.7rem;font-weight:700;flex-shrink:0;">1</span>
-                        <span style="font-size:0.8125rem; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-secondary);">Ativo & Quantidade</span>
+                        <span style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg, #00C853, #00b048);color:#fff;font-size:0.75rem;font-weight:700;flex-shrink:0;box-shadow:0 2px 6px rgba(0,200,83,0.3);">1</span>
+                        <span style="font-size:0.8125rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-secondary);">Ativo & Quantidade</span>
                     </div>
                     <div class="row g-3">
                         <div class="col-md-8">
                             <label class="form-label" for="tipo_equipamento">Tipo de Equipamento <span style="color:var(--status-danger-text);">*</span></label>
                             <select class="form-select" name="tipo_equipamento" id="tipo_equipamento" required>
                                 <option value="" disabled selected>Selecione o tipo de equipamento...</option>
-                                <option value="Radio Comunicador (VHF / UHF / Intrinseco)">📻 Radio Comunicador (VHF / UHF / Intrinseco)</option>
+                                <option value="Rádio Comunicador (VHF / UHF / Intrínseco)">📻 Rádio Comunicador (VHF / UHF / Intrínseco)</option>
                                 <option value="Celular / Smartphone Corporativo (Com PTT)">📱 Celular / Smartphone Corporativo (Com PTT)</option>
-                                <option value="Camera Fotografica Intrinsecamente Segura">📷 Camera Fotografica Intrinsecamente Segura</option>
+                                <option value="Câmera Fotográfica Intrinsecamente Segura">📷 Câmera Fotográfica Intrinsecamente Segura</option>
                                 <option value="Tablet Operacional / Rugged Industrial">📟 Tablet Operacional / Rugged Industrial</option>
-                                <option value="Detector de Gases / Multigas">🧪 Detector de Gases / Multigas</option>
-                                <option value="Notebook / Estacao Movel de Operacoes">💻 Notebook / Estacao Movel de Operacoes</option>
-                                <option value="Kit Completo de Comunicacao">🧰 Kit Completo de Comunicacao</option>
+                                <option value="Detector de Gases / Multigás">🧪 Detector de Gases / Multigás</option>
+                                <option value="Notebook / Estação Móvel de Operações">💻 Notebook / Estação Móvel de Operações</option>
+                                <option value="Kit Completo de Comunicação">🧰 Kit Completo de Comunicação</option>
                                 <option value="Outro Equipamento Operacional">⚙️ Outro Equipamento Operacional</option>
                             </select>
                         </div>
@@ -57,24 +57,24 @@
                     </div>
                 </div>
 
-                <!-- Secao 2: Destinatario & Destino -->
+                <!-- Seção 2: Destinatário & Destino -->
                 <div style="margin-bottom:var(--space-6);">
                     <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-4); padding-bottom:var(--space-3); border-bottom:1px solid var(--border-subtle);">
-                        <span style="display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--color-accent);color:#fff;font-size:0.7rem;font-weight:700;flex-shrink:0;">2</span>
-                        <span style="font-size:0.8125rem; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-secondary);">Destinatario & Destino</span>
+                        <span style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg, #00C853, #00b048);color:#fff;font-size:0.75rem;font-weight:700;flex-shrink:0;box-shadow:0 2px 6px rgba(0,200,83,0.3);">2</span>
+                        <span style="font-size:0.8125rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-secondary);">Destinatário & Destino</span>
                     </div>
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label" for="destinatario">Pra quem vai esse equipamento? <span style="color:var(--status-danger-text);">*</span></label>
+                            <label class="form-label" for="destinatario">Destinatário do Equipamento <span style="color:var(--status-danger-text);">*</span></label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-person"></i></span>
                                 <input type="text" class="form-control" name="destinatario" id="destinatario"
-                                    placeholder="Ex: Carlos Silva (Tec. Operacoes)" required>
+                                    placeholder="Ex: Carlos Silva (Téc. Operações)" required>
                             </div>
-                            <div class="form-text">Colaborador, equipe ou funcao operacional.</div>
+                            <div class="form-text">Colaborador, equipe ou função operacional.</div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label" for="plataforma">Qual plataforma / base vai? <span style="color:var(--status-danger-text);">*</span></label>
+                            <label class="form-label" for="plataforma">Plataforma ou Base de Destino <span style="color:var(--status-danger-text);">*</span></label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
                                 <input type="text" class="form-control" name="plataforma" id="plataforma"
@@ -85,22 +85,22 @@
                                 <option value="Plataforma P-68">
                                 <option value="FPSO Carioca">
                                 <option value="FPSO Almirante Barroso">
-                                <option value="Plataforma Mexilhao (PMX)">
-                                <option value="Campo de Buzios">
-                                <option value="Base Niteroi (Ambipar)">
+                                <option value="Plataforma Mexilhão (PMX)">
+                                <option value="Campo de Búzios">
+                                <option value="Base Niterói (Ambipar)">
                                 <option value="Navio de Apoio Skandi">
-                                <option value="Terminal Ilha d'Agua">
+                                <option value="Terminal Ilha d'Água">
                             </datalist>
                             <div class="form-text">Unidade operacional de destino.</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Secao 3: Planejamento & Detalhes -->
+                <!-- Seção 3: Planejamento & Detalhes -->
                 <div style="margin-bottom:var(--space-6);">
                     <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-4); padding-bottom:var(--space-3); border-bottom:1px solid var(--border-subtle);">
-                        <span style="display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--color-accent);color:#fff;font-size:0.7rem;font-weight:700;flex-shrink:0;">3</span>
-                        <span style="font-size:0.8125rem; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-secondary);">Planejamento & Detalhes</span>
+                        <span style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg, #00C853, #00b048);color:#fff;font-size:0.75rem;font-weight:700;flex-shrink:0;box-shadow:0 2px 6px rgba(0,200,83,0.3);">3</span>
+                        <span style="font-size:0.8125rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-secondary);">Planejamento & Detalhes</span>
                     </div>
                     <div class="row g-3">
                         <div class="col-md-4">
@@ -120,18 +120,18 @@
                             </select>
                         </div>
                         <div class="col-12">
-                            <label class="form-label" for="justificativa">Justificativa Operacional / Observacoes</label>
+                            <label class="form-label" for="justificativa">Justificativa Operacional / Observações</label>
                             <textarea class="form-control" name="justificativa" id="justificativa" rows="3"
-                                placeholder="Descreva a finalidade do uso ou instrucoes de entrega..."></textarea>
+                                placeholder="Descreva a finalidade do uso ou instruções de entrega..."></textarea>
                         </div>
                     </div>
                 </div>
 
-                <!-- Botoes -->
+                <!-- Botões -->
                 <div style="display:flex; justify-content:space-between; align-items:center; padding-top:var(--space-4); border-top:1px solid var(--border-subtle);">
-                    <a href="/meus-chamados" class="btn btn-secondary">Cancelar</a>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-send"></i> Enviar Solicitacao
+                    <a href="/meus-chamados" class="btn btn-secondary btn-sm">Cancelar</a>
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="bi bi-send"></i> Enviar Solicitação
                     </button>
                 </div>
             </form>

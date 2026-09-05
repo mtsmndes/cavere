@@ -1,24 +1,83 @@
 {% extends "base.html" %}
 {% block content %}
 
-<!-- Page Header -->
-<div class="cv-page-header">
+<!-- Page Header (Seção 7.C e 7.F) -->
+<div class="cv-page-banner">
     <div>
-        <h1 class="cv-page-title">Painel de Operacoes</h1>
-        <p class="cv-page-subtitle">Visao integrada de chamados, cautelas e gestao de ativos</p>
+        <h1 class="cv-page-title">Painel de Operações</h1>
+        <p class="cv-page-subtitle">Visão integrada de chamados operacionais, cautelas e gestão de ativos</p>
     </div>
     <div style="display:flex; gap:var(--space-3); flex-wrap:wrap; align-items:center;">
         <a href="/novo-equipamento" class="btn btn-secondary btn-sm">
-            <i class="bi bi-plus-lg"></i> Novo Equipamento
+            <i class="bi bi-box-seam"></i> Novo Equipamento
         </a>
         <a href="/cadastrar-usuario" class="btn btn-primary btn-sm">
-            <i class="bi bi-person-plus"></i> Cadastrar Usuario / Coordenador
+            <i class="bi bi-person-plus"></i> Cadastrar Usuário / Coordenador
         </a>
     </div>
 </div>
 
+<!-- KPIs de Alta Performance Operacional (Seções 7.C e 7.F) -->
+<div class="row g-3" style="margin-bottom:var(--space-6);">
+    <div class="col-sm-6 col-lg-3">
+        <div class="cv-kpi" onclick="filtrarChamadosAdmin('abertos')">
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+                <div>
+                    <div class="cv-kpi-label">Chamados em Aberto</div>
+                    {% set abertos = solicitacoes|rejectattr('status', 'in', ['Finalizada', 'Concluído', 'Concluido', 'Finalizado', 'Devolvido'])|list|length %}
+                    <div class="cv-kpi-value-hero">{{ abertos }}</div>
+                </div>
+                <div class="cv-kpi-badge yellow">
+                    <i class="bi bi-hourglass-split"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="cv-kpi">
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+                <div>
+                    <div class="cv-kpi-label">Ativos na Base</div>
+                    {% set na_base = equipamentos|selectattr('status', 'in', ['Disponível', 'Disponivel'])|list|length %}
+                    <div class="cv-kpi-value-hero" style="color:#166534;">{{ na_base }}</div>
+                </div>
+                <div class="cv-kpi-badge accent">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="cv-kpi">
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+                <div>
+                    <div class="cv-kpi-label">Ativos em Campo</div>
+                    {% set em_campo = equipamentos|selectattr('status', 'in', ['Em Operação', 'Em Operacao'])|list|length %}
+                    <div class="cv-kpi-value-hero" style="color:#1e40af;">{{ em_campo }}</div>
+                </div>
+                <div class="cv-kpi-badge blue">
+                    <i class="bi bi-broadcast"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="cv-kpi">
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+                <div>
+                    <div class="cv-kpi-label">Termos Emitidos</div>
+                    <div class="cv-kpi-value-hero">{{ cautelas|length }}</div>
+                </div>
+                <div class="cv-kpi-badge neutral">
+                    <i class="bi bi-file-earmark-check"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- ============================================================ -->
-<!-- SECAO 1: Solicitacoes de Coordenadores                       -->
+<!-- SEÇÃO 1: Solicitações de Coordenadores                       -->
 <!-- ============================================================ -->
 <div class="card" style="margin-bottom:var(--space-6);" id="secaoSolicitacoes">
     <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--space-3);">
@@ -27,7 +86,7 @@
                 <i class="bi bi-inbox"></i>
             </div>
             <div>
-                <div style="font-size:0.9375rem; font-weight:600; color:var(--text-primary);">Solicitacoes de Equipamentos</div>
+                <div style="font-size:0.9375rem; font-weight:600; color:var(--text-primary);">Solicitações de Equipamentos</div>
                 <div style="font-size:0.8125rem; color:var(--text-secondary);">Chamados operacionais dos coordenadores</div>
             </div>
         </div>
@@ -46,8 +105,8 @@
                 </button>
             </div>
 
-            <!-- Botao de Acao Rapida para Fechar/Ocultar Finalizados -->
-            <button type="button" class="btn btn-secondary btn-sm" id="btnToggleFinalizadosAdmin" onclick="toggleFinalizadosAdmin()" title="Recolher / Fechar visualizacao dos chamados ja finalizados">
+            <!-- Botão de Ação Rápida para Fechar/Ocultar Finalizados -->
+            <button type="button" class="btn btn-secondary btn-sm" id="btnToggleFinalizadosAdmin" onclick="toggleFinalizadosAdmin()" title="Recolher / Ocultar chamados já finalizados">
                 <i class="bi bi-eye-slash" id="iconeToggleFinalizadosAdmin"></i>
                 <span id="textoToggleFinalizadosAdmin">Fechar Finalizados</span>
             </button>
@@ -55,35 +114,39 @@
     </div>
     <div style="overflow-x:auto;">
         {% if solicitacoes %}
-        <table class="table table-hover align-middle mb-0">
+        <table class="table table-hover align-middle table-enterprise cv-table-uniform mb-0">
             <thead>
                 <tr>
                     <th class="ps-4">Protocolo</th>
                     <th>Coordenador</th>
                     <th>Equipamento Solicitado</th>
-                    <th>Itens Cautelados</th>
-                    <th>Destinatario / Base</th>
+                    <th>Atendimento</th>
+                    <th>Destinatário / Base</th>
                     <th>RDO</th>
-                    <th>Prioridade</th>
                     <th>Status</th>
-                    <th class="text-center pe-4">Acao Operacional</th>
+                    <th class="text-center pe-4" style="min-width:140px;">Ação Operacional</th>
                 </tr>
             </thead>
             <tbody>
                 {% for s in solicitacoes %}
-                <tr class="linha-solicitacao"
+                <tr class="linha-solicitacao {% if s.prioridade == 'Urgente' %}is-urgent{% endif %}"
                     data-status="{{ s.status }}"
-                    data-finalizada="{{ '1' if s.status in ('Finalizada', 'Concluido', 'Finalizado', 'Devolvido') else '0' }}">
+                    data-finalizada="{{ '1' if s.status in ('Finalizada', 'Concluído', 'Concluido', 'Finalizado', 'Devolvido') else '0' }}">
                     <!-- Protocolo -->
                     <td class="ps-4">
-                        <div style="font-weight:600; color:var(--text-secondary); font-family:var(--font-mono); font-size:0.8125rem;">#SOL-{{ s.id }}</div>
-                        <div style="font-size:0.75rem; color:var(--text-muted);">{{ s.data_criacao[:10] if s.data_criacao else '' }}</div>
+                        <div style="display:flex; align-items:center; gap:var(--space-1);">
+                            <span style="font-weight:600; color:var(--text-primary); font-family:var(--font-mono); font-size:0.8125rem;">#SOL-{{ s.id }}</span>
+                            {% if s.prioridade == 'Urgente' %}
+                            <span class="badge-notion badge-notion-red" style="font-size:0.65rem; padding:1px 6px;" title="Prioridade Urgente">Urgente</span>
+                            {% endif %}
+                        </div>
+                        <div style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">{{ s.data_criacao[:10] if s.data_criacao else '' }}</div>
                     </td>
 
                     <!-- Coordenador -->
                     <td>
                         <div style="display:flex; align-items:center; gap:var(--space-2);">
-                            <div style="width:28px;height:28px;border-radius:50%;background:var(--color-accent-bg);color:var(--color-accent-hover);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0;">
+                            <div style="width:28px;height:28px;border-radius:50%;background:rgba(0, 200, 83, 0.12);color:var(--color-accent-hover);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0;">
                                 {{ s.nome_coord[0]|upper if s.nome_coord else '?' }}
                             </div>
                             <span style="font-weight:500; font-size:0.875rem;">{{ s.nome_coord }}</span>
@@ -94,62 +157,42 @@
                     <td>
                         <div style="display:flex; align-items:center; gap:var(--space-2);">
                             <span class="badge-notion badge-notion-green" style="font-size:0.75rem; font-weight:700;">{{ s.quantidade_total }}x</span>
-                            <span style="font-weight:600;">{{ s.tipo_equipamento }}</span>
+                            <span style="font-weight:600; font-size:0.875rem;">{{ s.tipo_equipamento }}</span>
                         </div>
                     </td>
 
-                    <!-- Itens Cautelados & Faltantes -->
-                    <td style="min-width:220px;">
-                        <!-- Progress bar -->
-                        <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-2);">
-                            <div class="progress flex-grow-1">
-                                <div class="progress-bar {% if s.concluida %}bg-success{% else %}bg-primary{% endif %}"
+                    <!-- Atendimento (Resumo Compacto + Detalhes Popover - Seção 6.A e 6.B) -->
+                    <td style="min-width:180px;">
+                        <div style="display:flex; align-items:center; gap:var(--space-2);">
+                            <!-- Barra de progresso enxuta com gradiente (Seção 7.D) -->
+                            <div class="progress cv-progress flex-grow-1" style="min-width:70px;">
+                                <div class="progress-bar {% if not s.concluida %}is-pending{% endif %}"
                                     role="progressbar"
                                     data-width="{{ (s.qtd_emitida / s.quantidade_total * 100)|round|int if s.quantidade_total > 0 else 0 }}">
                                 </div>
                             </div>
+                            <!-- Fração monoespaçada limpa -->
                             <span style="font-size:0.75rem; font-weight:600; color:var(--text-secondary); font-family:var(--font-mono); white-space:nowrap;">
                                 {{ s.qtd_emitida }}/{{ s.quantidade_total }}
                             </span>
+                            <!-- Botão de detalhes em Popover (não polui nem expande a linha) -->
+                            {% if s.itens_emitidos or s.itens_devolvidos %}
+                            <button type="button" class="cv-btn-detail"
+                                data-bs-toggle="popover"
+                                data-bs-trigger="focus"
+                                data-bs-placement="top"
+                                data-bs-html="true"
+                                data-bs-title="Ativos Vinculados (#SOL-{{ s.id }})"
+                                data-bs-content="{% if s.itens_emitidos %}{% for it in s.itens_emitidos %}<div class='py-1 border-bottom d-flex justify-content-between gap-3'><span>{{ it.modelo or it.tipo }}</span><code class='text-muted'>{{ it.patrimonio_sn }}</code></div>{% endfor %}{% endif %}{% if s.itens_devolvidos %}{% for it in s.itens_devolvidos %}<div class='py-1 border-bottom d-flex justify-content-between gap-3 text-muted'><span class='text-decoration-line-through'>{{ it.modelo or it.tipo }}</span><span class='badge-notion badge-notion-gray' style='font-size:0.65rem;'>Devolvido</span></div>{% endfor %}{% endif %}"
+                                title="Ver detalhes dos equipamentos emitidos"
+                                tabindex="0">
+                                <i class="bi bi-info-circle"></i>
+                            </button>
+                            {% endif %}
                         </div>
-
-                        <!-- Itens ja emitidos -->
-                        {% if s.itens_emitidos %}
-                        <div style="display:flex; flex-wrap:wrap; gap:4px; margin-bottom:4px;">
-                            {% for it in s.itens_emitidos %}
-                            <span class="badge-notion badge-notion-green" style="font-size:0.7rem; padding:2px 6px;"
-                                title="#CAU-{{ it.id_cautela }} - {{ it.data_saida }}">
-                                <i class="bi bi-check2"></i> {{ it.modelo or it.tipo }} ({{ it.patrimonio_sn }})
-                            </span>
-                            {% endfor %}
-                        </div>
-                        {% endif %}
-
-                        <!-- Itens devolvidos em chamados nao finalizados -->
-                        {% if s.itens_devolvidos and not s.concluida %}
-                        <div style="display:flex; flex-wrap:wrap; gap:4px; margin-bottom:4px;">
-                            {% for it in s.itens_devolvidos %}
-                            <span class="badge-notion badge-notion-gray" style="font-size:0.7rem; padding:2px 6px; opacity:0.8;"
-                                title="Devolvido em {{ it.data_devolucao }}">
-                                <i class="bi bi-arrow-return-left"></i> {{ it.modelo or it.tipo }} ({{ it.patrimonio_sn }})
-                            </span>
-                            {% endfor %}
-                        </div>
-                        {% endif %}
-
-                        <!-- Indicador de pendencias -->
-                        {% if s.qtd_restante > 0 %}
-                        <span class="badge-notion badge-notion-orange" style="font-size:0.7rem; padding:2px 6px;">
-                            <i class="bi bi-hourglass-split"></i> Faltam {{ s.qtd_restante }} item(ns)
-                        </span>
-                        {% else %}
-                        <span class="badge-notion badge-notion-green" style="font-size:0.7rem; padding:2px 6px;">
-                            <i class="bi bi-check-all"></i> Todos {{ s.quantidade_total }} atendidos
-                        </span>
-                        {% endif %}
                     </td>
 
-                    <!-- Destinatario / Base -->
+                    <!-- Destinatário / Base -->
                     <td>
                         <div style="font-size:0.875rem;"><i class="bi bi-person text-muted me-1"></i>{{ s.destinatario }}</div>
                         <div style="font-size:0.8125rem; color:var(--text-muted);"><i class="bi bi-geo-alt me-1"></i>{{ s.plataforma }}</div>
@@ -157,13 +200,6 @@
 
                     <!-- RDO -->
                     <td><code>{{ s.rdo }}</code></td>
-
-                    <!-- Prioridade -->
-                    <td>
-                        {% if s.prioridade == 'Urgente' %}<span class="badge-notion badge-notion-red">Urgente</span>
-                        {% elif s.prioridade == 'Alta' %}<span class="badge-notion badge-notion-orange">Alta</span>
-                        {% else %}<span class="badge-notion badge-notion-gray">Normal</span>{% endif %}
-                    </td>
 
                     <!-- Status -->
                     <td>
@@ -173,18 +209,18 @@
                         <span class="badge-notion badge-notion-blue"><i class="bi bi-arrow-repeat me-1"></i>Em Atendimento</span>
                         {% elif s.status == 'Esperando Entrega' %}
                         <span class="badge-notion badge-notion-purple"><i class="bi bi-box-seam me-1"></i>Esperando Entrega</span>
-                        {% elif s.status in ('Finalizada', 'Concluido', 'Finalizado', 'Devolvido') %}
+                        {% elif s.status in ('Finalizada', 'Concluído', 'Concluido', 'Finalizado', 'Devolvido') %}
                         <span class="badge-notion badge-notion-green"><i class="bi bi-check-circle me-1"></i>Finalizada</span>
                         {% else %}
                         <span class="badge-notion badge-notion-blue"><i class="bi bi-broadcast me-1"></i>{{ s.status }}</span>
                         {% endif %}
                     </td>
 
-                    <!-- Acao Operacional -->
+                    <!-- Ação Operacional (Padronizada de acordo com a Seção 6.C) -->
                     <td class="text-center pe-4">
                         {% if s.status in ('Pendente', 'Em Atendimento') %}
                         <button type="button"
-                            class="btn btn-secondary btn-sm"
+                            class="cv-btn-action cv-btn-action-primary w-100"
                             onclick="preencherCautela('{{ s.id }}', '{{ s.id_coordenador }}', '{{ s.rdo }}', '{{ s.tipo_equipamento }}', '{{ s.nome_coord }}', '{{ s.qtd_emitida + 1 }}', '{{ s.quantidade_total }}', '{{ s.categoria }}')"
                             title="Emitir cautela para o item {{ s.qtd_emitida + 1 }} de {{ s.quantidade_total }}">
                             <i class="bi bi-arrow-down-right"></i>
@@ -192,23 +228,19 @@
                         </button>
                         {% elif s.status == 'Esperando Entrega' %}
                         <a href="/solicitacao/entregar/{{ s.id }}"
-                            class="btn btn-primary btn-sm"
+                            class="cv-btn-action cv-btn-action-primary w-100"
                             title="Confirmar entrega e finalizar chamado">
                             <i class="bi bi-box-seam"></i>
-                            Equipamento Entregue
+                            Entregar
                         </a>
                         {% else %}
-                        <div style="display:flex; align-items:center; justify-content:center; gap:var(--space-2);">
-                            <span class="badge-notion badge-notion-green" style="font-size:0.75rem;">
-                                <i class="bi bi-check2-all me-1"></i>Concluido
-                            </span>
-                            <button type="button" class="btn btn-secondary btn-sm py-0 px-2"
-                                onclick="fecharLinhaIndividual(this)"
-                                title="Fechar / Ocultar este chamado finalizado"
-                                style="font-size:0.75rem; padding:2px 8px !important;">
-                                <i class="bi bi-eye-slash"></i> Fechar
-                            </button>
-                        </div>
+                        <button type="button"
+                            class="cv-btn-action cv-btn-action-done w-100"
+                            onclick="fecharLinhaIndividual(this)"
+                            title="Fechar e ocultar este chamado finalizado">
+                            <i class="bi bi-eye-slash"></i>
+                            Fechar
+                        </button>
                         {% endif %}
                     </td>
                 </tr>
@@ -220,7 +252,7 @@
         <div id="avisoFinalizadosOcultos" class="d-none" style="padding:var(--space-3) var(--space-4); background:var(--canvas); border-top:1px solid var(--border-subtle); display:flex; align-items:center; justify-content:space-between; font-size:0.8125rem; color:var(--text-secondary);">
             <div style="display:flex; align-items:center; gap:var(--space-2);">
                 <i class="bi bi-check2-circle text-success fs-6"></i>
-                <span><strong id="contadorFinalizadosOcultos">0</strong> chamado(s) finalizado(s) estao fechados/ocultos.</span>
+                <span><strong id="contadorFinalizadosOcultos">0</strong> chamado(s) finalizado(s) estão fechados/ocultos.</span>
             </div>
             <button type="button" class="btn btn-link btn-sm p-0" onclick="toggleFinalizadosAdmin(false)" style="font-size:0.8125rem; text-decoration:none; font-weight:600; color:var(--color-accent-hover);">
                 <i class="bi bi-eye me-1"></i>Reabrir e exibir todos
@@ -229,18 +261,18 @@
         {% else %}
         <div class="cv-empty-state">
             <div class="cv-empty-icon"><i class="bi bi-inbox"></i></div>
-            <div class="cv-empty-title">Nenhuma solicitacao no momento</div>
-            <div class="cv-empty-text">As solicitacoes abertas pelos coordenadores aparecao aqui.</div>
+            <div class="cv-empty-title">Nenhuma solicitação no momento</div>
+            <div class="cv-empty-text">As solicitações abertas pelos coordenadores aparecerão aqui.</div>
         </div>
         {% endif %}
     </div>
 </div>
 
 <!-- ============================================================ -->
-<!-- SECAO 2: Workspace (Formulario de Cautela + Inventario)      -->
+<!-- SEÇÃO 2: Workspace (Formulário de Cautela + Inventário)      -->
 <!-- ============================================================ -->
 <div class="row g-4" style="margin-bottom:var(--space-6);">
-    <!-- Formulario de Emissao de Cautela -->
+    <!-- Formulário de Emissão de Cautela -->
     <div class="col-lg-5">
         <div class="card h-100" id="secaoFormCautela">
             <div class="card-header">
@@ -277,19 +309,19 @@
                             {% for eq in equipamentos %}
                             <option value="{{ eq.id }}" data-categoria="{{ eq.categoria }}" data-tipo="{{ eq.tipo }}"
                                 data-modelo="{{ eq.modelo }}" data-sn="{{ eq.patrimonio_sn }}"
-                                data-status="{{ eq.status }}" {% if eq.status != 'Disponivel' %}style="color:var(--text-muted);"{% endif %}>
+                                data-status="{{ eq.status }}" {% if eq.status not in ('Disponível', 'Disponivel') %}disabled style="color:var(--text-muted);"{% endif %}>
                                 #{{ eq.id }} - {{ eq.tipo }} ({{ eq.modelo }} | SN: {{ eq.patrimonio_sn }}) &bull; [{{ eq.status }}]
                             </option>
                             {% endfor %}
                         </select>
                         <div class="form-text" id="ajudaEquipamento">
-                            Ao atender uma solicitacao, apenas equipamentos compatíveis serao exibidos.
+                            Ao atender uma solicitação, apenas equipamentos compatíveis serão exibidos.
                         </div>
                     </div>
 
                     <div style="margin-bottom:var(--space-4);">
                         <label class="form-label" for="campoIdCoordenador">
-                            Coordenador Responsavel <span style="color:var(--status-danger-text);">*</span>
+                            Coordenador Responsável <span style="color:var(--status-danger-text);">*</span>
                         </label>
                         <select class="form-select" name="id_coordenador" id="campoIdCoordenador" required>
                             <option value="" disabled selected>Selecione o coordenador...</option>
@@ -303,7 +335,7 @@
 
                     <div style="margin-bottom:var(--space-5);">
                         <label class="form-label" for="campoRdo">
-                            Numero do RDO / Projeto <span style="color:var(--status-danger-text);">*</span>
+                            Número do RDO / Projeto <span style="color:var(--status-danger-text);">*</span>
                         </label>
                         <input type="text" class="form-control" name="rdo" id="campoRdo" placeholder="Ex: RDO-2026-0905" required>
                     </div>
@@ -317,7 +349,7 @@
         </div>
     </div>
 
-    <!-- Inventario de Equipamentos e Coordenadores -->
+    <!-- Inventário de Equipamentos e Coordenadores -->
     <div class="col-lg-7">
         <!-- Equipamentos -->
         <div class="card" style="margin-bottom:var(--space-4);">
@@ -331,14 +363,14 @@
                 <span class="badge-notion badge-notion-gray">{{ equipamentos|length }} cadastrados</span>
             </div>
             <div style="overflow-x:auto; max-height:280px; overflow-y:auto;">
-                <table class="table table-hover align-middle mb-0">
+                <table class="table table-hover align-middle table-enterprise mb-0">
                     <thead>
                         <tr>
                             <th class="ps-4">ID</th>
                             <th>Tipo / Modelo</th>
-                            <th>Patrimonio / SN</th>
+                            <th>Patrimônio / SN</th>
                             <th>Status</th>
-                            <th>Acao</th>
+                            <th>Ação</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -353,19 +385,21 @@
                             </td>
                             <td><code style="font-size:0.8rem;">{{ eq.patrimonio_sn }}</code></td>
                             <td>
-                                {% if eq.status == 'Disponivel' %}
-                                <span class="badge-notion badge-notion-green">Disponivel</span>
+                                {% if eq.status in ('Disponível', 'Disponivel') %}
+                                <span class="badge-notion badge-notion-green"><i class="bi bi-check2 me-1"></i>Disponível</span>
+                                {% elif eq.status in ('Em Operação', 'Em Operacao') %}
+                                <span class="badge-notion badge-notion-blue"><i class="bi bi-broadcast me-1"></i>Em Operação</span>
                                 {% else %}
-                                <span class="badge-notion badge-notion-blue">Em Operacao</span>
+                                <span class="badge-notion badge-notion-gray">{{ eq.status }}</span>
                                 {% endif %}
                             </td>
                             <td>
-                                {% if eq.status == 'Em Operacao' %}
-                                <a href="/devolver/{{ eq.id }}" class="btn btn-secondary btn-sm" style="font-size:0.8rem; padding:4px 10px;" title="Registrar devolucao">
-                                    <i class="bi bi-arrow-return-left"></i> Devolver
+                                {% if eq.status in ('Em Operação', 'Em Operacao') %}
+                                <a href="/devolver/{{ eq.id }}" class="cv-btn-action cv-btn-action-secondary" style="height:28px; font-size:0.75rem; padding:0 8px;" title="Registrar devolução">
+                                    <i class="bi bi-arrow-return-left text-danger"></i> Devolver
                                 </a>
                                 {% else %}
-                                <span style="font-size:0.8125rem; color:var(--text-muted);"><i class="bi bi-check2 text-success me-1"></i>Na Base</span>
+                                <span style="font-size:0.8125rem; color:var(--text-muted); display:inline-flex; align-items:center; gap:4px;"><i class="bi bi-check2 text-success"></i> Na Base</span>
                                 {% endif %}
                             </td>
                         </tr>
@@ -387,12 +421,12 @@
                 <span class="badge-notion badge-notion-gray">{{ coordenadores|length }} cadastrados</span>
             </div>
             <div style="overflow-x:auto; max-height:220px; overflow-y:auto;">
-                <table class="table table-hover align-middle mb-0">
+                <table class="table table-hover align-middle table-enterprise mb-0">
                     <thead>
                         <tr>
                             <th class="ps-4">ID</th>
                             <th>Nome Completo</th>
-                            <th>CPF / Matricula</th>
+                            <th>CPF / Matrícula</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -401,7 +435,7 @@
                             <td class="ps-4"><code style="font-size:0.8rem;">#{{ coord.id }}</code></td>
                             <td>
                                 <div style="display:flex; align-items:center; gap:var(--space-2);">
-                                    <div style="width:26px;height:26px;border-radius:50%;background:var(--color-accent-bg);color:var(--color-accent-hover);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;flex-shrink:0;">
+                                    <div style="width:26px;height:26px;border-radius:50%;background:rgba(0, 200, 83, 0.12);color:var(--color-accent-hover);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;flex-shrink:0;">
                                         {{ coord.nome_completo[0]|upper if coord.nome_completo else '?' }}
                                     </div>
                                     <span style="font-weight:500; font-size:0.875rem;">{{ coord.nome_completo }}</span>
@@ -418,7 +452,7 @@
 </div>
 
 <!-- ============================================================ -->
-<!-- SECAO 3: Historico de Cautelas Geradas                       -->
+<!-- SEÇÃO 3: Histórico de Cautelas Geradas                       -->
 <!-- ============================================================ -->
 <div class="card" id="secaoCautelasAdmin">
     <div class="card-header">
@@ -428,30 +462,30 @@
             </div>
             <div>
                 <div style="font-size:0.9375rem; font-weight:600;">Cautelas Geradas & Termos Emitidos</div>
-                <div style="font-size:0.8125rem; color:var(--text-secondary);">Historico geral e acesso a PDFs</div>
+                <div style="font-size:0.8125rem; color:var(--text-secondary);">Histórico geral e acesso a PDFs</div>
             </div>
         </div>
         <div style="display:flex; align-items:center; gap:var(--space-3);">
             <span class="badge-notion badge-notion-gray">{{ cautelas|length }} cautela(s)</span>
-            <a href="/historico" class="btn btn-secondary btn-sm">
-                <i class="bi bi-clock-history"></i> Historico Completo
+            <a href="/historico" class="cv-btn-action cv-btn-action-secondary" style="height:32px;">
+                <i class="bi bi-clock-history"></i> Histórico Completo
             </a>
         </div>
     </div>
     <div style="overflow-x:auto;">
         {% if cautelas %}
-        <table class="table table-hover align-middle mb-0">
+        <table class="table table-hover align-middle table-enterprise mb-0">
             <thead>
                 <tr>
                     <th class="ps-4">Cautela</th>
                     <th>Chamado Vinculado</th>
-                    <th>Equipamento & Patrimonio</th>
+                    <th>Equipamento & Patrimônio</th>
                     <th>Coordenador</th>
                     <th>RDO</th>
-                    <th>Data de Saida</th>
+                    <th>Data de Saída</th>
                     <th>Status</th>
                     <th class="text-center">Termo PDF</th>
-                    <th class="text-center pe-4">Devolucao</th>
+                    <th class="text-center pe-4">Devolução</th>
                 </tr>
             </thead>
             <tbody>
@@ -496,8 +530,8 @@
                     </td>
                     <td class="text-center">
                         {% if c.pdf_nome %}
-                        <a href="/cautelas/{{ c.pdf_nome }}" target="_blank" class="btn btn-secondary btn-sm" style="font-size:0.8rem; padding:4px 10px;" title="Visualizar PDF">
-                            <i class="bi bi-file-earmark-pdf" style="color:var(--status-danger-text);"></i> PDF
+                        <a href="/cautelas/{{ c.pdf_nome }}" target="_blank" class="cv-btn-action cv-btn-action-secondary" style="height:28px; font-size:0.75rem; padding:0 8px;" title="Visualizar PDF">
+                            <i class="bi bi-file-earmark-pdf text-danger"></i> PDF
                         </a>
                         {% else %}
                         <span style="color:var(--text-muted);">-</span>
@@ -505,11 +539,11 @@
                     </td>
                     <td class="text-center pe-4">
                         {% if c.status == 'Em Campo' and c.id_equipamento %}
-                        <a href="/devolver/{{ c.id_equipamento }}" class="btn btn-secondary btn-sm" style="font-size:0.8rem; padding:4px 10px;" title="Registrar devolucao">
+                        <a href="/devolver/{{ c.id_equipamento }}" class="cv-btn-action cv-btn-action-secondary" style="height:28px; font-size:0.75rem; padding:0 8px;" title="Registrar devolução">
                             <i class="bi bi-arrow-return-left"></i> Devolver
                         </a>
                         {% else %}
-                        <span style="font-size:0.8125rem; color:var(--text-muted);"><i class="bi bi-check2 text-success me-1"></i>Concluido</span>
+                        <span style="font-size:0.8125rem; color:var(--text-muted);"><i class="bi bi-check2 text-success me-1"></i>Concluído</span>
                         {% endif %}
                     </td>
                 </tr>
@@ -520,7 +554,7 @@
         <div class="cv-empty-state">
             <div class="cv-empty-icon"><i class="bi bi-file-earmark-check"></i></div>
             <div class="cv-empty-title">Nenhuma cautela emitida</div>
-            <div class="cv-empty-text">Os termos de responsabilidade gerados aparecao aqui.</div>
+            <div class="cv-empty-text">Os termos de responsabilidade gerados aparecerão aqui.</div>
         </div>
         {% endif %}
     </div>
@@ -578,8 +612,13 @@
 
         if (!categoria || categoria === 'todos') {
             for (let i = 0; i < selectEq.options.length; i++) {
-                selectEq.options[i].hidden = false;
-                selectEq.options[i].disabled = false;
+                let opt = selectEq.options[i];
+                let st = (opt.getAttribute('data-status') || '').toLowerCase();
+                let isDisp = st.includes('dispon');
+                opt.hidden = false;
+                if (i > 0) {
+                    opt.disabled = !isDisp;
+                }
             }
             if (avisoFiltro) { avisoFiltro.className = 'd-none'; avisoFiltro.innerHTML = ''; }
             return;
@@ -590,16 +629,20 @@
         for (let i = 1; i < selectEq.options.length; i++) {
             let opt = selectEq.options[i];
             let catOpt = opt.getAttribute('data-categoria') || '';
-            let statusOpt = opt.getAttribute('data-status') || '';
+            let statusOpt = (opt.getAttribute('data-status') || '').toLowerCase();
+            let isDisponivel = statusOpt.includes('dispon');
 
             if (catOpt === categoria) {
-                opt.hidden = false; opt.disabled = false; totalCompativeis++;
-                if (statusOpt === 'Disponivel') {
+                opt.hidden = false;
+                opt.disabled = !isDisponivel;
+                totalCompativeis++;
+                if (isDisponivel) {
                     totalDisponiveis++;
                     if (primeiroDisponivelIndex === -1) primeiroDisponivelIndex = i;
                 }
             } else {
-                opt.hidden = true; opt.disabled = true;
+                opt.hidden = true;
+                opt.disabled = true;
             }
         }
 
@@ -612,10 +655,10 @@
                 avisoFiltro.innerHTML = `<i class="bi bi-x-circle me-1"></i> <strong>Nenhum equipamento</strong> do tipo '${tipoTexto}' cadastrado. Cadastre novo equipamento primeiro.`;
             } else if (totalDisponiveis === 0) {
                 avisoFiltro.className = 'alert alert-warning py-2 px-3 small mb-3';
-                avisoFiltro.innerHTML = `<i class="bi bi-exclamation-triangle me-1"></i> ${totalCompativeis} equipamento(s) '${tipoTexto}' cadastrado(s), mas <strong>nenhum disponivel</strong> no momento.`;
+                avisoFiltro.innerHTML = `<i class="bi bi-exclamation-triangle me-1"></i> ${totalCompativeis} equipamento(s) '${tipoTexto}' cadastrado(s), mas <strong>nenhum disponível</strong> no momento (todos em operação).`;
             } else {
                 avisoFiltro.className = 'alert alert-success py-2 px-3 small mb-3';
-                avisoFiltro.innerHTML = `<i class="bi bi-shield-check me-1"></i> <strong>Filtro Ativo:</strong> ${totalCompativeis} compativel(is) com <strong>${tipoTexto}</strong> (${totalDisponiveis} disponivel(is)).`;
+                avisoFiltro.innerHTML = `<i class="bi bi-shield-check me-1"></i> <strong>Filtro Ativo:</strong> ${totalCompativeis} compatível(is) com <strong>${tipoTexto}</strong> (${totalDisponiveis} disponível(is)).`;
             }
         }
     }
@@ -635,7 +678,7 @@
 
         if (selectEq.selectedIndex <= 0) {
             e.preventDefault();
-            alert('Por favor, selecione um equipamento valido na lista.');
+            alert('Por favor, selecione um equipamento válido na lista.');
             selectEq.focus();
             return false;
         }
@@ -643,7 +686,7 @@
         let opt = selectEq.options[selectEq.selectedIndex];
         if (opt.disabled) {
             e.preventDefault();
-            alert('O equipamento selecionado esta desabilitado ou indisponivel.');
+            alert('O equipamento selecionado está desabilitado ou indisponível.');
             return false;
         }
 
@@ -651,7 +694,7 @@
             let catSelecionada = opt.getAttribute('data-categoria');
             if (catSelecionada !== categoriaFiltroAtivo) {
                 e.preventDefault();
-                alert('Operacao bloqueada! O chamado exige "' + tipoSolicitadoAtivo + '", mas voce selecionou um equipamento incompativel.');
+                alert('Operação bloqueada! O chamado exige "' + tipoSolicitadoAtivo + '", mas você selecionou um equipamento incompatível.');
                 return false;
             }
         }
@@ -696,7 +739,7 @@
             if (isFinalizada && !deveExibir) finalizadasOcultas++;
         });
 
-        // Atualiza botao de toggle
+        // Atualiza botão de toggle
         const btnToggle = document.getElementById('btnToggleFinalizadosAdmin');
         const icone = document.getElementById('iconeToggleFinalizadosAdmin');
         const texto = document.getElementById('textoToggleFinalizadosAdmin');
@@ -768,7 +811,7 @@
         }
     }
 
-    // Carrega preferencia salva do usuario
+    // Carrega preferência salva do usuário
     if (localStorage.getItem('cavere_finalizados_fechados_admin') === '1') {
         finalizadosFechadosAdmin = true;
     }

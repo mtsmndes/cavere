@@ -14,7 +14,7 @@
         :root {
             --font-sans: 'Inter', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             --font-mono: 'JetBrains Mono', monospace;
-            --canvas: #f8fafc;
+            --canvas: #f1f5f9;
             --surface-card: #ffffff;
             --border-default: #e2e8f0;
             --border-input: #cbd5e1;
@@ -25,7 +25,7 @@
             --color-accent: #00C853;
             --color-accent-hover: #00b048;
             --color-accent-active: #009e40;
-            --color-accent-ring: rgba(0, 200, 83, 0.15);
+            --color-accent-ring: rgba(0, 200, 83, 0.18);
             --color-accent-bg: #f0fdf4;
             --status-purple-bg: #ede9fe;
             --status-purple-text: #6d28d9;
@@ -37,12 +37,14 @@
             --status-danger-text: #991b1b;
             --status-warn-bg: #fef9c3;
             --status-warn-text: #854d0e;
+            --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+            --space-5: 20px; --space-6: 24px; --space-8: 32px;
             --radius-sm: 6px;
             --radius-md: 8px;
-            --radius-card: 16px;
+            --radius-card: 14px;
             --radius-pill: 9999px;
-            --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 4px 10px -4px rgba(0, 0, 0, 0.02);
-            --shadow-btn: 0 4px 14px rgba(0, 200, 83, 0.3);
+            --shadow-card: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.05);
+            --shadow-elevated: 0 20px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.08);
         }
 
         *, *::before, *::after {
@@ -50,7 +52,7 @@
         }
 
         html, body {
-            height: 100%;
+            min-height: 100%;
             margin: 0;
             padding: 0;
         }
@@ -61,24 +63,17 @@
             color: var(--text-primary);
             -webkit-font-smoothing: antialiased;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-        }
-
-        .auth-wrapper {
-            width: 100%;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 40px 20px;
+            padding: var(--space-6) var(--space-4);
         }
 
         .auth-container {
             width: 100%;
-            max-width: 420px;
-            margin: 0 auto;
+            max-width: 400px;
+            margin: auto;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -87,24 +82,24 @@
         /* Branding Header */
         .auth-brand {
             text-align: center;
-            margin-bottom: 28px;
+            margin-bottom: var(--space-6);
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
         .auth-logo-icon {
-            width: 60px;
-            height: 60px;
+            width: 52px;
+            height: 52px;
             background: linear-gradient(135deg, var(--color-accent) 0%, #00e676 100%);
-            border-radius: 16px;
+            border-radius: var(--radius-card);
             display: flex;
             align-items: center;
             justify-content: center;
             color: #ffffff;
-            font-size: 1.75rem;
-            box-shadow: 0 8px 24px rgba(0, 200, 83, 0.28);
-            margin-bottom: 16px;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 16px rgba(0, 200, 83, 0.28);
+            margin-bottom: var(--space-3);
             transition: transform 0.2s ease;
         }
 
@@ -113,73 +108,48 @@
         }
 
         .auth-title {
-            font-size: 1.625rem;
-            font-weight: 800;
+            font-size: 1.5rem;
+            font-weight: 700;
             color: var(--text-primary);
             letter-spacing: -0.025em;
-            margin: 0 0 4px 0;
+            margin: 0 0 2px 0;
             line-height: 1.2;
         }
 
         .auth-subtitle {
-            font-size: 0.875rem;
+            font-size: 0.8125rem;
             color: var(--text-secondary);
             margin: 0;
-            font-weight: 400;
+            font-weight: 500;
         }
 
         /* Flash Messages */
         .auth-alerts {
             width: 100%;
-            margin-bottom: 20px;
+            margin-bottom: var(--space-4);
         }
 
         .auth-alert {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 12px 16px;
+            padding: 10px 14px;
             border-radius: var(--radius-md);
-            font-size: 0.875rem;
+            font-size: 0.8125rem;
             font-weight: 500;
             border: 1px solid transparent;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
-            margin-bottom: 10px;
+            margin-bottom: var(--space-2);
         }
 
-        .auth-alert-info {
-            background-color: var(--status-info-bg);
-            border-color: #bfdbfe;
-            color: var(--status-info-text);
-        }
-
-        .auth-alert-danger {
-            background-color: var(--status-danger-bg);
-            border-color: #fecaca;
-            color: var(--status-danger-text);
-        }
-
-        .auth-alert-success {
-            background-color: var(--status-success-bg);
-            border-color: #bbf7d0;
-            color: var(--status-success-text);
-        }
-
-        .auth-alert-warning {
-            background-color: var(--status-warn-bg);
-            border-color: #fef08a;
-            color: var(--status-warn-text);
-        }
+        .auth-alert-info    { background-color: var(--status-info-bg);    color: var(--status-info-text); }
+        .auth-alert-danger  { background-color: var(--status-danger-bg);  color: var(--status-danger-text); }
+        .auth-alert-success { background-color: var(--status-success-bg); color: var(--status-success-text); }
+        .auth-alert-warning { background-color: var(--status-warn-bg);    color: var(--status-warn-text); }
 
         .auth-alert .btn-close {
             margin-left: auto;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             padding: 4px;
-            opacity: 0.6;
-        }
-
-        .auth-alert .btn-close:hover {
-            opacity: 1;
         }
 
         /* Card */
@@ -193,95 +163,99 @@
         }
 
         .auth-card-body {
-            padding: 32px;
+            padding: var(--space-6);
         }
 
         .auth-card-heading {
-            margin-bottom: 24px;
+            margin-bottom: var(--space-5);
+            text-align: left;
         }
 
         .auth-card-title {
-            font-size: 1.1875rem;
+            font-size: 1.125rem;
             font-weight: 700;
             color: var(--text-primary);
             letter-spacing: -0.01em;
-            margin: 0 0 6px 0;
+            margin: 0 0 4px 0;
         }
 
         .auth-card-desc {
-            font-size: 0.875rem;
+            font-size: 0.8125rem;
             color: var(--text-secondary);
             margin: 0;
         }
 
         /* Form Controls */
         .form-group {
-            margin-bottom: 18px;
+            margin-bottom: var(--space-4);
         }
 
         .form-label {
             display: block;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #475569;
-            margin-bottom: 6px;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: #334155;
+            margin-bottom: var(--space-2);
         }
 
-        .input-group {
-            border-radius: var(--radius-md);
-            overflow: hidden;
+        .cv-input-box {
+            display: flex;
+            align-items: center;
+            height: 42px;
             border: 1px solid var(--border-input);
+            border-radius: var(--radius-md);
             background: #ffffff;
             transition: border-color 0.15s ease, box-shadow 0.15s ease;
+            overflow: hidden;
+            width: 100%;
         }
 
-        .input-group:focus-within {
+        .cv-input-box:focus-within {
             border-color: var(--color-accent) !important;
             box-shadow: 0 0 0 3px var(--color-accent-ring) !important;
         }
 
-        .input-group-text {
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            padding: 0 14px;
+        .cv-input-icon {
             display: flex;
             align-items: center;
-            font-size: 1.05rem;
-        }
-
-        .form-control {
-            border: none !important;
-            box-shadow: none !important;
-            height: 44px;
-            padding: 0 14px 0 0;
-            font-size: 0.9375rem;
-            color: var(--text-primary);
-            background: transparent;
-            font-family: var(--font-sans);
-        }
-
-        .form-control::placeholder {
+            justify-content: center;
+            width: 40px;
+            height: 100%;
             color: var(--text-muted);
-            font-size: 0.875rem;
+            font-size: 1rem;
+            flex-shrink: 0;
         }
 
-        .form-control:focus {
+        .cv-input-field {
+            flex: 1;
+            height: 100%;
+            border: none !important;
             outline: none !important;
             box-shadow: none !important;
-            border: none !important;
+            padding: 0 var(--space-3) 0 0;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            background: transparent;
+        }
+
+        .cv-input-field::placeholder {
+            color: var(--text-muted);
+            font-size: 0.8125rem;
         }
 
         .btn-toggle-pw {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 100%;
             background: transparent;
             border: none;
             color: var(--text-muted);
             cursor: pointer;
-            padding: 0 14px;
-            display: flex;
-            align-items: center;
+            padding: 0;
+            flex-shrink: 0;
             transition: color 0.15s ease;
         }
 
@@ -292,12 +266,12 @@
         /* Submit Button */
         .btn-submit {
             width: 100%;
-            height: 46px;
-            background: var(--color-accent);
+            height: 44px;
+            background: linear-gradient(135deg, #00C853 0%, #00b048 100%);
             color: #ffffff;
             border: none;
             border-radius: var(--radius-md);
-            font-size: 0.9375rem;
+            font-size: 0.875rem;
             font-weight: 600;
             font-family: var(--font-sans);
             display: flex;
@@ -306,60 +280,53 @@
             gap: 8px;
             cursor: pointer;
             transition: all 0.2s ease-in-out;
-            margin-top: 24px;
+            margin-top: var(--space-5);
+            box-shadow: 0 4px 12px rgba(0, 200, 83, 0.32);
         }
 
         .btn-submit:hover {
-            background: var(--color-accent-hover);
+            background: linear-gradient(135deg, #00b048 0%, #009e40 100%);
             transform: translateY(-1px);
-            box-shadow: var(--shadow-btn);
+            box-shadow: 0 6px 18px rgba(0, 200, 83, 0.42);
             color: #ffffff;
         }
 
         .btn-submit:active {
-            background: var(--color-accent-active);
             transform: translateY(0);
+            box-shadow: 0 2px 6px rgba(0, 200, 83, 0.3);
         }
 
         /* Card Footer */
         .auth-card-footer {
-            padding: 16px 32px;
+            padding: var(--space-3) var(--space-6);
             background: var(--canvas);
             border-top: 1px solid var(--border-subtle);
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 12px;
-            flex-wrap: wrap;
+            justify-content: space-between;
+            font-size: 0.75rem;
         }
 
         .badge-role {
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            padding: 3px 10px;
+            padding: 2px 8px;
             border-radius: var(--radius-pill);
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 600;
         }
 
-        .badge-admin {
-            background: var(--status-purple-bg);
-            color: var(--status-purple-text);
-        }
-
-        .badge-coord {
-            background: var(--status-info-bg);
-            color: var(--status-info-text);
-        }
+        .badge-admin { background: var(--status-purple-bg); color: var(--status-purple-text); }
+        .badge-coord { background: var(--status-info-bg);   color: var(--status-info-text); }
 
         /* System Footer */
         .auth-system-footer {
-            margin-top: 24px;
+            margin-top: var(--space-5);
             text-align: center;
             font-size: 0.75rem;
             color: var(--text-muted);
-            line-height: 1.6;
+            line-height: 1.5;
         }
 
         .auth-system-footer strong {
@@ -368,97 +335,96 @@
     </style>
 </head>
 <body>
-    <div class="auth-wrapper">
-        <div class="auth-container">
+    <div class="auth-container">
 
-            <!-- Flash Messages -->
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                <div class="auth-alerts">
-                    {% for category, message in messages %}
-                    <div class="auth-alert auth-alert-{{ category }} alert alert-dismissible fade show" role="alert">
-                        {% if category == 'success' %}
-                            <i class="bi bi-check2-circle fs-5 flex-shrink-0"></i>
-                        {% elif category == 'danger' %}
-                            <i class="bi bi-exclamation-octagon fs-5 flex-shrink-0"></i>
-                        {% elif category == 'warning' %}
-                            <i class="bi bi-exclamation-triangle fs-5 flex-shrink-0"></i>
-                        {% else %}
-                            <i class="bi bi-info-circle fs-5 flex-shrink-0"></i>
-                        {% endif %}
-                        <span>{{ message }}</span>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="auth-alerts">
+                {% for category, message in messages %}
+                <div class="auth-alert auth-alert-{{ category }} alert alert-dismissible fade show" role="alert">
+                    {% if category == 'success' %}
+                        <i class="bi bi-check2-circle fs-6 flex-shrink-0"></i>
+                    {% elif category == 'danger' %}
+                        <i class="bi bi-exclamation-octagon fs-6 flex-shrink-0"></i>
+                    {% elif category == 'warning' %}
+                        <i class="bi bi-exclamation-triangle fs-6 flex-shrink-0"></i>
+                    {% else %}
+                        <i class="bi bi-info-circle fs-6 flex-shrink-0"></i>
+                    {% endif %}
+                    <span>{{ message }}</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Branding Header -->
+        <div class="auth-brand">
+            <div class="auth-logo-icon">
+                <i class="bi bi-shield-check"></i>
+            </div>
+            <h1 class="auth-title">Cavere</h1>
+            <p class="auth-subtitle">Ambipar Response &bull; Controle de Cautelas</p>
+        </div>
+
+        <!-- Login Card -->
+        <div class="auth-card">
+            <div class="auth-card-body">
+                <div class="auth-card-heading">
+                    <h2 class="auth-card-title">Acessar o Sistema</h2>
+                    <p class="auth-card-desc">Entre com suas credenciais operacionais</p>
+                </div>
+
+                <form action="/login{% if request.args.get('next') %}?next={{ request.args.get('next') }}{% endif %}" method="POST" id="formLogin">
+                    <div class="form-group">
+                        <label class="form-label" for="inputUsername">Usuário</label>
+                        <div class="cv-input-box">
+                            <span class="cv-input-icon"><i class="bi bi-person"></i></span>
+                            <input type="text" class="cv-input-field" id="inputUsername" name="username"
+                                   placeholder="Digite seu login" required autofocus autocomplete="username">
+                        </div>
                     </div>
-                    {% endfor %}
-                </div>
-                {% endif %}
-            {% endwith %}
 
-            <!-- Branding Header -->
-            <div class="auth-brand">
-                <div class="auth-logo-icon">
-                    <i class="bi bi-shield-check"></i>
-                </div>
-                <h1 class="auth-title">Cavere</h1>
-                <p class="auth-subtitle">Ambipar Response &bull; Controle de Cautelas</p>
+                    <div class="form-group">
+                        <label class="form-label" for="inputSenha">Senha</label>
+                        <div class="cv-input-box">
+                            <span class="cv-input-icon"><i class="bi bi-lock"></i></span>
+                            <input type="password" class="cv-input-field" id="inputSenha" name="senha"
+                                   placeholder="Digite sua senha" required autocomplete="current-password">
+                            <button type="button" class="btn-toggle-pw" id="toggleSenha" title="Mostrar ou ocultar senha" tabindex="-1">
+                                <i class="bi bi-eye" id="iconeSenha"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-submit" id="btnAcessar">
+                        <span>Acessar o Sistema</span>
+                        <i class="bi bi-arrow-right-short fs-5"></i>
+                    </button>
+                </form>
             </div>
 
-            <!-- Login Card -->
-            <div class="auth-card">
-                <div class="auth-card-body">
-                    <div class="auth-card-heading">
-                        <h2 class="auth-card-title">Acessar o Sistema</h2>
-                        <p class="auth-card-desc">Entre com suas credenciais operacionais</p>
-                    </div>
-
-                    <form action="/login{% if request.args.get('next') %}?next={{ request.args.get('next') }}{% endif %}" method="POST" id="formLogin">
-                        <div class="form-group">
-                            <label class="form-label" for="inputUsername">Usuário</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-person"></i></span>
-                                <input type="text" class="form-control" id="inputUsername" name="username"
-                                       placeholder="Digite seu usuário" required autofocus autocomplete="username">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label" for="inputSenha">Senha</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                                <input type="password" class="form-control" id="inputSenha" name="senha"
-                                       placeholder="Digite sua senha" required autocomplete="current-password">
-                                <button type="button" class="btn-toggle-pw" id="toggleSenha" title="Mostrar/ocultar senha" tabindex="-1">
-                                    <i class="bi bi-eye" id="iconeSenha"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <button type="submit" class="btn-submit" id="btnAcessar">
-                            <span>Acessar o Sistema</span>
-                            <i class="bi bi-arrow-right-circle"></i>
-                        </button>
-                    </form>
-                </div>
-
-                <div class="auth-card-footer">
-                    <span style="font-size:0.8125rem; color:var(--text-muted);">Perfis de acesso:</span>
+            <div class="auth-card-footer">
+                <span style="color:var(--text-muted);">Perfis de Acesso:</span>
+                <div style="display:flex; gap:6px;">
                     <span class="badge-role badge-admin"><i class="bi bi-shield-lock me-1"></i>Admin</span>
                     <span class="badge-role badge-coord"><i class="bi bi-person-badge me-1"></i>Coordenador</span>
                 </div>
             </div>
-
-            <!-- System Footer -->
-            <div class="auth-system-footer">
-                <div><strong>Ambipar Response</strong> &bull; Base Operacional Niterói</div>
-                <div>Sistema protegido por autenticação segura &bull; &copy; 2026</div>
-            </div>
-
         </div>
+
+        <!-- System Footer -->
+        <div class="auth-system-footer">
+            <div><strong>Ambipar Response</strong> &bull; Base Operacional Niterói</div>
+            <div>Gestão de Ativos Operacionais &bull; &copy; 2026</div>
+        </div>
+
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Toggle password visibility
         const toggleBtn = document.getElementById('toggleSenha');
         const inputSenha = document.getElementById('inputSenha');
         const iconeSenha = document.getElementById('iconeSenha');
