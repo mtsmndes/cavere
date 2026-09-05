@@ -1,11 +1,35 @@
 # Sistema Cavere - Gestão e Controle de Cautelas - Ambipar Response
 import os
+import sys
 import sqlite3
+from contextlib import contextmanager
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory, flash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from weasyprint import HTML
+
+@contextmanager
+def suprimir_warnings_glib():
+    """
+    Suprime avisos e warnings de baixo nível (C/GLib/GIO) no Windows ao inicializar
+    ou executar WeasyPrint/GTK (como verificações de manifesto de apps UWP).
+    """
+    try:
+        devnull = os.open(os.devnull, os.O_WRONLY)
+        old_stderr = os.dup(2)
+        os.dup2(devnull, 2)
+        os.close(devnull)
+        try:
+            yield
+        finally:
+            os.dup2(old_stderr, 2)
+            os.close(old_stderr)
+    except Exception:
+        yield
+
+# Importa WeasyPrint de forma silenciosa para evitar ruído de GLib/GIO no console do Windows
+with suprimir_warnings_glib():
+    from weasyprint import HTML
 
 app = Flask(__name__)
 
@@ -311,7 +335,8 @@ def gerar_pdf_termo(rdo, sn, tipo, modelo, imei1, imei2, nome_coord, cpf_coord, 
     os.makedirs('Cautelas', exist_ok=True)
     nome_arquivo = f"Cautela_{rdo}_{sn}.pdf"
     caminho_arquivo = os.path.join('Cautelas', nome_arquivo)
-    HTML(string=html_content).write_pdf(caminho_arquivo)
+    with suprimir_warnings_glib():
+        HTML(string=html_content).write_pdf(caminho_arquivo)
     return nome_arquivo
 
 
@@ -347,6 +372,43 @@ def cadastrar_usuario():
     return render_template('cadastrar_usuario.html')
 
 
+def obter_categoria_equipamento(texto):
+    """
+    Identifica a categoria padronizada do equipamento a partir do nome ou descrição.
+    """
+    if not texto:
+        return 'outro'
+    t = texto.lower()
+    if any(k in t for k in ['radio', 'rádio', 'comunicador', 'vhf', 'uhf', 'ht', 'transceptor']):
+        return 'radio'
+    if any(k in t for k in ['celular', 'smartphone', 'telefone', 'ptt', 'iphone']):
+        return 'celular'
+    if any(k in t for k in ['camera', 'câmera', 'fotogr']):
+        return 'camera'
+    if any(k in t for k in ['tablet', 'ipad', 'rugged']):
+        return 'tablet'
+    if any(k in t for k in ['detector', 'multigás', 'multigas', 'gás', 'gas']):
+        return 'detector'
+    if any(k in t for k in ['notebook', 'laptop', 'computador']):
+        return 'notebook'
+    return 'outro'
+
+
+def tipos_sao_compativeis(tipo_equip, tipo_solicitado):
+    """
+    Verifica se o tipo de equipamento físico corresponde ao solicitado no chamado.
+    """
+    if not tipo_equip or not tipo_solicitado:
+        return True
+    cat1 = obter_categoria_equipamento(tipo_equip)
+    cat2 = obter_categoria_equipamento(tipo_solicitado)
+    if cat1 != 'outro' and cat2 != 'outro':
+        return cat1 == cat2
+    t1 = tipo_equip.lower().strip()
+    t2 = tipo_solicitado.lower().strip()
+    return t1 in t2 or t2 in t1 or cat1 == cat2
+
+
 # --- ROTAS PRINCIPAIS DO SISTEMA ---
 
 # Rota Principal (Painel de Controle do Administrador)
@@ -357,11 +419,28 @@ def home():
     
     # Busca equipamentos para a listagem
     cursor.execute('SELECT id, tipo, modelo, patrimonio_sn, imei_1, imei_2, status FROM equipamentos ORDER BY id DESC')
-    equipamentos = cursor.fetchall()
+    equipamentos_raw = cursor.fetchall()
+    equipamentos = []
+    for eq in equipamentos_raw:
+        equipamentos.append({
+            'id': eq[0],
+            'tipo': eq[1],
+            'modelo': eq[2],
+            'patrimonio_sn': eq[3],
+            'imei_1': eq[4],
+            'imei_2': eq[5],
+            'status': eq[6],
+            'categoria': obter_categoria_equipamento(eq[1])
+        })
     
     # Busca coordenadores para a listagem
     cursor.execute('SELECT id, nome_completo, cpf_matricula FROM coordenadores ORDER BY id DESC')
-    coordenadores = cursor.fetchall()
+    coordenadores_raw = cursor.fetchall()
+    coordenadores = [{
+        'id': co[0],
+        'nome_completo': co[1],
+        'cpf_matricula': co[2]
+    } for co in coordenadores_raw]
 
     # Busca solicitações recentes de equipamentos (chamados abertos por coordenadores)
     cursor.execute('''
@@ -374,7 +453,64 @@ def home():
         LEFT JOIN usuarios u ON s.id_coordenador = u.id
         ORDER BY s.id DESC
     ''')
-    solicitacoes = cursor.fetchall()
+    solicitacoes_raw = cursor.fetchall()
+
+    solicitacoes = []
+    for s in solicitacoes_raw:
+        id_sol = s[0]
+        qtd_total = s[3]
+        
+        # Busca os itens individuais já emitidos em cautelas para este chamado
+        cursor.execute('''
+            SELECT c.id_cautela, e.tipo, e.modelo, e.patrimonio_sn, c.data_hora_saida, c.data_hora_devolucao
+            FROM cautelas c
+            JOIN equipamentos e ON c.id_equipamento = e.id
+            WHERE c.id_solicitacao = ?
+            ORDER BY c.id_cautela ASC
+        ''', (id_sol,))
+        itens_raw = cursor.fetchall()
+        
+        itens_emitidos = []
+        for it in itens_raw:
+            itens_emitidos.append({
+                'id_cautela': it[0],
+                'tipo': it[1],
+                'modelo': it[2],
+                'patrimonio_sn': it[3],
+                'data_saida': it[4],
+                'devolvido': bool(it[5])
+            })
+        
+        qtd_emitida = len(itens_emitidos)
+        qtd_restante = max(0, qtd_total - qtd_emitida)
+        
+        status_atual = s[8]
+        if status_atual not in ('Finalizada', 'Concluído', 'Finalizado', 'Devolvido'):
+            if qtd_emitida >= qtd_total and qtd_total > 0:
+                status_atual = 'Esperando Entrega'
+            elif qtd_emitida > 0:
+                status_atual = 'Em Atendimento'
+            else:
+                status_atual = 'Pendente'
+
+        solicitacoes.append({
+            'id': id_sol,
+            'nome_coord': s[1],
+            'tipo_equipamento': s[2],
+            'categoria': obter_categoria_equipamento(s[2]),
+            'quantidade_total': qtd_total,
+            'destinatario': s[4],
+            'plataforma': s[5],
+            'rdo': s[6] or '-',
+            'prioridade': s[7],
+            'status': status_atual,
+            'data_criacao': s[9],
+            'id_coordenador': s[10],
+            'itens_emitidos': itens_emitidos,
+            'qtd_emitida': qtd_emitida,
+            'qtd_restante': qtd_restante,
+            'concluida': qtd_emitida >= qtd_total
+        })
 
     # Busca cautelas geradas com detalhes e link de PDF para o dashboard do administrador
     cursor.execute('''
@@ -464,9 +600,19 @@ def gerar():
 
         tipo, modelo, sn, imei1, imei2, status_equip = equip
         coord_id, nome_coord, cpf_coord = coord
-        
-        # 3. Registra na tabela cautelas
         id_sol_int = int(id_solicitacao) if id_solicitacao and id_solicitacao.isdigit() else None
+
+        # Validação estrita: recusar se o tipo de equipamento não bater com o solicitado
+        if id_sol_int:
+            cursor.execute('SELECT tipo_equipamento, quantidade FROM solicitacoes WHERE id = ?', (id_sol_int,))
+            sol_row = cursor.fetchone()
+            if sol_row:
+                tipo_pedido, qtd_pedida = sol_row
+                if not tipos_sao_compativeis(tipo, tipo_pedido):
+                    flash(f"❌ Equipamento recusado! A solicitação #SOL-{id_sol_int} exige '{tipo_pedido}', mas você selecionou '{tipo} ({modelo})'. Só é permitido vincular equipamentos compatíveis com a solicitação.", "danger")
+                    return redirect(url_for('home'))
+
+        # 3. Registra na tabela cautelas
         cursor.execute('''
             INSERT INTO cautelas (id_equipamento, id_coordenador, rdo_vinculado, id_solicitacao) 
             VALUES (?, ?, ?, ?)
@@ -475,25 +621,31 @@ def gerar():
         # Atualiza status do equipamento para 'Em Operação'
         cursor.execute("UPDATE equipamentos SET status = 'Em Operação' WHERE id = ?", (id_equipamento,))
 
-        # 4. Atualiza o status da solicitação vinculada para 'Esperando Entrega'
+        # 4. Atualiza o status da solicitação vinculada e contabiliza itens emitidos vs faltantes
+        msg_progresso = ""
         if id_sol_int:
-            cursor.execute("UPDATE solicitacoes SET status = 'Esperando Entrega' WHERE id = ?", (id_sol_int,))
+            cursor.execute('SELECT COUNT(*) FROM cautelas WHERE id_solicitacao = ?', (id_sol_int,))
+            total_emitidos = cursor.fetchone()[0]
+            cursor.execute('SELECT quantidade FROM solicitacoes WHERE id = ?', (id_sol_int,))
+            row_q = cursor.fetchone()
+            qtd_solicitada = row_q[0] if row_q else 1
+
+            if total_emitidos >= qtd_solicitada:
+                cursor.execute("UPDATE solicitacoes SET status = 'Esperando Entrega' WHERE id = ?", (id_sol_int,))
+                msg_progresso = f"Todos os {qtd_solicitada} itens solicitados foram emitidos! O chamado agora está 'Esperando Entrega'."
+            else:
+                cursor.execute("UPDATE solicitacoes SET status = 'Em Atendimento' WHERE id = ?", (id_sol_int,))
+                faltam = qtd_solicitada - total_emitidos
+                msg_progresso = f"Item {total_emitidos} de {qtd_solicitada} emitido com sucesso! Faltam ainda {faltam} item(ns) para completar a solicitação #SOL-{id_sol_int}."
         else:
-            # Tenta vincular e atualizar solicitação pendente do mesmo coordenador e RDO
-            cursor.execute('''
-                UPDATE solicitacoes 
-                SET status = 'Esperando Entrega' 
-                WHERE (id_coordenador = ? OR id_coordenador = ?) 
-                  AND (rdo_projeto = ? OR rdo_projeto IS NULL OR rdo_projeto = '')
-                  AND status = 'Pendente'
-            ''', (id_coordenador, coord_id, rdo))
+            msg_progresso = "Cautela gerada com sucesso."
 
         conexao.commit()
         
         # 5. Gera e salva o PDF na pasta Cautelas
         nome_arquivo = gerar_pdf_termo(rdo, sn, tipo, modelo, imei1, imei2, nome_coord, cpf_coord)
         
-        flash(f"✅ Termo de Cautela gerado com sucesso para {nome_coord}! Status da solicitação alterado para 'Esperando Entrega'. Arquivo: {nome_arquivo}", "success")
+        flash(f"✅ Termo gerado com sucesso para {nome_coord} ({tipo} {modelo} - SN: {sn})! {msg_progresso}", "success")
         
     except Exception as e:
         flash(f"❌ Erro ao gerar cautela: {e}", "danger")
@@ -699,7 +851,7 @@ def meus_chamados():
     # 3. Busca no SQLite (tabela cautelas) os registros emitidos pertencentes ao coordenador logado
     cursor.execute('''
         SELECT c.id_cautela, e.tipo, e.modelo, e.patrimonio_sn, co.nome_completo,
-               c.rdo_vinculado, c.data_hora_saida, c.data_hora_devolucao, e.status, c.observacoes
+                c.rdo_vinculado, c.data_hora_saida, c.data_hora_devolucao, e.status, c.observacoes
         FROM cautelas c
         LEFT JOIN equipamentos e ON c.id_equipamento = e.id
         LEFT JOIN coordenadores co ON c.id_coordenador = co.id
@@ -707,7 +859,6 @@ def meus_chamados():
         ORDER BY c.id_cautela DESC
     ''', (id_coordenador, current_user.id))
     registros_cautelas = cursor.fetchall()
-    conexao.close()
 
     contadores = {'Pendente': 0, 'Esperando Entrega': 0, 'Em Operação': 0, 'Finalizada': 0, 'Total': 0}
 
@@ -716,15 +867,34 @@ def meus_chamados():
     for s in solicitacoes_rows:
         id_sol, tipo_eq, qtd, dest, plat, rdo_proj, dt_nec, prio, just, st, dt_cria = s
 
+        # Busca itens já emitidos para esta solicitação
+        cursor.execute('''
+            SELECT c.id_cautela, e.tipo, e.modelo, e.patrimonio_sn, c.data_hora_saida
+            FROM cautelas c
+            JOIN equipamentos e ON c.id_equipamento = e.id
+            WHERE c.id_solicitacao = ?
+            ORDER BY c.id_cautela ASC
+        ''', (id_sol,))
+        itens_raw = cursor.fetchall()
+        itens_emitidos = [{
+            'id_cautela': it[0],
+            'tipo': it[1],
+            'modelo': it[2],
+            'patrimonio_sn': it[3],
+            'data_saida': it[4]
+        } for it in itens_raw]
+        qtd_emitida = len(itens_emitidos)
+        qtd_restante = max(0, qtd - qtd_emitida)
+
         if st in ('Devolvido', 'Concluído', 'Finalizado', 'Finalizada'):
             st_label = 'Finalizada'
             badge_class = 'bg-success'
             timeline_step = 3
-        elif st == 'Esperando Entrega':
+        elif st == 'Esperando Entrega' or (qtd_emitida >= qtd and qtd > 0):
             st_label = 'Esperando Entrega'
             badge_class = 'bg-warning text-dark'
             timeline_step = 2
-        elif st in ('Em Operação', 'Em Atendimento', 'Aprovado'):
+        elif st in ('Em Operação', 'Em Atendimento', 'Aprovado') or qtd_emitida > 0:
             st_label = 'Em Operação'
             badge_class = 'bg-primary'
             timeline_step = 2
@@ -751,8 +921,13 @@ def meus_chamados():
             'status': st_label,
             'badge_class': badge_class,
             'timeline_step': timeline_step,
-            'data_criacao': dt_cria
+            'data_criacao': dt_cria,
+            'itens_emitidos': itens_emitidos,
+            'qtd_emitida': qtd_emitida,
+            'qtd_restante': qtd_restante
         })
+
+    conexao.close()
 
     # Formata cautelas de equipamentos já emitidas
     chamados = []

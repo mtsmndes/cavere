@@ -206,6 +206,24 @@
                         {% if s.rdo and s.rdo != 'N/A' %}
                         <div class="text-muted small" style="font-size: 0.76rem;">RDO: <code>{{ s.rdo }}</code></div>
                         {% endif %}
+
+                        {% if s.itens_emitidos %}
+                        <div class="d-flex flex-wrap gap-1 mt-1">
+                            {% for it in s.itens_emitidos %}
+                            <span class="badge-notion badge-notion-green py-0 px-2" style="font-size: 0.70rem;" title="Emitido em {{ it.data_saida }}">
+                                <i class="bi bi-check2 me-1"></i>#CAU-{{ it.id_cautela }}: {{ it.modelo or it.tipo }} (SN: <code>{{ it.patrimonio_sn }}</code>)
+                            </span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        {% if s.qtd_restante and s.qtd_restante > 0 and s.qtd_emitida and s.qtd_emitida > 0 %}
+                        <div class="mt-1">
+                            <span class="badge-notion badge-notion-orange py-0 px-2" style="font-size: 0.70rem;">
+                                <i class="bi bi-hourglass-split me-1"></i>Faltam {{ s.qtd_restante }} item(ns)
+                            </span>
+                        </div>
+                        {% endif %}
                     </td>
                     <td>
                         <div style="color: #373530;"><i class="bi bi-person text-muted me-1"></i>{{ s.destinatario }}</div>
