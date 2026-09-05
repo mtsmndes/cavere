@@ -6,26 +6,26 @@
         <h4 class="fw-bold mb-0" style="color: #373530; letter-spacing: -0.01em;">
             <i class="bi bi-grid-1x2 me-2 text-secondary"></i>Painel Principal de Operações
         </h4>
-        <small class="text-muted">Visão integrada de chamados, controle de cautelas e ativos</small>
+        <small class="text-muted">Visão integrada de chamados, controle de cautelas e gestão de ativos</small>
     </div>
     <div class="d-flex gap-2">
         <a href="/novo-equipamento" class="btn btn-notion-secondary btn-sm">
-            <i class="bi bi-plus-lg me-1"></i> Equipamento
+            <i class="bi bi-plus-lg me-1"></i> Novo Equipamento
         </a>
-        <a href="/novo-coordenador" class="btn btn-notion-secondary btn-sm">
-            <i class="bi bi-person-plus me-1"></i> Coordenador
+        <a href="/cadastrar-usuario" class="btn btn-notion-brand btn-sm">
+            <i class="bi bi-person-plus me-1"></i> Cadastrar Usuário / Coordenador
         </a>
     </div>
 </div>
 
-<!-- Seção Superior: Solicitações Recentes de Coordenadores (Service Desk) -->
+<!-- Seção 1: Solicitações de Coordenadores (Service Desk / Chamados) -->
 <div class="card mb-4">
     <div class="card-header d-flex justify-content-between align-items-center">
         <div class="d-flex align-items-center gap-2">
             <i class="bi bi-inbox text-secondary fs-5"></i>
             <div>
                 <span class="fw-semibold" style="color: #373530;">Solicitações de Equipamentos</span>
-                <span class="text-muted fw-normal small ms-2">&bull; Chamados de Coordenadores</span>
+                <span class="text-muted fw-normal small ms-2">&bull; Chamados Operacionais</span>
             </div>
         </div>
         <span class="badge-notion badge-notion-gray">
@@ -44,8 +44,8 @@
                     <th>Plataforma / Base</th>
                     <th>RDO</th>
                     <th>Prioridade</th>
-                    <th>Status</th>
-                    <th class="text-center">Ação</th>
+                    <th>Status do Chamado</th>
+                    <th class="text-center">Ação Operacional</th>
                 </tr>
             </thead>
             <tbody>
@@ -71,18 +71,29 @@
                     </td>
                     <td>
                         {% if s[8] == 'Pendente' %}
-                        <span class="badge-notion badge-notion-orange">Pendente</span>
-                        {% elif s[8] == 'Em Operação' %}
-                        <span class="badge-notion badge-notion-blue">Em Operação</span>
+                        <span class="badge-notion badge-notion-orange"><i class="bi bi-hourglass-split me-1"></i>Pendente</span>
+                        {% elif s[8] == 'Esperando Entrega' %}
+                        <span class="badge-notion badge-notion-purple"><i class="bi bi-box-seam me-1"></i>Esperando Entrega</span>
+                        {% elif s[8] in ('Finalizada', 'Concluído', 'Finalizado', 'Devolvido') %}
+                        <span class="badge-notion badge-notion-green"><i class="bi bi-check-circle me-1"></i>Finalizada</span>
                         {% else %}
-                        <span class="badge-notion badge-notion-green">Concluído</span>
+                        <span class="badge-notion badge-notion-blue"><i class="bi bi-broadcast me-1"></i>Em Operação</span>
                         {% endif %}
                     </td>
                     <td class="text-center">
+                        {% if s[8] == 'Pendente' %}
                         <button type="button" class="btn btn-notion-secondary btn-sm py-1 px-2" 
-                                onclick="preencherCautela('{{ s[10] }}', '{{ s[6] }}')" title="Preencher dados na emissão">
+                                onclick="preencherCautela('{{ s[0] }}', '{{ s[10] }}', '{{ s[6] }}', '{{ s[2] }}', '{{ s[1] }}')" title="Preencher dados para emissão da cautela">
                             <i class="bi bi-arrow-down-right me-1"></i> Atender
                         </button>
+                        {% elif s[8] == 'Esperando Entrega' %}
+                        <a href="/solicitacao/entregar/{{ s[0] }}" class="btn btn-notion-brand btn-sm py-1 px-3 d-inline-flex align-items-center gap-1" title="Marcar equipamento como entregue e finalizar chamado">
+                            <i class="bi bi-box-seam"></i>
+                            <span>Equipamento Entregue</span>
+                        </a>
+                        {% else %}
+                        <span class="text-muted small"><i class="bi bi-check2-all text-success me-1"></i>Finalizado</span>
+                        {% endif %}
                     </td>
                 </tr>
                 {% endfor %}
@@ -90,15 +101,107 @@
         </table>
         {% else %}
         <div class="p-4 text-center text-muted small">
-            Nenhuma solicitação pendente no momento.
+            Nenhuma solicitação no momento.
         </div>
         {% endif %}
     </div>
 </div>
 
+<!-- Seção 2: Cautelas Geradas & Termos Emitidos (Visão Completa do Administrador) -->
+<div class="card mb-4" id="secaoCautelasAdmin">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-file-earmark-check text-secondary fs-5"></i>
+            <div>
+                <span class="fw-semibold" style="color: #373530;">Cautelas Geradas & Termos Emitidos</span>
+                <span class="text-muted fw-normal small ms-2">&bull; Acesso direto a documentos e controle de saída</span>
+            </div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge-notion badge-notion-gray">{{ cautelas|length }} cautela(s)</span>
+            <a href="/historico" class="btn btn-notion-secondary btn-sm py-1 px-2" style="font-size: 0.78rem;">
+                <i class="bi bi-clock-history me-1"></i> Histórico Completo
+            </a>
+        </div>
+    </div>
+    <div class="card-body p-0 table-responsive">
+        {% if cautelas %}
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th class="ps-3">Cautela</th>
+                    <th>Equipamento & Patrimônio</th>
+                    <th>Coordenador Responsável</th>
+                    <th>RDO Vinculado</th>
+                    <th>Data de Saída</th>
+                    <th>Status</th>
+                    <th class="text-center">Termo de Cautela</th>
+                    <th class="text-center">Devolução</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in cautelas %}
+                <tr>
+                    <td class="ps-3 fw-semibold text-secondary">#CAU-{{ c.id }}</td>
+                    <td>
+                        <strong style="color: #373530;">{{ c.tipo }}</strong>
+                        <span class="text-muted small ms-1">({{ c.modelo }})</span>
+                        <div class="text-muted small" style="font-size: 0.74rem;">SN: <code>{{ c.patrimonio_sn }}</code></div>
+                    </td>
+                    <td>
+                        <i class="bi bi-person text-muted me-1"></i>{{ c.coordenador }}
+                    </td>
+                    <td>
+                        <code style="color: #373530; background: #f1f1ef; padding: 2px 6px; border-radius: 4px;">{{ c.rdo }}</code>
+                    </td>
+                    <td>
+                        <div class="small">{{ c.data_saida }}</div>
+                        {% if c.data_devolucao %}
+                        <div class="text-muted small" style="font-size: 0.72rem;">Devolvido: {{ c.data_devolucao }}</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if c.status == 'Devolvido' %}
+                        <span class="badge-notion badge-notion-green">Devolvido</span>
+                        {% else %}
+                        <span class="badge-notion badge-notion-blue">Em Campo</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        {% if c.pdf_nome %}
+                        <a href="/cautelas/{{ c.pdf_nome }}" target="_blank" 
+                           class="btn btn-notion-secondary btn-sm py-1 px-2" style="font-size: 0.78rem;" title="Visualizar ou baixar PDF do Termo">
+                            <i class="bi bi-file-earmark-pdf text-danger me-1"></i> Termo PDF
+                        </a>
+                        {% else %}
+                        <span class="text-muted small">-</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        {% if c.status == 'Em Campo' and c.id_equipamento %}
+                        <a href="/devolver/{{ c.id_equipamento }}" class="btn btn-notion-secondary btn-sm py-1 px-2" style="font-size: 0.78rem;" title="Registrar devolução do equipamento">
+                            <i class="bi bi-arrow-return-left me-1"></i> Devolver
+                        </a>
+                        {% else %}
+                        <span class="text-muted small"><i class="bi bi-check2 text-success me-1"></i>Concluído</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="p-4 text-center text-muted small">
+            Nenhuma cautela emitida no momento.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Seção 3: Formulário de Emissão & Bases de Dados (Equipamentos e Coordenadores) -->
 <div class="row g-4">
     <!-- Formulário de Cautela Estilo Bloco Notion -->
-    <div class="col-lg-4">
+    <div class="col-lg-5">
         <div class="card mb-4" id="secaoFormCautela">
             <div class="card-header">
                 <div class="d-flex align-items-center gap-2">
@@ -107,20 +210,50 @@
                 </div>
             </div>
             <div class="card-body">
+                <!-- Banner de Atendimento Ativo -->
+                <div id="bannerAtendimento" class="alert alert-info py-2 px-3 small d-none mb-3 align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-link-45deg fs-6 text-primary"></i>
+                        <span id="textoBannerAtendimento">Atendendo Chamado</span>
+                    </div>
+                    <button type="button" class="btn btn-sm py-0 px-2 btn-outline-secondary" onclick="limparAtendimento()" title="Desvincular chamado">
+                        Limpar
+                    </button>
+                </div>
+
                 <form action="/gerar" method="POST" id="formCautela">
+                    <input type="hidden" name="id_solicitacao" id="campoIdSolicitacao" value="">
+
                     <div class="mb-3">
-                        <label class="form-label">ID do Equipamento</label>
-                        <input type="number" class="form-control" name="id_equipamento" placeholder="Ex: 1" required>
-                        <div class="form-text text-muted" style="font-size: 0.75rem;">Consulte o ID na tabela ao lado.</div>
+                        <label class="form-label">Equipamento para Cautela</label>
+                        <select class="form-select" name="id_equipamento" id="campoIdEquipamento" required>
+                            <option value="" disabled selected>Selecione um equipamento...</option>
+                            {% for eq in equipamentos %}
+                            <option value="{{ eq[0] }}" data-tipo="{{ eq[1] }}" {% if eq[6] != 'Disponível' %}class="text-muted bg-light"{% endif %}>
+                                #{{ eq[0] }} - {{ eq[1] }} ({{ eq[2] }} | SN: {{ eq[3] }}) &bull; [{{ eq[6] }}]
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text text-muted" style="font-size: 0.74rem;">Equipamentos em operação podem ser selecionados caso haja troca técnica.</div>
                     </div>
+
                     <div class="mb-3">
-                        <label class="form-label">ID do Coordenador</label>
-                        <input type="number" class="form-control" name="id_coordenador" id="campoIdCoordenador" placeholder="Ex: 1" required>
+                        <label class="form-label">Coordenador Responsável</label>
+                        <select class="form-select" name="id_coordenador" id="campoIdCoordenador" required>
+                            <option value="" disabled selected>Selecione o coordenador...</option>
+                            {% for coord in coordenadores %}
+                            <option value="{{ coord[0] }}">
+                                #{{ coord[0] }} - {{ coord[1] }} (Matrícula/CPF: {{ coord[2] }})
+                            </option>
+                            {% endfor %}
+                        </select>
                     </div>
+
                     <div class="mb-3">
-                        <label class="form-label">Número do RDO</label>
+                        <label class="form-label">Número do RDO / Projeto</label>
                         <input type="text" class="form-control" name="rdo" id="campoRdo" placeholder="Ex: RDO-2026-0905" required>
                     </div>
+
                     <button type="submit" class="btn btn-notion-brand w-100 py-2 d-flex align-items-center justify-content-center gap-2">
                         <i class="bi bi-file-earmark-pdf"></i>
                         <span>Gerar Cautela & PDF</span>
@@ -130,17 +263,17 @@
         </div>
     </div>
 
-    <div class="col-lg-8">
+    <div class="col-lg-7">
         <!-- Tabela de Equipamentos Cadastrados (Database Notion) -->
         <div class="card mb-4">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <div class="d-flex align-items-center gap-2">
                     <i class="bi bi-hdd-stack text-secondary"></i>
                     <span class="fw-semibold">Base de Equipamentos</span>
                 </div>
                 <span class="badge-notion badge-notion-gray">{{ equipamentos|length }} cadastrados</span>
             </div>
-            <div class="card-body p-0 table-responsive">
+            <div class="card-body p-0 table-responsive" style="max-height: 280px; overflow-y: auto;">
                 <table class="table table-hover align-middle">
                     <thead>
                         <tr>
@@ -169,7 +302,7 @@
                             </td>
                             <td>
                                 {% if eq[6] == 'Em Operação' %}
-                                <a href="/devolver/{{ eq[0] }}" class="btn btn-notion-secondary btn-sm py-1 px-2">
+                                <a href="/devolver/{{ eq[0] }}" class="btn btn-notion-secondary btn-sm py-0 px-2" style="font-size: 0.75rem;">
                                     <i class="bi bi-arrow-return-left me-1"></i> Devolver
                                 </a>
                                 {% else %}
@@ -185,14 +318,14 @@
 
         <!-- Tabela de Coordenadores Cadastrados -->
         <div class="card">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <div class="d-flex align-items-center gap-2">
                     <i class="bi bi-people text-secondary"></i>
                     <span class="fw-semibold">Coordenadores Registrados</span>
                 </div>
-                <span class="badge-notion badge-notion-gray">{{ coordenadores|length }} pessoas</span>
+                <span class="badge-notion badge-notion-gray">{{ coordenadores|length }} cadastrados</span>
             </div>
-            <div class="card-body p-0 table-responsive">
+            <div class="card-body p-0 table-responsive" style="max-height: 220px; overflow-y: auto;">
                 <table class="table table-hover align-middle">
                     <thead>
                         <tr>
@@ -217,14 +350,57 @@
 </div>
 
 <script>
-    function preencherCautela(idCoord, rdo) {
+    function preencherCautela(idSol, idCoord, rdo, tipoEq, nomeCoord) {
+        document.getElementById('campoIdSolicitacao').value = idSol || '';
+        
+        // Seleciona o coordenador no dropdown
         if (idCoord && idCoord !== 'None') {
-            document.getElementById('campoIdCoordenador').value = idCoord;
+            let selectCoord = document.getElementById('campoIdCoordenador');
+            for (let i = 0; i < selectCoord.options.length; i++) {
+                if (selectCoord.options[i].value == idCoord) {
+                    selectCoord.selectedIndex = i;
+                    break;
+                }
+            }
         }
+        
+        // Preenche o RDO
         if (rdo && rdo !== 'None' && rdo !== 'N/A') {
             document.getElementById('campoRdo').value = rdo;
         }
+
+        // Tenta sugerir um equipamento disponível compatível com o tipo solicitado
+        if (tipoEq) {
+            let selectEq = document.getElementById('campoIdEquipamento');
+            let tipoBusca = tipoEq.toLowerCase().split(' ')[0].replace(/[^a-z]/g, '');
+            for (let i = 0; i < selectEq.options.length; i++) {
+                let optText = selectEq.options[i].innerText.toLowerCase();
+                if (optText.includes(tipoBusca) && optText.includes('disponível')) {
+                    selectEq.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+
+        // Exibe o banner informativo no formulário
+        let banner = document.getElementById('bannerAtendimento');
+        let texto = document.getElementById('textoBannerAtendimento');
+        if (banner && texto) {
+            texto.innerHTML = `Atendendo chamado <strong>#SOL-${idSol}</strong> &bull; ${nomeCoord || 'Coordenador'} (Item: ${tipoEq || 'Equipamento'})`;
+            banner.classList.remove('d-none');
+            banner.classList.add('d-flex');
+        }
+
         document.getElementById('secaoFormCautela').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function limparAtendimento() {
+        document.getElementById('campoIdSolicitacao').value = '';
+        let banner = document.getElementById('bannerAtendimento');
+        if (banner) {
+            banner.classList.add('d-none');
+            banner.classList.remove('d-flex');
+        }
     }
 </script>
 {% endblock %}

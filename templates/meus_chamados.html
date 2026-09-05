@@ -159,8 +159,8 @@
             <div class="btn-group btn-group-sm" role="group">
                 <button type="button" class="btn btn-notion-secondary active" onclick="filtrarPorStatus('Todos', this)">Todos</button>
                 <button type="button" class="btn btn-notion-secondary" onclick="filtrarPorStatus('Pendente', this)">Pendente</button>
-                <button type="button" class="btn btn-notion-secondary" onclick="filtrarPorStatus('Em Operação', this)">Em Operação</button>
-                <button type="button" class="btn btn-notion-secondary" onclick="filtrarPorStatus('Devolvido', this)">Devolvido</button>
+                <button type="button" class="btn btn-notion-secondary" onclick="filtrarPorStatus('Esperando Entrega', this)">Esperando Entrega</button>
+                <button type="button" class="btn btn-notion-secondary" onclick="filtrarPorStatus('Finalizada', this)">Finalizada</button>
             </div>
         </div>
     </div>
@@ -218,20 +218,24 @@
                     </td>
                     <td class="text-center">
                         <div class="notion-stepper">
-                            <span class="step-pill {% if s.timeline_step >= 1 %}active{% endif %}">1. Solicitação</span>
+                            <span class="step-pill {% if s.timeline_step >= 1 %}active{% endif %}">1. Solicitado</span>
                             <span class="step-divider">&rsaquo;</span>
-                            <span class="step-pill {% if s.timeline_step >= 2 %}{% if s.timeline_step == 3 %}completed{% else %}active{% endif %}{% endif %}">2. Em Atendimento</span>
+                            <span class="step-pill {% if s.timeline_step >= 2 %}{% if s.timeline_step == 3 %}completed{% else %}active{% endif %}{% endif %}">
+                                {% if s.status == 'Esperando Entrega' %}2. Cautela Emitida{% else %}2. Em Atendimento{% endif %}
+                            </span>
                             <span class="step-divider">&rsaquo;</span>
-                            <span class="step-pill {% if s.timeline_step == 3 %}completed{% endif %}">3. Concluído</span>
+                            <span class="step-pill {% if s.timeline_step == 3 %}completed{% endif %}">3. Entregue</span>
                         </div>
                     </td>
                     <td>
                         {% if s.status == 'Pendente' %}
-                        <span class="badge-notion badge-notion-orange">Pendente</span>
+                        <span class="badge-notion badge-notion-orange"><i class="bi bi-hourglass-split me-1"></i>Pendente</span>
+                        {% elif s.status == 'Esperando Entrega' %}
+                        <span class="badge-notion badge-notion-purple"><i class="bi bi-box-seam me-1"></i>Esperando Entrega</span>
                         {% elif s.status == 'Em Operação' %}
                         <span class="badge-notion badge-notion-blue">Em Operação</span>
                         {% else %}
-                        <span class="badge-notion badge-notion-green">Concluído</span>
+                        <span class="badge-notion badge-notion-green"><i class="bi bi-check-circle me-1"></i>Finalizada</span>
                         {% endif %}
                     </td>
                     <td>
