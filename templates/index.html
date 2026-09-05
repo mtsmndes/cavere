@@ -21,7 +21,7 @@
 <!-- SECAO 1: Solicitacoes de Coordenadores                       -->
 <!-- ============================================================ -->
 <div class="card" style="margin-bottom:var(--space-6);" id="secaoSolicitacoes">
-    <div class="card-header">
+    <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--space-3);">
         <div style="display:flex; align-items:center; gap:var(--space-3);">
             <div style="width:32px;height:32px;border-radius:var(--radius-md);background:var(--status-warn-bg);display:flex;align-items:center;justify-content:center;color:var(--status-warn-text);">
                 <i class="bi bi-inbox"></i>
@@ -31,7 +31,27 @@
                 <div style="font-size:0.8125rem; color:var(--text-secondary);">Chamados operacionais dos coordenadores</div>
             </div>
         </div>
-        <span class="badge-notion badge-notion-gray">{{ solicitacoes|length }} chamado(s)</span>
+
+        <div style="display:flex; align-items:center; gap:var(--space-2); flex-wrap:wrap;">
+            <!-- Filtro de Abas -->
+            <div class="btn-group btn-group-sm" role="group" id="grupoFiltroSolicitacoes">
+                <button type="button" class="btn btn-secondary active" id="filtroSol-todos" onclick="filtrarChamadosAdmin('todos')">
+                    Todos <span class="badge-notion badge-notion-gray ms-1" style="font-size:0.7rem;">{{ solicitacoes|length }}</span>
+                </button>
+                <button type="button" class="btn btn-secondary" id="filtroSol-abertos" onclick="filtrarChamadosAdmin('abertos')">
+                    <i class="bi bi-hourglass-split me-1 text-warning"></i>Em Aberto
+                </button>
+                <button type="button" class="btn btn-secondary" id="filtroSol-finalizados" onclick="filtrarChamadosAdmin('finalizados')">
+                    <i class="bi bi-check-circle me-1 text-success"></i>Finalizados
+                </button>
+            </div>
+
+            <!-- Botao de Acao Rapida para Fechar/Ocultar Finalizados -->
+            <button type="button" class="btn btn-secondary btn-sm" id="btnToggleFinalizadosAdmin" onclick="toggleFinalizadosAdmin()" title="Recolher / Fechar visualizacao dos chamados ja finalizados">
+                <i class="bi bi-eye-slash" id="iconeToggleFinalizadosAdmin"></i>
+                <span id="textoToggleFinalizadosAdmin">Fechar Finalizados</span>
+            </button>
+        </div>
     </div>
     <div style="overflow-x:auto;">
         {% if solicitacoes %}
@@ -51,7 +71,9 @@
             </thead>
             <tbody>
                 {% for s in solicitacoes %}
-                <tr>
+                <tr class="linha-solicitacao"
+                    data-status="{{ s.status }}"
+                    data-finalizada="{{ '1' if s.status in ('Finalizada', 'Concluido', 'Finalizado', 'Devolvido') else '0' }}">
                     <!-- Protocolo -->
                     <td class="ps-4">
                         <div style="font-weight:600; color:var(--text-secondary); font-family:var(--font-mono); font-size:0.8125rem;">#SOL-{{ s.id }}</div>
@@ -176,15 +198,34 @@
                             Equipamento Entregue
                         </a>
                         {% else %}
-                        <span style="font-size:0.8125rem; color:var(--text-muted);">
-                            <i class="bi bi-check2-all text-success me-1"></i>Concluido
-                        </span>
+                        <div style="display:flex; align-items:center; justify-content:center; gap:var(--space-2);">
+                            <span class="badge-notion badge-notion-green" style="font-size:0.75rem;">
+                                <i class="bi bi-check2-all me-1"></i>Concluido
+                            </span>
+                            <button type="button" class="btn btn-secondary btn-sm py-0 px-2"
+                                onclick="fecharLinhaIndividual(this)"
+                                title="Fechar / Ocultar este chamado finalizado"
+                                style="font-size:0.75rem; padding:2px 8px !important;">
+                                <i class="bi bi-eye-slash"></i> Fechar
+                            </button>
+                        </div>
                         {% endif %}
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
+
+        <!-- Banner de Chamados Finalizados Ocultos -->
+        <div id="avisoFinalizadosOcultos" class="d-none" style="padding:var(--space-3) var(--space-4); background:var(--canvas); border-top:1px solid var(--border-subtle); display:flex; align-items:center; justify-content:space-between; font-size:0.8125rem; color:var(--text-secondary);">
+            <div style="display:flex; align-items:center; gap:var(--space-2);">
+                <i class="bi bi-check2-circle text-success fs-6"></i>
+                <span><strong id="contadorFinalizadosOcultos">0</strong> chamado(s) finalizado(s) estao fechados/ocultos.</span>
+            </div>
+            <button type="button" class="btn btn-link btn-sm p-0" onclick="toggleFinalizadosAdmin(false)" style="font-size:0.8125rem; text-decoration:none; font-weight:600; color:var(--color-accent-hover);">
+                <i class="bi bi-eye me-1"></i>Reabrir e exibir todos
+            </button>
+        </div>
         {% else %}
         <div class="cv-empty-state">
             <div class="cv-empty-icon"><i class="bi bi-inbox"></i></div>
@@ -620,5 +661,117 @@
     document.querySelectorAll('.progress-bar[data-width]').forEach(function(bar) {
         bar.style.width = (bar.getAttribute('data-width') || '0') + '%';
     });
+
+    // --- CONTROLE PARA FECHAR/OCULTAR CHAMADOS FINALIZADOS (ADMIN) ---
+    let finalizadosFechadosAdmin = false;
+    let filtroChamadosAtivo = 'todos';
+
+    function aplicarVisibilidadeChamados() {
+        const linhas = document.querySelectorAll('.linha-solicitacao');
+        let totalFinalizadas = 0;
+        let finalizadasOcultas = 0;
+
+        linhas.forEach(function(row) {
+            const isFinalizada = row.getAttribute('data-finalizada') === '1';
+            const individualmenteFechada = row.getAttribute('data-fechada-individual') === '1';
+
+            if (isFinalizada) totalFinalizadas++;
+
+            let deveExibir = true;
+
+            if (filtroChamadosAtivo === 'abertos') {
+                deveExibir = !isFinalizada;
+            } else if (filtroChamadosAtivo === 'finalizados') {
+                deveExibir = isFinalizada;
+            } else {
+                // 'todos'
+                if (finalizadosFechadosAdmin && isFinalizada) {
+                    deveExibir = false;
+                } else if (individualmenteFechada) {
+                    deveExibir = false;
+                }
+            }
+
+            row.style.display = deveExibir ? '' : 'none';
+            if (isFinalizada && !deveExibir) finalizadasOcultas++;
+        });
+
+        // Atualiza botao de toggle
+        const btnToggle = document.getElementById('btnToggleFinalizadosAdmin');
+        const icone = document.getElementById('iconeToggleFinalizadosAdmin');
+        const texto = document.getElementById('textoToggleFinalizadosAdmin');
+        const aviso = document.getElementById('avisoFinalizadosOcultos');
+        const contador = document.getElementById('contadorFinalizadosOcultos');
+
+        if (btnToggle && icone && texto) {
+            if (finalizadosFechadosAdmin) {
+                btnToggle.classList.add('btn-primary');
+                btnToggle.classList.remove('btn-secondary');
+                icone.className = 'bi bi-eye';
+                texto.textContent = 'Mostrar Finalizados (' + totalFinalizadas + ')';
+            } else {
+                btnToggle.classList.remove('btn-primary');
+                btnToggle.classList.add('btn-secondary');
+                icone.className = 'bi bi-eye-slash';
+                texto.textContent = 'Fechar Finalizados';
+            }
+        }
+
+        if (aviso && contador) {
+            if (finalizadasOcultas > 0) {
+                aviso.classList.remove('d-none');
+                aviso.classList.add('d-flex');
+                contador.textContent = finalizadasOcultas;
+            } else {
+                aviso.classList.add('d-none');
+                aviso.classList.remove('d-flex');
+            }
+        }
+    }
+
+    function toggleFinalizadosAdmin(forcarEstado) {
+        if (typeof forcarEstado === 'boolean') {
+            finalizadosFechadosAdmin = forcarEstado;
+        } else {
+            finalizadosFechadosAdmin = !finalizadosFechadosAdmin;
+        }
+        // Se estava em aba 'finalizados' e clicou para fechar, volta para 'todos'
+        if (finalizadosFechadosAdmin && filtroChamadosAtivo === 'finalizados') {
+            filtrarChamadosAdmin('todos');
+        } else {
+            localStorage.setItem('cavere_finalizados_fechados_admin', finalizadosFechadosAdmin ? '1' : '0');
+            aplicarVisibilidadeChamados();
+        }
+    }
+
+    function filtrarChamadosAdmin(tipo) {
+        filtroChamadosAtivo = tipo;
+        document.querySelectorAll('#grupoFiltroSolicitacoes button').forEach(function(b) {
+            b.classList.remove('active');
+        });
+        const btn = document.getElementById('filtroSol-' + tipo);
+        if (btn) btn.classList.add('active');
+
+        if (tipo === 'abertos') {
+            finalizadosFechadosAdmin = true;
+        } else if (tipo === 'finalizados') {
+            finalizadosFechadosAdmin = false;
+        }
+        aplicarVisibilidadeChamados();
+    }
+
+    function fecharLinhaIndividual(btn) {
+        const row = btn.closest('tr');
+        if (row) {
+            row.setAttribute('data-fechada-individual', '1');
+            aplicarVisibilidadeChamados();
+        }
+    }
+
+    // Carrega preferencia salva do usuario
+    if (localStorage.getItem('cavere_finalizados_fechados_admin') === '1') {
+        finalizadosFechadosAdmin = true;
+    }
+    aplicarVisibilidadeChamados();
 </script>
 {% endblock %}

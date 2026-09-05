@@ -98,7 +98,7 @@
                        placeholder="Buscar por chamado, equipamento, RDO, status..." onkeyup="aplicarFiltros()">
             </div>
         </div>
-        <div style="display:flex; align-items:center; gap:var(--space-2);">
+        <div style="display:flex; align-items:center; gap:var(--space-2); flex-wrap:wrap;">
             <span style="font-size:0.8125rem; color:var(--text-secondary); white-space:nowrap;">Status:</span>
             <div class="btn-group btn-group-sm">
                 <button type="button" class="btn btn-secondary active" id="filtroBtn-Todos" onclick="filtrarPorStatus('Todos', this)">Todos</button>
@@ -106,6 +106,11 @@
                 <button type="button" class="btn btn-secondary" id="filtroBtn-EsperandoEntrega" onclick="filtrarPorStatus('Esperando Entrega', this)">Esp. Entrega</button>
                 <button type="button" class="btn btn-secondary" id="filtroBtn-Finalizada" onclick="filtrarPorStatus('Finalizada', this)">Finalizada</button>
             </div>
+            <!-- Botao Fechar/Ocultar Finalizados -->
+            <button type="button" class="btn btn-secondary btn-sm" id="btnToggleFinalizadosCoord" onclick="toggleFinalizadosCoord()" title="Recolher / Fechar chamados ja finalizados">
+                <i class="bi bi-eye-slash" id="iconeToggleFinalizadosCoord"></i>
+                <span id="textoToggleFinalizadosCoord">Fechar Finalizados</span>
+            </button>
         </div>
     </div>
 </div>
@@ -143,6 +148,7 @@
             <tbody>
                 {% for s in solicitacoes %}
                 <tr class="item-chamado chamado-row" data-status="{{ s.status }}"
+                    data-finalizada="{{ '1' if s.status in ('Finalizada', 'Concluido', 'Finalizado', 'Devolvido') else '0' }}"
                     data-busca="{{ s.id }} {{ s.tipo }} {{ s.quantidade }} {{ s.destinatario }} {{ s.plataforma }} {{ s.rdo }} {{ s.status }}">
                     <td class="ps-4">
                         <code style="font-size:0.8rem; font-weight:600;">#SOL-{{ s.id }}</code>
@@ -213,7 +219,15 @@
                         {% elif s.status == 'Em Operacao' %}
                         <span class="badge-notion badge-notion-blue">Em Operacao</span>
                         {% else %}
-                        <span class="badge-notion badge-notion-green"><i class="bi bi-check-circle me-1"></i>Finalizada</span>
+                        <div style="display:flex; align-items:center; gap:var(--space-2);">
+                            <span class="badge-notion badge-notion-green"><i class="bi bi-check-circle me-1"></i>Finalizada</span>
+                            <button type="button" class="btn btn-secondary btn-sm py-0 px-2"
+                                onclick="fecharChamadoCoordIndividual(this)"
+                                title="Fechar / Ocultar este chamado finalizado"
+                                style="font-size:0.75rem; padding:2px 8px !important;">
+                                <i class="bi bi-eye-slash"></i> Fechar
+                            </button>
+                        </div>
                         {% endif %}
                     </td>
                     <td>
@@ -409,22 +423,79 @@
         aplicarFiltros();
     }
 
+    let finalizadosFechadosCoord = false;
+
+    function toggleFinalizadosCoord() {
+        finalizadosFechadosCoord = !finalizadosFechadosCoord;
+        localStorage.setItem('cavere_finalizados_fechados_coord', finalizadosFechadosCoord ? '1' : '0');
+        atualizarBotaoFinalizadosCoord();
+        aplicarFiltros();
+    }
+
+    function atualizarBotaoFinalizadosCoord() {
+        const btn = document.getElementById('btnToggleFinalizadosCoord');
+        const icone = document.getElementById('iconeToggleFinalizadosCoord');
+        const texto = document.getElementById('textoToggleFinalizadosCoord');
+        if (btn && icone && texto) {
+            if (finalizadosFechadosCoord) {
+                btn.classList.add('btn-primary');
+                btn.classList.remove('btn-secondary');
+                icone.className = 'bi bi-eye';
+                texto.textContent = 'Mostrar Finalizados';
+            } else {
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-secondary');
+                icone.className = 'bi bi-eye-slash';
+                texto.textContent = 'Fechar Finalizados';
+            }
+        }
+    }
+
+    function fecharChamadoCoordIndividual(btn) {
+        const row = btn.closest('tr');
+        if (row) {
+            row.setAttribute('data-fechada-individual', '1');
+            aplicarFiltros();
+        }
+    }
+
     function aplicarFiltros() {
         const texto = (document.getElementById('filtroTexto')?.value || '').toLowerCase().trim();
         document.querySelectorAll('.item-chamado').forEach(row => {
             const rowStatus = row.getAttribute('data-status');
             const rowBusca = (row.getAttribute('data-busca') || '').toLowerCase();
-            const coincideStatus = (statusAtivo === 'Todos' || rowStatus === statusAtivo);
+            const isFinalizada = row.getAttribute('data-finalizada') === '1' || rowStatus === 'Finalizada' || rowStatus === 'Devolvido';
+            const individualmenteFechada = row.getAttribute('data-fechada-individual') === '1';
+
+            let coincideStatus = (statusAtivo === 'Todos' || rowStatus === statusAtivo);
+            if (statusAtivo === 'Todos') {
+                if (finalizadosFechadosCoord && isFinalizada) coincideStatus = false;
+                if (individualmenteFechada) coincideStatus = false;
+            }
+
             const coincideTexto = (texto === '' || rowBusca.includes(texto));
             row.style.display = (coincideStatus && coincideTexto) ? '' : 'none';
         });
         document.querySelectorAll('.item-chamado-tl').forEach(item => {
             const itemStatus = item.getAttribute('data-status');
             const itemBusca = (item.getAttribute('data-busca') || '').toLowerCase();
-            const coincideStatus = (statusAtivo === 'Todos' || itemStatus === statusAtivo);
+            const isFinalizada = itemStatus === 'Finalizada' || itemStatus === 'Devolvido';
+
+            let coincideStatus = (statusAtivo === 'Todos' || itemStatus === statusAtivo);
+            if (statusAtivo === 'Todos' && finalizadosFechadosCoord && isFinalizada) {
+                coincideStatus = false;
+            }
+
             const coincideTexto = (texto === '' || itemBusca.includes(texto));
             item.style.display = (coincideStatus && coincideTexto) ? '' : 'none';
         });
     }
+
+    // Carrega preferencia salva do usuario
+    if (localStorage.getItem('cavere_finalizados_fechados_coord') === '1') {
+        finalizadosFechadosCoord = true;
+    }
+    atualizarBotaoFinalizadosCoord();
+    aplicarFiltros();
 </script>
 {% endblock %}
