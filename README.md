@@ -2,7 +2,7 @@ O Cavere é um sistema desenvolvido para automatizar e gerenciar o controle de c
 O projeto resolve dores reais de logística em bases operacionais, controlando o status de ativos no banco de dados (SQLite) e gerando termos de responsabilidade 
 de forma rápida e automatizada via scripts em Python.
 
-## 🚀 Como Executar o Projeto
+## Como Executar o Projeto
 
 ### 1. Pré-requisitos
 - Python 3.10 ou superior instalado
