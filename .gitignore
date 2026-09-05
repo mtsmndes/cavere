@@ -1,0 +1,4 @@
+Cavere.db
+*.db
+*.pdf
+__pycache__/
