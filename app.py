@@ -478,14 +478,22 @@ def home():
                 'modelo': it[2],
                 'patrimonio_sn': it[3],
                 'data_saida': it[4],
-                'devolvido': bool(it[5])
+                'devolvido': bool(it[5]),
+                'data_devolucao': it[5]
             })
         
-        qtd_emitida = len(itens_emitidos)
-        qtd_restante = max(0, qtd_total - qtd_emitida)
-        
         status_atual = s[8]
-        if status_atual not in ('Finalizada', 'Concluído', 'Finalizado', 'Devolvido'):
+        is_finalizada = status_atual in ('Finalizada', 'Concluído', 'Finalizado', 'Devolvido')
+        
+        itens_ativos = [it for it in itens_emitidos if not it['devolvido']]
+        itens_devolvidos = [it for it in itens_emitidos if it['devolvido']]
+
+        if is_finalizada:
+            qtd_emitida = len(itens_emitidos)
+            qtd_restante = 0
+        else:
+            qtd_emitida = len(itens_ativos)
+            qtd_restante = max(0, qtd_total - qtd_emitida)
             if qtd_emitida >= qtd_total and qtd_total > 0:
                 status_atual = 'Esperando Entrega'
             elif qtd_emitida > 0:
@@ -506,10 +514,11 @@ def home():
             'status': status_atual,
             'data_criacao': s[9],
             'id_coordenador': s[10],
-            'itens_emitidos': itens_emitidos,
+            'itens_emitidos': itens_ativos if not is_finalizada else itens_emitidos,
+            'itens_devolvidos': itens_devolvidos,
             'qtd_emitida': qtd_emitida,
             'qtd_restante': qtd_restante,
-            'concluida': qtd_emitida >= qtd_total
+            'concluida': is_finalizada or (qtd_emitida >= qtd_total and qtd_total > 0)
         })
 
     # Busca cautelas geradas com detalhes e link de PDF para o dashboard do administrador
@@ -624,7 +633,7 @@ def gerar():
         # 4. Atualiza o status da solicitação vinculada e contabiliza itens emitidos vs faltantes
         msg_progresso = ""
         if id_sol_int:
-            cursor.execute('SELECT COUNT(*) FROM cautelas WHERE id_solicitacao = ?', (id_sol_int,))
+            cursor.execute('SELECT COUNT(*) FROM cautelas WHERE id_solicitacao = ? AND data_hora_devolucao IS NULL', (id_sol_int,))
             total_emitidos = cursor.fetchone()[0]
             cursor.execute('SELECT quantidade FROM solicitacoes WHERE id = ?', (id_sol_int,))
             row_q = cursor.fetchone()
@@ -722,17 +731,54 @@ def devolver(id_equipamento):
     conexao = sqlite3.connect('Cavere.db')
     cursor = conexao.cursor()
     try:
+        # Busca a cautela ativa antes de carimbar a data de devolução
+        cursor.execute('''
+            SELECT id_cautela, id_solicitacao 
+            FROM cautelas 
+            WHERE id_equipamento = ? AND data_hora_devolucao IS NULL
+        ''', (id_equipamento,))
+        cautela_info = cursor.fetchone()
+
         # 1. Muda o status do equipamento para Disponível
         cursor.execute("UPDATE equipamentos SET status = 'Disponível' WHERE id = ?", (id_equipamento,))
+        
         # 2. Carimba a data de devolução na tabela de cautelas (na última saída sem devolução)
+        agora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         cursor.execute('''
             UPDATE cautelas 
             SET data_hora_devolucao = ? 
             WHERE id_equipamento = ? AND data_hora_devolucao IS NULL
-        ''', (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), id_equipamento))
+        ''', (agora, id_equipamento))
         
+        # 3. Se este equipamento pertencia a uma solicitação NÃO finalizada, recalcula a contagem e status
+        msg_solicitacao = ""
+        if cautela_info and cautela_info[1]:
+            id_sol = cautela_info[1]
+            cursor.execute('SELECT status, quantidade FROM solicitacoes WHERE id = ?', (id_sol,))
+            sol_row = cursor.fetchone()
+            if sol_row:
+                status_sol, qtd_pedida = sol_row
+                # Apenas altera solicitações em andamento (não finalizadas)
+                if status_sol not in ('Finalizada', 'Concluído', 'Finalizado', 'Devolvido'):
+                    cursor.execute('''
+                        SELECT COUNT(*) FROM cautelas 
+                        WHERE id_solicitacao = ? AND data_hora_devolucao IS NULL
+                    ''', (id_sol,))
+                    ativas_restantes = cursor.fetchone()[0]
+
+                    if ativas_restantes == 0:
+                        novo_status = 'Pendente'
+                    elif ativas_restantes < qtd_pedida:
+                        novo_status = 'Em Atendimento'
+                    else:
+                        novo_status = 'Esperando Entrega'
+
+                    cursor.execute('UPDATE solicitacoes SET status = ? WHERE id = ?', (novo_status, id_sol))
+                    faltam_agora = max(0, qtd_pedida - ativas_restantes)
+                    msg_solicitacao = f" Solicitação #SOL-{id_sol} recalculada: agora possui {ativas_restantes}/{qtd_pedida} itens ativos (status alterado para '{novo_status}', faltam {faltam_agora} item(ns))."
+
         conexao.commit()
-        flash("Equipamento devolvido com sucesso! Status atualizado para Disponível.", "success")
+        flash(f"Equipamento devolvido com sucesso! Status atualizado para Disponível.{msg_solicitacao}", "success")
     except Exception as e:
         flash(f"Erro ao devolver equipamento: {e}", "danger")
     finally:
@@ -860,7 +906,7 @@ def meus_chamados():
     ''', (id_coordenador, current_user.id))
     registros_cautelas = cursor.fetchall()
 
-    contadores = {'Pendente': 0, 'Esperando Entrega': 0, 'Em Operação': 0, 'Finalizada': 0, 'Total': 0}
+    contadores = {'Pendente': 0, 'Esperando Entrega': 0, 'Em Operação': 0, 'Finalizada': 0, 'Devolvido': 0, 'Total': 0}
 
     # Formata solicitações (chamados de equipamentos)
     solicitacoes = []
@@ -869,7 +915,7 @@ def meus_chamados():
 
         # Busca itens já emitidos para esta solicitação
         cursor.execute('''
-            SELECT c.id_cautela, e.tipo, e.modelo, e.patrimonio_sn, c.data_hora_saida
+            SELECT c.id_cautela, e.tipo, e.modelo, e.patrimonio_sn, c.data_hora_saida, c.data_hora_devolucao
             FROM cautelas c
             JOIN equipamentos e ON c.id_equipamento = e.id
             WHERE c.id_solicitacao = ?
@@ -881,27 +927,37 @@ def meus_chamados():
             'tipo': it[1],
             'modelo': it[2],
             'patrimonio_sn': it[3],
-            'data_saida': it[4]
+            'data_saida': it[4],
+            'devolvido': bool(it[5]),
+            'data_devolucao': it[5]
         } for it in itens_raw]
-        qtd_emitida = len(itens_emitidos)
-        qtd_restante = max(0, qtd - qtd_emitida)
 
-        if st in ('Devolvido', 'Concluído', 'Finalizado', 'Finalizada'):
+        is_finalizada = st in ('Devolvido', 'Concluído', 'Finalizado', 'Finalizada')
+        itens_ativos = [it for it in itens_emitidos if not it['devolvido']]
+        itens_devolvidos = [it for it in itens_emitidos if it['devolvido']]
+
+        if is_finalizada:
+            qtd_emitida = len(itens_emitidos)
+            qtd_restante = 0
             st_label = 'Finalizada'
             badge_class = 'bg-success'
             timeline_step = 3
-        elif st == 'Esperando Entrega' or (qtd_emitida >= qtd and qtd > 0):
-            st_label = 'Esperando Entrega'
-            badge_class = 'bg-warning text-dark'
-            timeline_step = 2
-        elif st in ('Em Operação', 'Em Atendimento', 'Aprovado') or qtd_emitida > 0:
-            st_label = 'Em Operação'
-            badge_class = 'bg-primary'
-            timeline_step = 2
         else:
-            st_label = 'Pendente'
-            badge_class = 'bg-secondary'
-            timeline_step = 1
+            qtd_emitida = len(itens_ativos)
+            qtd_restante = max(0, qtd - qtd_emitida)
+
+            if qtd_emitida >= qtd and qtd > 0:
+                st_label = 'Esperando Entrega'
+                badge_class = 'bg-warning text-dark'
+                timeline_step = 2
+            elif qtd_emitida > 0:
+                st_label = 'Em Operação'
+                badge_class = 'bg-primary'
+                timeline_step = 2
+            else:
+                st_label = 'Pendente'
+                badge_class = 'bg-secondary'
+                timeline_step = 1
 
         if st_label not in contadores:
             contadores[st_label] = 0
@@ -922,7 +978,8 @@ def meus_chamados():
             'badge_class': badge_class,
             'timeline_step': timeline_step,
             'data_criacao': dt_cria,
-            'itens_emitidos': itens_emitidos,
+            'itens_emitidos': itens_ativos if not is_finalizada else itens_emitidos,
+            'itens_devolvidos': itens_devolvidos,
             'qtd_emitida': qtd_emitida,
             'qtd_restante': qtd_restante
         })
@@ -947,6 +1004,8 @@ def meus_chamados():
             badge_class = 'bg-primary'
             timeline_step = 2
 
+        if status not in contadores:
+            contadores[status] = 0
         contadores[status] += 1
         contadores['Total'] += 1
 

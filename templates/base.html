@@ -1,500 +1,355 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema Cavere • Ambipar Response</title>
-
-    <!-- Google Fonts: Inter -->
+    <meta name="description" content="Cavere — Sistema de Gestao e Controle de Cautelas de Equipamentos Operacionais. Ambipar Response.">
+    <title>Cavere • Ambipar Response</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-    <!-- Bootstrap 5.3 Grid e Utilitários -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-
     <style>
-        /* ==========================================================
-           NOTION-CORPORATE DESIGN SYSTEM (CAVERE • AMBIPAR RESPONSE)
-           ========================================================== */
         :root {
-            --font-sans: 'Inter', ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-            
-            /* Paleta Notion */
-            --notion-bg: #fbfbfa;
-            --notion-surface: #ffffff;
-            --notion-border: #e1e1df;
-            --notion-border-subtle: #f1f1ef;
-            --notion-hover: #f7f7f5;
-            
-            /* Tipografia */
-            --notion-text-primary: #373530;
-            --notion-text-secondary: #787774;
-            --notion-text-muted: #9b9a97;
-            
-            /* Cores de Destaque Corporativas */
-            --notion-brand: #0f7b6c;
-            --notion-brand-dark: #005A32;
-            
-            /* Notion Select Badges */
-            --badge-gray-bg: #f1f1ef;
-            --badge-gray-text: #5a5a58;
-            --badge-green-bg: #ddedea;
-            --badge-green-text: #0f7b6c;
-            --badge-blue-bg: #e1f0fc;
-            --badge-blue-text: #0b6e99;
-            --badge-orange-bg: #faece3;
-            --badge-orange-text: #d9730d;
-            --badge-red-bg: #ffe2dd;
-            --badge-red-text: #d44c47;
-            --badge-purple-bg: #eae4f2;
-            --badge-purple-text: #6940a5;
-            --badge-yellow-bg: #fbf3db;
-            --badge-yellow-text: #dfab01;
-            
-            /* Raios e Formas */
-            --radius-sm: 4px;
-            --radius-md: 6px;
-            --radius-card: 8px;
+            --font-sans: 'Inter', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --canvas: #f8fafc;
+            --surface-card: #ffffff;
+            --border-default: #e2e8f0;
+            --border-subtle: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --color-accent: #00C853;
+            --color-accent-hover: #00b048;
+            --color-accent-active: #009e40;
+            --color-accent-ring: rgba(0,200,83,0.15);
+            --color-accent-bg: #f0fdf4;
+            --status-success-bg: #dcfce7;
+            --status-success-text: #166534;
+            --status-warn-bg: #fef9c3;
+            --status-warn-text: #854d0e;
+            --status-danger-bg: #fee2e2;
+            --status-danger-text: #991b1b;
+            --status-neutral-bg: #e2e8f0;
+            --status-neutral-text: #475569;
+            --status-info-bg: #dbeafe;
+            --status-info-text: #1e40af;
+            --status-purple-bg: #ede9fe;
+            --status-purple-text: #6d28d9;
+            --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+            --space-5: 20px; --space-6: 24px; --space-8: 32px;
+            --space-10: 40px; --space-12: 48px; --space-16: 64px;
+            --radius-sm: 6px; --radius-md: 8px; --radius-card: 12px;
+            --radius-pill: 9999px; --radius-modal: 16px;
+            --shadow-1: 0 4px 6px -1px rgba(0,0,0,0.02), 0 2px 4px -2px rgba(0,0,0,0.02);
+            --shadow-2: 0 10px 15px -3px rgba(0,0,0,0.04), 0 4px 6px -4px rgba(0,0,0,0.04);
+            --shadow-3: 0 20px 25px -5px rgba(0,0,0,0.06), 0 8px 10px -6px rgba(0,0,0,0.06);
+            --sidebar-width: 240px;
+            --navbar-height: 64px;
         }
-
+        *, *::before, *::after { box-sizing: border-box; }
         body {
             font-family: var(--font-sans);
-            background-color: var(--notion-bg);
-            color: var(--notion-text-primary);
+            background-color: var(--canvas);
+            color: var(--text-primary);
             -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+            font-size: 0.9375rem;
             line-height: 1.5;
-            font-size: 0.92rem;
         }
-
-        /* Navbar Estilo Notion (Clean White, 1px Border) */
-        .notion-navbar {
-            background-color: var(--notion-surface);
-            border-bottom: 1px solid var(--notion-border);
-            padding: 0.65rem 0;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
+        /* ---- NAVBAR ---- */
+        .cv-navbar {
+            position: fixed; top: 0; left: 0; right: 0;
+            height: var(--navbar-height);
+            background: var(--surface-card);
+            border-bottom: 1px solid var(--border-default);
+            box-shadow: var(--shadow-1);
+            display: flex; align-items: center;
+            padding: 0 var(--space-6);
+            z-index: 1050; gap: var(--space-4);
         }
-
-        .notion-brand {
-            font-weight: 600;
-            font-size: 0.92rem;
-            color: var(--notion-text-primary) !important;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 4px 8px;
+        .cv-logo { display: flex; align-items: center; gap: var(--space-3); text-decoration: none; flex-shrink: 0; }
+        .cv-logo-icon {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, var(--color-accent) 0%, #00e676 100%);
             border-radius: var(--radius-md);
-            transition: background 0.15s ease;
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 1rem; flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(0,200,83,0.3);
         }
-
-        .notion-brand:hover {
-            background-color: var(--notion-hover);
+        .cv-logo-text { display: flex; flex-direction: column; line-height: 1.1; }
+        .cv-logo-name { font-size: 0.9375rem; font-weight: 700; color: var(--text-primary); letter-spacing: -0.02em; }
+        .cv-logo-sub { font-size: 0.75rem; color: var(--text-muted); }
+        .cv-navbar-divider { width: 1px; height: 28px; background: var(--border-default); flex-shrink: 0; }
+        .cv-navbar-spacer { flex: 1; }
+        .cv-user-chip {
+            display: flex; align-items: center; gap: var(--space-2);
+            padding: var(--space-2) var(--space-3);
+            background: var(--canvas); border: 1px solid var(--border-default);
+            border-radius: var(--radius-pill);
+            font-size: 0.8125rem; font-weight: 500; color: var(--text-primary);
         }
-
-        .notion-brand-icon {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 24px;
-            height: 24px;
-            background-color: var(--badge-green-bg);
-            color: var(--notion-brand);
-            border-radius: var(--radius-sm);
-            font-size: 0.85rem;
+        .cv-user-avatar {
+            width: 26px; height: 26px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--color-accent), #00e676);
+            color: #fff; font-size: 0.75rem; font-weight: 700;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
         }
-
-        .notion-nav-link {
-            font-size: 0.86rem;
-            color: var(--notion-text-secondary) !important;
-            text-decoration: none;
-            padding: 5px 10px;
-            border-radius: var(--radius-md);
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            transition: background 0.15s ease, color 0.15s ease;
+        .cv-role-badge {
+            font-size: 0.7rem; font-weight: 600; letter-spacing: 0.04em;
+            text-transform: uppercase; padding: 2px 8px; border-radius: var(--radius-pill);
         }
-
-        .notion-nav-link:hover {
-            background-color: var(--notion-hover);
-            color: var(--notion-text-primary) !important;
+        .cv-role-badge.admin { background: var(--status-purple-bg); color: var(--status-purple-text); }
+        .cv-role-badge.coord { background: var(--status-info-bg); color: var(--status-info-text); }
+        .cv-btn-logout {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 36px; height: 36px; border-radius: var(--radius-md);
+            border: 1px solid var(--border-default); background: var(--surface-card);
+            color: var(--text-secondary); text-decoration: none; transition: all 0.15s ease; flex-shrink: 0;
         }
-
-        .notion-nav-link.active {
-            background-color: var(--badge-gray-bg);
-            color: var(--notion-text-primary) !important;
-            font-weight: 600;
+        .cv-btn-logout:hover { background: var(--status-danger-bg); border-color: var(--status-danger-bg); color: var(--status-danger-text); }
+        /* ---- SIDEBAR ---- */
+        .cv-sidebar {
+            position: fixed; top: var(--navbar-height); left: 0; bottom: 0;
+            width: var(--sidebar-width); background: var(--surface-card);
+            border-right: 1px solid var(--border-default);
+            padding: var(--space-4) var(--space-3); overflow-y: auto;
+            z-index: 1040; display: flex; flex-direction: column; gap: var(--space-1);
+            scrollbar-width: none;
         }
-
-        .notion-btn-nav-primary {
-            background-color: var(--notion-brand);
-            color: #ffffff !important;
-            padding: 5px 12px;
-            border-radius: var(--radius-md);
-            font-weight: 500;
-            font-size: 0.84rem;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            border: 1px solid transparent;
-            transition: opacity 0.15s ease;
+        .cv-sidebar::-webkit-scrollbar { display: none; }
+        .cv-sidebar-label {
+            font-size: 0.6875rem; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.08em; color: var(--text-muted);
+            padding: var(--space-3) var(--space-3) var(--space-1); margin-top: var(--space-2);
         }
-
-        .notion-btn-nav-primary:hover {
-            opacity: 0.9;
-            color: #ffffff !important;
+        .cv-nav-item {
+            display: flex; align-items: center; gap: var(--space-3);
+            padding: var(--space-2) var(--space-3); border-radius: var(--radius-md);
+            font-size: 0.875rem; font-weight: 500; color: var(--text-secondary);
+            text-decoration: none; transition: all 0.15s ease; background: transparent; width: 100%;
         }
-
-        /* Cards Estilo Notion (Clean White, 1px Border #e1e1df, Sem sombras pesadas) */
-        .card, .notion-card {
-            background-color: var(--notion-surface) !important;
-            border: 1px solid var(--notion-border) !important;
-            border-radius: var(--radius-card) !important;
-            box-shadow: none !important;
-            overflow: hidden;
-            margin-bottom: 1.25rem;
+        .cv-nav-item:hover { background: var(--canvas); color: var(--text-primary); }
+        .cv-nav-item.active {
+            background: var(--color-accent-bg); color: var(--color-accent-hover);
+            font-weight: 600; border-left: 3px solid var(--color-accent);
+            padding-left: calc(var(--space-3) - 3px);
         }
-
-        .card-header, .notion-card-header {
-            background-color: var(--notion-surface) !important;
-            border-bottom: 1px solid var(--notion-border) !important;
-            padding: 0.85rem 1.25rem;
-            color: var(--notion-text-primary) !important;
-            font-size: 0.92rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+        .cv-nav-item .nav-icon { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+        .cv-sidebar-cta {
+            display: flex; align-items: center; gap: var(--space-2);
+            padding: var(--space-2) var(--space-3); border-radius: var(--radius-md);
+            font-size: 0.875rem; font-weight: 600; background: var(--color-accent);
+            color: #fff; text-decoration: none; transition: all 0.2s ease-in-out; margin-top: var(--space-2);
         }
-
-        .card-body, .notion-card-body {
-            padding: 1.25rem;
-            color: var(--notion-text-primary);
+        .cv-sidebar-cta:hover { background: var(--color-accent-hover); color: #fff; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,200,83,0.3); }
+        .cv-sidebar-cta:active { transform: translateY(0); }
+        /* ---- LAYOUT ---- */
+        .cv-layout { display: flex; min-height: 100vh; padding-top: var(--navbar-height); }
+        .cv-sidebar-slot { width: var(--sidebar-width); flex-shrink: 0; }
+        .cv-main { flex: 1; min-width: 0; padding: var(--space-8); max-width: 1440px; }
+        @media (max-width: 1023px) {
+            .cv-sidebar { display: none; } .cv-sidebar-slot { display: none; }
+            .cv-main { padding: var(--space-6) var(--space-4); }
         }
-
-        /* Tabelas Estilo Base de Dados do Notion */
-        .notion-table-container {
-            border: 1px solid var(--notion-border);
-            border-radius: var(--radius-card);
-            background: var(--notion-surface);
-            overflow: hidden;
-        }
-
-        .table {
-            margin-bottom: 0;
-            border-collapse: separate;
-            border-spacing: 0;
-            width: 100%;
-        }
-
-        .table thead th {
-            background-color: var(--notion-hover);
-            color: var(--notion-text-secondary);
-            font-size: 0.74rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            border-bottom: 1px solid var(--notion-border);
-            border-top: none;
-            padding: 0.65rem 0.95rem;
-            white-space: nowrap;
-        }
-
-        .table tbody td {
-            padding: 0.75rem 0.95rem;
-            vertical-align: middle;
-            border-bottom: 1px solid var(--notion-border-subtle);
-            color: var(--notion-text-primary);
-            font-size: 0.88rem;
-        }
-
-        .table tbody tr:last-child td {
-            border-bottom: none;
-        }
-
-        .table-hover tbody tr:hover {
-            background-color: var(--notion-hover) !important;
-        }
-
-        /* Notion Select Property Badges */
-        .badge-notion {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 2px 8px;
-            border-radius: var(--radius-sm);
-            font-size: 0.76rem;
-            font-weight: 500;
-            line-height: 1.4;
-            white-space: nowrap;
-            border: none;
-        }
-
-        .badge-notion-gray { background: var(--badge-gray-bg); color: var(--badge-gray-text); }
-        .badge-notion-green { background: var(--badge-green-bg); color: var(--badge-green-text); }
-        .badge-notion-blue { background: var(--badge-blue-bg); color: var(--badge-blue-text); }
-        .badge-notion-orange { background: var(--badge-orange-bg); color: var(--badge-orange-text); }
-        .badge-notion-red { background: var(--badge-red-bg); color: var(--badge-red-text); }
-        .badge-notion-purple { background: var(--badge-purple-bg); color: var(--badge-purple-text); }
-        .badge-notion-yellow { background: var(--badge-yellow-bg); color: var(--badge-yellow-text); }
-
-        /* Substituição de classes padrão do Bootstrap por Notion Badges */
-        .badge.bg-success { background: var(--badge-green-bg) !important; color: var(--badge-green-text) !important; border: none; font-weight: 500; border-radius: var(--radius-sm); }
-        .badge.bg-primary { background: var(--badge-blue-bg) !important; color: var(--badge-blue-text) !important; border: none; font-weight: 500; border-radius: var(--radius-sm); }
-        .badge.bg-warning { background: var(--badge-orange-bg) !important; color: var(--badge-orange-text) !important; border: none; font-weight: 500; border-radius: var(--radius-sm); }
-        .badge.bg-danger { background: var(--badge-red-bg) !important; color: var(--badge-red-text) !important; border: none; font-weight: 500; border-radius: var(--radius-sm); }
-        .badge.bg-secondary { background: var(--badge-gray-bg) !important; color: var(--badge-gray-text) !important; border: none; font-weight: 500; border-radius: var(--radius-sm); }
-        .badge.bg-info { background: var(--badge-purple-bg) !important; color: var(--badge-purple-text) !important; border: none; font-weight: 500; border-radius: var(--radius-sm); }
-
-        /* Botões Estilo Notion */
-        .btn {
-            font-family: var(--font-sans);
-            font-size: 0.85rem;
-            font-weight: 500;
-            border-radius: var(--radius-md) !important;
-            padding: 0.42rem 0.85rem;
-            transition: all 0.15s ease;
-            box-shadow: none !important;
-            border: 1px solid transparent;
-        }
-
-        .btn-notion-primary, .btn-primary {
-            background-color: var(--notion-text-primary) !important;
-            color: #ffffff !important;
-            border: 1px solid var(--notion-text-primary) !important;
-        }
-
-        .btn-notion-primary:hover, .btn-primary:hover {
-            background-color: #1f1f1d !important;
-            border-color: #1f1f1d !important;
-            color: #ffffff !important;
-        }
-
-        .btn-notion-brand, .btn-success {
-            background-color: var(--notion-brand) !important;
-            color: #ffffff !important;
-            border: 1px solid var(--notion-brand) !important;
-        }
-
-        .btn-notion-brand:hover, .btn-success:hover {
-            background-color: #0b6357 !important;
-            border-color: #0b6357 !important;
-            color: #ffffff !important;
-        }
-
-        .btn-notion-secondary, .btn-secondary, .btn-outline-secondary {
-            background-color: var(--notion-surface) !important;
-            color: var(--notion-text-primary) !important;
-            border: 1px solid var(--notion-border) !important;
-        }
-
-        .btn-notion-secondary:hover, .btn-secondary:hover, .btn-outline-secondary:hover {
-            background-color: var(--notion-hover) !important;
-            border-color: #d0d0ce !important;
-            color: var(--notion-text-primary) !important;
-        }
-
-        .btn-outline-success {
-            background-color: var(--notion-surface) !important;
-            color: var(--notion-brand) !important;
-            border: 1px solid var(--badge-green-bg) !important;
-        }
-
-        .btn-outline-success:hover {
-            background-color: var(--badge-green-bg) !important;
-            color: var(--notion-brand) !important;
-            border-color: var(--notion-brand) !important;
-        }
-
-        .btn-outline-danger {
-            background-color: var(--notion-surface) !important;
-            color: var(--badge-red-text) !important;
-            border: 1px solid var(--notion-border) !important;
-        }
-
-        .btn-outline-danger:hover {
-            background-color: var(--badge-red-bg) !important;
-            color: var(--badge-red-text) !important;
-            border-color: var(--badge-red-bg) !important;
-        }
-
-        /* Formulários e Inputs */
-        .form-label {
-            color: var(--notion-text-secondary);
-            font-size: 0.8rem;
-            font-weight: 500;
-            margin-bottom: 0.35rem;
-        }
-
-        .form-control, .form-select {
-            background-color: var(--notion-surface);
-            border: 1px solid var(--notion-border);
-            border-radius: var(--radius-md) !important;
-            color: var(--notion-text-primary);
-            font-size: 0.88rem;
-            padding: 0.45rem 0.75rem;
-            box-shadow: none !important;
-            transition: border-color 0.15s ease;
-        }
-
-        .form-control:focus, .form-select:focus {
-            background-color: var(--notion-surface);
-            border-color: var(--notion-brand);
-            box-shadow: 0 0 0 2px rgba(15, 123, 108, 0.15) !important;
-            color: var(--notion-text-primary);
-        }
-
-        .form-control::placeholder {
-            color: var(--notion-text-muted);
-            font-size: 0.84rem;
-        }
-
-        .input-group-text {
-            background-color: var(--notion-hover);
-            border: 1px solid var(--notion-border);
-            border-radius: var(--radius-md);
-            color: var(--notion-text-secondary);
-            font-size: 0.84rem;
-        }
-
-        /* Notion Callout Blocks para Alertas */
-        .alert, .notion-callout {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            padding: 0.75rem 1rem;
-            border-radius: var(--radius-md);
-            font-size: 0.88rem;
-            margin-bottom: 1.25rem;
-            border: 1px solid transparent;
-            box-shadow: none !important;
-        }
-
-        .alert-success {
-            background-color: var(--badge-green-bg) !important;
-            color: var(--badge-green-text) !important;
-            border-color: rgba(15, 123, 108, 0.15) !important;
-        }
-
-        .alert-danger {
-            background-color: var(--badge-red-bg) !important;
-            color: var(--badge-red-text) !important;
-            border-color: rgba(212, 76, 71, 0.15) !important;
-        }
-
-        .alert-warning {
-            background-color: var(--badge-orange-bg) !important;
-            color: var(--badge-orange-text) !important;
-            border-color: rgba(217, 115, 13, 0.15) !important;
-        }
-
-        .alert-info {
-            background-color: var(--badge-blue-bg) !important;
-            color: var(--badge-blue-text) !important;
-            border-color: rgba(11, 110, 153, 0.15) !important;
-        }
-
-        /* Rodapé Minimalista */
-        .notion-footer {
-            margin-top: auto;
-            padding: 1.25rem 0;
-            border-top: 1px solid var(--notion-border);
-            color: var(--notion-text-muted);
-            font-size: 0.78rem;
-            background-color: var(--notion-surface);
-        }
+        /* ---- CARDS ---- */
+        .card { background: var(--surface-card) !important; border: 1px solid var(--border-default) !important; border-radius: var(--radius-card) !important; box-shadow: var(--shadow-1) !important; overflow: hidden; }
+        .card-header { background: var(--surface-card) !important; border-bottom: 1px solid var(--border-subtle) !important; padding: var(--space-5) var(--space-6) !important; display: flex; align-items: center; justify-content: space-between; }
+        .card-body { padding: var(--space-6) !important; color: var(--text-primary); }
+        .card-footer { background: var(--canvas) !important; border-top: 1px solid var(--border-subtle) !important; padding: var(--space-4) var(--space-6) !important; }
+        /* ---- KPI CARDS ---- */
+        .cv-kpi { background: var(--surface-card); border: 1px solid var(--border-default); border-radius: var(--radius-card); box-shadow: var(--shadow-1); padding: var(--space-5) var(--space-6); transition: box-shadow 0.2s ease; cursor: pointer; }
+        .cv-kpi:hover { box-shadow: var(--shadow-2); }
+        .cv-kpi-label { font-size: 0.8125rem; font-weight: 500; color: var(--text-secondary); margin-bottom: var(--space-1); text-transform: uppercase; letter-spacing: 0.04em; }
+        .cv-kpi-value { font-size: 2rem; font-weight: 800; color: var(--text-primary); font-family: var(--font-mono); line-height: 1.1; }
+        .cv-kpi-icon { width: 40px; height: 40px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 1.125rem; flex-shrink: 0; }
+        /* ---- TABLES ---- */
+        .table { margin-bottom: 0; border-collapse: separate; border-spacing: 0; width: 100%; }
+        .table thead th { background: var(--canvas); color: var(--text-secondary); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border-default) !important; border-top: none; padding: var(--space-3) var(--space-4); white-space: nowrap; }
+        .table tbody td { padding: var(--space-3) var(--space-4); vertical-align: middle; border-bottom: 1px solid var(--border-subtle) !important; color: var(--text-primary); font-size: 0.875rem; }
+        .table tbody tr:last-child td { border-bottom: none !important; }
+        .table-hover tbody tr { transition: background 0.15s ease; }
+        .table-hover tbody tr:hover > td { background: var(--canvas) !important; }
+        /* ---- BADGES ---- */
+        .badge-notion { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: var(--radius-pill); font-size: 0.75rem; font-weight: 600; white-space: nowrap; border: none; }
+        .badge-notion-gray   { background: var(--status-neutral-bg);  color: var(--status-neutral-text); }
+        .badge-notion-green  { background: var(--status-success-bg);  color: var(--status-success-text); }
+        .badge-notion-blue   { background: var(--status-info-bg);     color: var(--status-info-text); }
+        .badge-notion-orange { background: var(--status-warn-bg);     color: var(--status-warn-text); }
+        .badge-notion-red    { background: var(--status-danger-bg);   color: var(--status-danger-text); }
+        .badge-notion-purple { background: var(--status-purple-bg);   color: var(--status-purple-text); }
+        .badge-notion-yellow { background: #fef9c3; color: #854d0e; }
+        .badge.bg-success  { background: var(--status-success-bg) !important; color: var(--status-success-text) !important; }
+        .badge.bg-primary  { background: var(--status-info-bg) !important;    color: var(--status-info-text) !important; }
+        .badge.bg-warning  { background: var(--status-warn-bg) !important;    color: var(--status-warn-text) !important; }
+        .badge.bg-danger   { background: var(--status-danger-bg) !important;  color: var(--status-danger-text) !important; }
+        .badge.bg-secondary{ background: var(--status-neutral-bg) !important; color: var(--status-neutral-text) !important; }
+        .badge.bg-info     { background: var(--status-purple-bg) !important;  color: var(--status-purple-text) !important; }
+        /* ---- BUTTONS ---- */
+        .btn { font-family: var(--font-sans); font-size: 0.875rem; font-weight: 600; border-radius: var(--radius-md) !important; padding: 8px 16px; transition: all 0.2s ease-in-out; box-shadow: none !important; border: 1px solid transparent; display: inline-flex; align-items: center; gap: 6px; }
+        .btn:hover  { transform: translateY(-1px); }
+        .btn:active { transform: translateY(0); }
+        .btn-primary, .btn-notion-brand, .btn-notion-primary { background: var(--color-accent) !important; color: #fff !important; border-color: var(--color-accent) !important; }
+        .btn-primary:hover, .btn-notion-brand:hover, .btn-notion-primary:hover { background: var(--color-accent-hover) !important; border-color: var(--color-accent-hover) !important; box-shadow: 0 4px 12px rgba(0,200,83,0.3) !important; }
+        .btn-secondary, .btn-notion-secondary, .btn-outline-secondary { background: var(--surface-card) !important; color: var(--text-primary) !important; border: 1px solid var(--border-default) !important; }
+        .btn-secondary:hover, .btn-notion-secondary:hover, .btn-outline-secondary:hover { background: var(--canvas) !important; border-color: #cbd5e1 !important; color: var(--text-primary) !important; }
+        .btn-danger, .btn-outline-danger { background: var(--status-danger-bg) !important; color: var(--status-danger-text) !important; border: 1px solid transparent !important; }
+        .btn-danger:hover, .btn-outline-danger:hover { background: #fecaca !important; color: var(--status-danger-text) !important; }
+        .btn-outline-success { background: var(--surface-card) !important; color: var(--color-accent-hover) !important; border: 1px solid var(--border-default) !important; }
+        .btn-outline-success:hover { background: var(--color-accent-bg) !important; border-color: var(--color-accent) !important; }
+        .btn-success { background: var(--color-accent) !important; color: #fff !important; border-color: var(--color-accent) !important; }
+        .btn-success:hover { background: var(--color-accent-hover) !important; border-color: var(--color-accent-hover) !important; }
+        /* ---- FORMS ---- */
+        .form-label { font-size: 0.8125rem; font-weight: 500; color: #334155; margin-bottom: var(--space-2); }
+        .form-control, .form-select { background: var(--surface-card); border: 1px solid #cbd5e1; border-radius: var(--radius-md) !important; color: var(--text-primary); font-family: var(--font-sans); font-size: 0.875rem; padding: 9px 12px; height: 40px; box-shadow: none !important; transition: border-color 0.15s ease, box-shadow 0.15s ease; }
+        .form-control:focus, .form-select:focus { border-color: var(--color-accent) !important; box-shadow: 0 0 0 3px var(--color-accent-ring) !important; outline: none; }
+        .form-control::placeholder { color: var(--text-muted); }
+        .form-control:disabled, .form-select:disabled { background: var(--canvas); color: var(--text-muted); cursor: not-allowed; }
+        textarea.form-control { height: auto; }
+        .input-group-text { background: var(--canvas); border: 1px solid #cbd5e1; color: var(--text-secondary); font-size: 0.875rem; }
+        .form-text { font-size: 0.8125rem; color: var(--text-muted); margin-top: 4px; }
+        /* ---- ALERTS ---- */
+        .alert { border-radius: var(--radius-md) !important; font-size: 0.875rem; padding: var(--space-3) var(--space-4); border: 1px solid transparent !important; display: flex; align-items: flex-start; gap: var(--space-3); box-shadow: none !important; }
+        .alert-success { background: var(--status-success-bg) !important; color: var(--status-success-text) !important; }
+        .alert-danger  { background: var(--status-danger-bg)  !important; color: var(--status-danger-text)  !important; }
+        .alert-warning { background: var(--status-warn-bg)    !important; color: var(--status-warn-text)    !important; }
+        .alert-info    { background: var(--status-info-bg)    !important; color: var(--status-info-text)    !important; }
+        /* ---- MODALS ---- */
+        .modal-content { border-radius: var(--radius-modal) !important; box-shadow: var(--shadow-3) !important; border: none !important; }
+        .modal-header { border-bottom: 1px solid var(--border-subtle) !important; padding: var(--space-6) !important; }
+        .modal-body { padding: var(--space-6) !important; }
+        .modal-footer { border-top: 1px solid var(--border-subtle) !important; padding: var(--space-4) var(--space-6) !important; }
+        /* ---- PROGRESS ---- */
+        .progress { border-radius: var(--radius-pill); background: var(--border-default); height: 6px; }
+        .progress-bar { background: var(--color-accent); border-radius: var(--radius-pill); }
+        .progress-bar.bg-primary { background: var(--status-info-text) !important; }
+        .progress-bar.bg-success { background: var(--color-accent) !important; }
+        /* ---- CODE ---- */
+        code { font-family: var(--font-mono); font-size: 0.8125rem; color: var(--text-primary); background: var(--canvas); padding: 2px 6px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); }
+        /* ---- PAGE HEADER ---- */
+        .cv-page-header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; margin-bottom: var(--space-8); }
+        .cv-page-title { font-size: 1.5rem; font-weight: 700; color: var(--text-primary); letter-spacing: -0.02em; line-height: 1.3; margin: 0; }
+        .cv-page-subtitle { font-size: 0.875rem; color: var(--text-secondary); margin: var(--space-1) 0 0; }
+        /* ---- EMPTY STATE ---- */
+        .cv-empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: var(--space-12) var(--space-8); text-align: center; gap: var(--space-4); }
+        .cv-empty-icon { font-size: 3rem; opacity: 0.4; color: var(--text-muted); }
+        .cv-empty-title { font-size: 0.9375rem; font-weight: 600; color: var(--text-secondary); }
+        .cv-empty-text { font-size: 0.875rem; color: var(--text-muted); }
+        /* ---- BREADCRUMB ---- */
+        .cv-breadcrumb { display: flex; align-items: center; gap: var(--space-2); font-size: 0.8125rem; color: var(--text-muted); margin-bottom: var(--space-5); flex-wrap: wrap; }
+        .cv-breadcrumb a { color: var(--text-secondary); text-decoration: none; }
+        .cv-breadcrumb a:hover { color: var(--text-primary); }
+        .cv-breadcrumb .current { color: var(--text-primary); font-weight: 500; }
+        /* ---- UTILS ---- */
+        .cv-flash-area { margin-bottom: var(--space-6); }
+        .text-muted { color: var(--text-secondary) !important; }
+        .border-bottom { border-color: var(--border-default) !important; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
+        /* ---- STEPPER / TIMELINE ---- */
+        .notion-stepper { display: inline-flex; align-items: center; gap: 6px; }
+        .notion-stepper .step-pill { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: var(--radius-pill); font-size: 0.7rem; font-weight: 600; background: var(--status-neutral-bg); color: var(--status-neutral-text); }
+        .notion-stepper .step-pill.active { background: var(--status-info-bg); color: var(--status-info-text); }
+        .notion-stepper .step-pill.completed { background: var(--status-success-bg); color: var(--status-success-text); }
+        .notion-stepper .step-divider { color: var(--text-muted); font-size: 0.7rem; }
+        .notion-timeline { position: relative; padding-left: 24px; }
+        .notion-timeline::before { content: ''; position: absolute; left: 7px; top: 8px; bottom: 8px; width: 2px; background: var(--border-default); }
+        .notion-timeline-item { position: relative; margin-bottom: var(--space-5); }
+        .notion-timeline-dot { position: absolute; left: -24px; top: 6px; width: 16px; height: 16px; border-radius: 50%; background: var(--surface-card); border: 3px solid var(--text-muted); }
+        .notion-timeline-dot.Pendente { border-color: var(--status-warn-text); }
+        .notion-timeline-dot.Devolvido { border-color: var(--status-success-text); }
     </style>
 </head>
-
 <body>
-    <!-- Navbar Minimalista Estilo Notion -->
-    <nav class="notion-navbar mb-4">
-        <div class="container d-flex align-items-center justify-content-between">
-            <div class="d-flex align-items-center gap-3">
-                <a class="notion-brand" href="{% if current_user.is_authenticated and current_user.role == 'coordenador' %}/meus-chamados{% elif current_user.is_authenticated %}/{% else %}/login{% endif %}">
-                    <span class="notion-brand-icon"><i class="bi bi-shield-check"></i></span>
-                    <span>Cavere</span>
-                    <span class="text-muted fw-normal" style="font-size: 0.82rem;">/ Ambipar Response</span>
-                </a>
+    <!-- NAVBAR -->
+    <nav class="cv-navbar">
+        <a class="cv-logo" href="{% if current_user.is_authenticated and current_user.role == 'coordenador' %}/meus-chamados{% elif current_user.is_authenticated %}/{% else %}/login{% endif %}">
+            <div class="cv-logo-icon"><i class="bi bi-shield-check"></i></div>
+            <div class="cv-logo-text">
+                <span class="cv-logo-name">Cavere</span>
+                <span class="cv-logo-sub">Ambipar Response</span>
             </div>
-
-            <div class="d-flex align-items-center gap-1">
-                {% if current_user.is_authenticated %}
-                    {% if current_user.role == 'admin' %}
-                    <a class="notion-nav-link" href="/"><i class="bi bi-grid-1x2 me-1"></i> Painel</a>
-                    <a class="notion-nav-link" href="/historico"><i class="bi bi-clock-history me-1"></i> Histórico</a>
-                    <a class="notion-nav-link" href="/novo-equipamento"><i class="bi bi-plus me-1"></i> Equipamento</a>
-                    <a class="notion-nav-link" href="/cadastrar-usuario"><i class="bi bi-person-plus me-1"></i> Usuários & Coordenadores</a>
-                    {% elif current_user.role == 'coordenador' %}
-                    <a class="notion-nav-link" href="/meus-chamados"><i class="bi bi-card-checklist me-1"></i> Meus Chamados</a>
-                    <a class="notion-btn-nav-primary ms-1 me-2" href="/solicitar-equipamento">
-                        <i class="bi bi-plus-lg"></i> Solicitar Equipamento
-                    </a>
-                    {% endif %}
-                    
-                    <span class="badge-notion badge-notion-gray ms-1 me-1">
-                        <i class="bi bi-person-circle me-1"></i>
-                        {{ current_user.username }}
-                        <span class="badge-notion {% if current_user.role == 'admin' %}badge-notion-purple{% else %}badge-notion-blue{% endif %} ms-1 text-uppercase" style="font-size: 0.7rem;">
-                            {{ current_user.role }}
-                        </span>
-                    </span>
-                    <a class="btn btn-outline-danger btn-sm py-1 px-2" href="/logout" title="Encerrar sessão" style="font-size: 0.8rem;">
-                        <i class="bi bi-box-arrow-right"></i>
-                    </a>
-                {% else %}
-                    <a class="notion-nav-link" href="/login"><i class="bi bi-key me-1"></i> Entrar</a>
-                {% endif %}
-            </div>
+        </a>
+        <div class="cv-navbar-divider"></div>
+        {% if current_user.is_authenticated %}
+        <span style="font-size:0.8125rem; color:var(--text-muted);">
+            {% if current_user.role == 'admin' %}Painel Administrativo{% else %}Portal do Coordenador{% endif %}
+        </span>
+        {% endif %}
+        <div class="cv-navbar-spacer"></div>
+        {% if current_user.is_authenticated %}
+        <div class="cv-user-chip">
+            <div class="cv-user-avatar">{{ current_user.username[0]|upper }}</div>
+            <span>{{ current_user.username }}</span>
+            <span class="cv-role-badge {% if current_user.role == 'admin' %}admin{% else %}coord{% endif %}">
+                {{ current_user.role }}
+            </span>
         </div>
+        <a class="cv-btn-logout" href="/logout" title="Encerrar sessao"><i class="bi bi-box-arrow-right"></i></a>
+        {% else %}
+        <a href="/login" style="font-size:0.875rem;font-weight:500;color:var(--text-secondary);text-decoration:none;display:flex;align-items:center;gap:6px;">
+            <i class="bi bi-key"></i> Entrar
+        </a>
+        {% endif %}
     </nav>
 
-    <div class="container mb-5">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show d-flex align-items-center justify-content-between" role="alert">
-                        <div class="d-flex align-items-center gap-2">
-                            {% if category == 'success' %}
-                                <i class="bi bi-check2-circle fs-5"></i>
-                            {% elif category == 'danger' %}
-                                <i class="bi bi-exclamation-octagon fs-5"></i>
-                            {% elif category == 'warning' %}
-                                <i class="bi bi-exclamation-triangle fs-5"></i>
-                            {% else %}
-                                <i class="bi bi-info-circle fs-5"></i>
-                            {% endif %}
-                            <span>{{ message }}</span>
-                        </div>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar" style="font-size: 0.75rem;"></button>
-                    </div>
-                {% endfor %}
+    <!-- LAYOUT -->
+    <div class="cv-layout">
+        {% if current_user.is_authenticated %}
+        <div class="cv-sidebar-slot"></div>
+        <aside class="cv-sidebar">
+            {% if current_user.role == 'admin' %}
+            <span class="cv-sidebar-label">Gestao</span>
+            <a href="/" class="cv-nav-item {% if request.path == '/' %}active{% endif %}">
+                <span class="nav-icon"><i class="bi bi-grid-1x2"></i></span>Painel Principal
+            </a>
+            <a href="/historico" class="cv-nav-item {% if request.path == '/historico' %}active{% endif %}">
+                <span class="nav-icon"><i class="bi bi-clock-history"></i></span>Historico de Cautelas
+            </a>
+            <span class="cv-sidebar-label">Cadastros</span>
+            <a href="/novo-equipamento" class="cv-nav-item {% if request.path == '/novo-equipamento' %}active{% endif %}">
+                <span class="nav-icon"><i class="bi bi-box-seam"></i></span>Novo Equipamento
+            </a>
+            <a href="/cadastrar-usuario" class="cv-nav-item {% if request.path == '/cadastrar-usuario' %}active{% endif %}">
+                <span class="nav-icon"><i class="bi bi-person-gear"></i></span>Usuarios e Coordenadores
+            </a>
+            {% elif current_user.role == 'coordenador' %}
+            <a href="/solicitar-equipamento" class="cv-sidebar-cta">
+                <i class="bi bi-plus-lg"></i>Solicitar Equipamento
+            </a>
+            <span class="cv-sidebar-label" style="margin-top:var(--space-3);">Operacoes</span>
+            <a href="/meus-chamados" class="cv-nav-item {% if request.path == '/meus-chamados' %}active{% endif %}">
+                <span class="nav-icon"><i class="bi bi-card-checklist"></i></span>Meus Chamados
+            </a>
             {% endif %}
-        {% endwith %}
-        {% block content %}{% endblock %}
+        </aside>
+        {% endif %}
+
+        <main class="cv-main">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div class="cv-flash-area">
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {% if category == 'success' %}<i class="bi bi-check2-circle fs-5 flex-shrink-0"></i>
+                        {% elif category == 'danger' %}<i class="bi bi-exclamation-octagon fs-5 flex-shrink-0"></i>
+                        {% elif category == 'warning' %}<i class="bi bi-exclamation-triangle fs-5 flex-shrink-0"></i>
+                        {% else %}<i class="bi bi-info-circle fs-5 flex-shrink-0"></i>{% endif %}
+                        <span>{{ message }}</span>
+                        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Fechar" style="font-size:0.75rem;"></button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            {% endwith %}
+            {% block content %}{% endblock %}
+        </main>
     </div>
 
-    <footer class="notion-footer">
-        <div class="container d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <span>🛡️ <strong>Cavere</strong> &bull; Sistema de Gestão & Cautelas</span>
-            <span>Ambipar Response &bull; Base Operacional Niterói &copy; 2026</span>
-        </div>
-    </footer>
-
-    <!-- Bootstrap Bundle JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-
 </html>

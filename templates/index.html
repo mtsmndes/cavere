@@ -1,135 +1,146 @@
 {% extends "base.html" %}
 {% block content %}
-<!-- Título da Página Estilo Notion -->
-<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4 pb-2 border-bottom" style="border-color: #e1e1df !important;">
+
+<!-- Page Header -->
+<div class="cv-page-header">
     <div>
-        <h4 class="fw-bold mb-0" style="color: #373530; letter-spacing: -0.01em;">
-            <i class="bi bi-grid-1x2 me-2 text-secondary"></i>Painel Principal de Operações
-        </h4>
-        <small class="text-muted">Visão integrada de chamados, controle de cautelas e gestão de ativos</small>
+        <h1 class="cv-page-title">Painel de Operacoes</h1>
+        <p class="cv-page-subtitle">Visao integrada de chamados, cautelas e gestao de ativos</p>
     </div>
-    <div class="d-flex gap-2">
-        <a href="/novo-equipamento" class="btn btn-notion-secondary btn-sm">
-            <i class="bi bi-plus-lg me-1"></i> Novo Equipamento
+    <div style="display:flex; gap:var(--space-3); flex-wrap:wrap; align-items:center;">
+        <a href="/novo-equipamento" class="btn btn-secondary btn-sm">
+            <i class="bi bi-plus-lg"></i> Novo Equipamento
         </a>
-        <a href="/cadastrar-usuario" class="btn btn-notion-brand btn-sm">
-            <i class="bi bi-person-plus me-1"></i> Cadastrar Usuário / Coordenador
+        <a href="/cadastrar-usuario" class="btn btn-primary btn-sm">
+            <i class="bi bi-person-plus"></i> Cadastrar Usuario / Coordenador
         </a>
     </div>
 </div>
 
-<!-- ========================================================================= -->
-<!-- SEÇÃO 1: Solicitações de Coordenadores (Chamados Operacionais)           -->
-<!-- ========================================================================= -->
-<div class="card mb-4" id="secaoSolicitacoes">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <div class="d-flex align-items-center gap-2">
-            <i class="bi bi-inbox text-secondary fs-5"></i>
+<!-- ============================================================ -->
+<!-- SECAO 1: Solicitacoes de Coordenadores                       -->
+<!-- ============================================================ -->
+<div class="card" style="margin-bottom:var(--space-6);" id="secaoSolicitacoes">
+    <div class="card-header">
+        <div style="display:flex; align-items:center; gap:var(--space-3);">
+            <div style="width:32px;height:32px;border-radius:var(--radius-md);background:var(--status-warn-bg);display:flex;align-items:center;justify-content:center;color:var(--status-warn-text);">
+                <i class="bi bi-inbox"></i>
+            </div>
             <div>
-                <span class="fw-semibold" style="color: #373530;">Solicitações de Equipamentos</span>
-                <span class="text-muted fw-normal small ms-2">&bull; Chamados Operacionais</span>
+                <div style="font-size:0.9375rem; font-weight:600; color:var(--text-primary);">Solicitacoes de Equipamentos</div>
+                <div style="font-size:0.8125rem; color:var(--text-secondary);">Chamados operacionais dos coordenadores</div>
             </div>
         </div>
-        <span class="badge-notion badge-notion-gray">
-            {{ solicitacoes|length }} chamado(s)
-        </span>
+        <span class="badge-notion badge-notion-gray">{{ solicitacoes|length }} chamado(s)</span>
     </div>
-    <div class="card-body p-0 table-responsive">
+    <div style="overflow-x:auto;">
         {% if solicitacoes %}
         <table class="table table-hover align-middle mb-0">
             <thead>
                 <tr>
-                    <th class="ps-3">Protocolo</th>
+                    <th class="ps-4">Protocolo</th>
                     <th>Coordenador</th>
                     <th>Equipamento Solicitado</th>
-                    <th>Itens Cautelados & Faltantes</th>
-                    <th>Destinatário / Base</th>
+                    <th>Itens Cautelados</th>
+                    <th>Destinatario / Base</th>
                     <th>RDO</th>
                     <th>Prioridade</th>
                     <th>Status</th>
-                    <th class="text-center">Ação Operacional</th>
+                    <th class="text-center pe-4">Acao Operacional</th>
                 </tr>
             </thead>
             <tbody>
                 {% for s in solicitacoes %}
                 <tr>
                     <!-- Protocolo -->
-                    <td class="ps-3 fw-semibold text-secondary">
-                        #SOL-{{ s.id }}
-                        <div class="text-muted small" style="font-size: 0.72rem;">{{ s.data_criacao[:10] if s.data_criacao else '' }}</div>
+                    <td class="ps-4">
+                        <div style="font-weight:600; color:var(--text-secondary); font-family:var(--font-mono); font-size:0.8125rem;">#SOL-{{ s.id }}</div>
+                        <div style="font-size:0.75rem; color:var(--text-muted);">{{ s.data_criacao[:10] if s.data_criacao else '' }}</div>
                     </td>
 
                     <!-- Coordenador -->
                     <td>
-                        <strong>{{ s.nome_coord }}</strong>
-                    </td>
-
-                    <!-- Equipamento Solicitado -->
-                    <td>
-                        <div class="d-flex align-items-center gap-1">
-                            <span class="badge-notion badge-notion-green fw-bold">{{ s.quantidade_total }}x</span>
-                            <span class="fw-semibold" style="color: #373530;">{{ s.tipo_equipamento }}</span>
+                        <div style="display:flex; align-items:center; gap:var(--space-2);">
+                            <div style="width:28px;height:28px;border-radius:50%;background:var(--color-accent-bg);color:var(--color-accent-hover);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0;">
+                                {{ s.nome_coord[0]|upper if s.nome_coord else '?' }}
+                            </div>
+                            <span style="font-weight:500; font-size:0.875rem;">{{ s.nome_coord }}</span>
                         </div>
                     </td>
 
-                    <!-- Itens Cautelados & Faltantes (Requisito do Usuário) -->
-                    <td style="min-width: 230px;">
-                        <!-- Barra de progresso -->
-                        <div class="d-flex align-items-center gap-2 mb-1">
-                            <div class="progress flex-grow-1" style="height: 6px; background-color: #e2e8f0; border-radius: 9999px;">
-                                <div class="progress-bar {% if s.concluida %}bg-success{% else %}bg-primary{% endif %}" 
-                                     role="progressbar" 
-                                     style="width: {{ (s.qtd_emitida / s.quantidade_total * 100)|round|int if s.quantidade_total > 0 else 0 }}%; border-radius: 9999px;"></div>
+                    <!-- Equipamento -->
+                    <td>
+                        <div style="display:flex; align-items:center; gap:var(--space-2);">
+                            <span class="badge-notion badge-notion-green" style="font-size:0.75rem; font-weight:700;">{{ s.quantidade_total }}x</span>
+                            <span style="font-weight:600;">{{ s.tipo_equipamento }}</span>
+                        </div>
+                    </td>
+
+                    <!-- Itens Cautelados & Faltantes -->
+                    <td style="min-width:220px;">
+                        <!-- Progress bar -->
+                        <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-2);">
+                            <div class="progress flex-grow-1">
+                                <div class="progress-bar {% if s.concluida %}bg-success{% else %}bg-primary{% endif %}"
+                                    role="progressbar"
+                                    data-width="{{ (s.qtd_emitida / s.quantidade_total * 100)|round|int if s.quantidade_total > 0 else 0 }}">
+                                </div>
                             </div>
-                            <span class="small fw-semibold text-muted" style="font-size: 0.74rem;">
+                            <span style="font-size:0.75rem; font-weight:600; color:var(--text-secondary); font-family:var(--font-mono); white-space:nowrap;">
                                 {{ s.qtd_emitida }}/{{ s.quantidade_total }}
                             </span>
                         </div>
 
-                        <!-- Lista de Itens Já Emitidos -->
+                        <!-- Itens ja emitidos -->
                         {% if s.itens_emitidos %}
-                        <div class="d-flex flex-wrap gap-1 mb-1">
+                        <div style="display:flex; flex-wrap:wrap; gap:4px; margin-bottom:4px;">
                             {% for it in s.itens_emitidos %}
-                            <span class="badge-notion badge-notion-green py-0 px-2" style="font-size: 0.71rem;" 
-                                  title="Cautela #CAU-{{ it.id_cautela }} emitida em {{ it.data_saida }}">
-                                <i class="bi bi-check2 me-1"></i>#CAU-{{ it.id_cautela }}: {{ it.modelo or it.tipo }} (SN: <code>{{ it.patrimonio_sn }}</code>)
+                            <span class="badge-notion badge-notion-green" style="font-size:0.7rem; padding:2px 6px;"
+                                title="#CAU-{{ it.id_cautela }} - {{ it.data_saida }}">
+                                <i class="bi bi-check2"></i> {{ it.modelo or it.tipo }} ({{ it.patrimonio_sn }})
                             </span>
                             {% endfor %}
                         </div>
                         {% endif %}
 
-                        <!-- Indicador de Itens Faltantes -->
+                        <!-- Itens devolvidos em chamados nao finalizados -->
+                        {% if s.itens_devolvidos and not s.concluida %}
+                        <div style="display:flex; flex-wrap:wrap; gap:4px; margin-bottom:4px;">
+                            {% for it in s.itens_devolvidos %}
+                            <span class="badge-notion badge-notion-gray" style="font-size:0.7rem; padding:2px 6px; opacity:0.8;"
+                                title="Devolvido em {{ it.data_devolucao }}">
+                                <i class="bi bi-arrow-return-left"></i> {{ it.modelo or it.tipo }} ({{ it.patrimonio_sn }})
+                            </span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <!-- Indicador de pendencias -->
                         {% if s.qtd_restante > 0 %}
-                        <span class="badge-notion badge-notion-orange py-0 px-2" style="font-size: 0.71rem;">
-                            <i class="bi bi-hourglass-split me-1"></i>Faltam {{ s.qtd_restante }} item(ns)
+                        <span class="badge-notion badge-notion-orange" style="font-size:0.7rem; padding:2px 6px;">
+                            <i class="bi bi-hourglass-split"></i> Faltam {{ s.qtd_restante }} item(ns)
                         </span>
                         {% else %}
-                        <span class="badge-notion badge-notion-purple py-0 px-2" style="font-size: 0.71rem;">
-                            <i class="bi bi-check-all me-1"></i>Todos os {{ s.quantidade_total }} itens atendidos
+                        <span class="badge-notion badge-notion-green" style="font-size:0.7rem; padding:2px 6px;">
+                            <i class="bi bi-check-all"></i> Todos {{ s.quantidade_total }} atendidos
                         </span>
                         {% endif %}
                     </td>
 
-                    <!-- Destinatário / Base -->
+                    <!-- Destinatario / Base -->
                     <td>
-                        <div style="color: #373530;"><i class="bi bi-person text-muted me-1"></i>{{ s.destinatario }}</div>
-                        <div class="text-muted small" style="font-size: 0.75rem;"><i class="bi bi-geo-alt text-muted me-1"></i>{{ s.plataforma }}</div>
+                        <div style="font-size:0.875rem;"><i class="bi bi-person text-muted me-1"></i>{{ s.destinatario }}</div>
+                        <div style="font-size:0.8125rem; color:var(--text-muted);"><i class="bi bi-geo-alt me-1"></i>{{ s.plataforma }}</div>
                     </td>
 
                     <!-- RDO -->
-                    <td>
-                        <code style="color: #373530; background: #f1f1ef; padding: 2px 6px; border-radius: 4px;">{{ s.rdo }}</code>
-                    </td>
+                    <td><code>{{ s.rdo }}</code></td>
 
                     <!-- Prioridade -->
                     <td>
-                        {% if s.prioridade == 'Urgente' %}
-                        <span class="badge-notion badge-notion-red">Urgente</span>
-                        {% elif s.prioridade == 'Alta' %}
-                        <span class="badge-notion badge-notion-orange">Alta</span>
-                        {% else %}
-                        <span class="badge-notion badge-notion-gray">Normal</span>
-                        {% endif %}
+                        {% if s.prioridade == 'Urgente' %}<span class="badge-notion badge-notion-red">Urgente</span>
+                        {% elif s.prioridade == 'Alta' %}<span class="badge-notion badge-notion-orange">Alta</span>
+                        {% else %}<span class="badge-notion badge-notion-gray">Normal</span>{% endif %}
                     </td>
 
                     <!-- Status -->
@@ -140,30 +151,34 @@
                         <span class="badge-notion badge-notion-blue"><i class="bi bi-arrow-repeat me-1"></i>Em Atendimento</span>
                         {% elif s.status == 'Esperando Entrega' %}
                         <span class="badge-notion badge-notion-purple"><i class="bi bi-box-seam me-1"></i>Esperando Entrega</span>
-                        {% elif s.status in ('Finalizada', 'Concluído', 'Finalizado', 'Devolvido') %}
+                        {% elif s.status in ('Finalizada', 'Concluido', 'Finalizado', 'Devolvido') %}
                         <span class="badge-notion badge-notion-green"><i class="bi bi-check-circle me-1"></i>Finalizada</span>
                         {% else %}
                         <span class="badge-notion badge-notion-blue"><i class="bi bi-broadcast me-1"></i>{{ s.status }}</span>
                         {% endif %}
                     </td>
 
-                    <!-- Ação Operacional -->
-                    <td class="text-center">
+                    <!-- Acao Operacional -->
+                    <td class="text-center pe-4">
                         {% if s.status in ('Pendente', 'Em Atendimento') %}
-                        <button type="button" class="btn btn-notion-secondary btn-sm py-1 px-2 d-inline-flex align-items-center gap-1" 
-                                onclick="preencherCautela('{{ s.id }}', '{{ s.id_coordenador }}', '{{ s.rdo }}', '{{ s.tipo_equipamento }}', '{{ s.nome_coord }}', '{{ s.qtd_emitida + 1 }}', '{{ s.quantidade_total }}', '{{ s.categoria }}')" 
-                                title="Emitir cautela para o item {{ s.qtd_emitida + 1 }} de {{ s.quantidade_total }}">
+                        <button type="button"
+                            class="btn btn-secondary btn-sm"
+                            onclick="preencherCautela('{{ s.id }}', '{{ s.id_coordenador }}', '{{ s.rdo }}', '{{ s.tipo_equipamento }}', '{{ s.nome_coord }}', '{{ s.qtd_emitida + 1 }}', '{{ s.quantidade_total }}', '{{ s.categoria }}')"
+                            title="Emitir cautela para o item {{ s.qtd_emitida + 1 }} de {{ s.quantidade_total }}">
                             <i class="bi bi-arrow-down-right"></i>
-                            <span>Atender (Item {{ s.qtd_emitida + 1 }}/{{ s.quantidade_total }})</span>
+                            Atender ({{ s.qtd_emitida + 1 }}/{{ s.quantidade_total }})
                         </button>
                         {% elif s.status == 'Esperando Entrega' %}
-                        <a href="/solicitacao/entregar/{{ s.id }}" class="btn btn-notion-brand btn-sm py-1 px-3 d-inline-flex align-items-center gap-1" 
-                           title="Confirmar entrega de todos os itens e finalizar chamado">
+                        <a href="/solicitacao/entregar/{{ s.id }}"
+                            class="btn btn-primary btn-sm"
+                            title="Confirmar entrega e finalizar chamado">
                             <i class="bi bi-box-seam"></i>
-                            <span>Equipamento Entregue</span>
+                            Equipamento Entregue
                         </a>
                         {% else %}
-                        <span class="text-muted small"><i class="bi bi-check2-all text-success me-1"></i>Concluído</span>
+                        <span style="font-size:0.8125rem; color:var(--text-muted);">
+                            <i class="bi bi-check2-all text-success me-1"></i>Concluido
+                        </span>
                         {% endif %}
                     </td>
                 </tr>
@@ -171,142 +186,145 @@
             </tbody>
         </table>
         {% else %}
-        <div class="p-4 text-center text-muted small">
-            Nenhuma solicitação no momento.
+        <div class="cv-empty-state">
+            <div class="cv-empty-icon"><i class="bi bi-inbox"></i></div>
+            <div class="cv-empty-title">Nenhuma solicitacao no momento</div>
+            <div class="cv-empty-text">As solicitacoes abertas pelos coordenadores aparecao aqui.</div>
         </div>
         {% endif %}
     </div>
 </div>
 
-<!-- ========================================================================= -->
-<!-- SEÇÃO 2: Workspace de Atendimento & Inventário (Formulário + Equipamentos)  -->
-<!-- ========================================================================= -->
-<div class="row g-4 mb-4">
-    <!-- Formulário de Cautela Estilo Bloco Notion -->
+<!-- ============================================================ -->
+<!-- SECAO 2: Workspace (Formulario de Cautela + Inventario)      -->
+<!-- ============================================================ -->
+<div class="row g-4" style="margin-bottom:var(--space-6);">
+    <!-- Formulario de Emissao de Cautela -->
     <div class="col-lg-5">
         <div class="card h-100" id="secaoFormCautela">
             <div class="card-header">
-                <div class="d-flex align-items-center gap-2">
-                    <i class="bi bi-file-earmark-text text-secondary"></i>
-                    <span class="fw-semibold">Emitir Termo de Cautela</span>
+                <div style="display:flex; align-items:center; gap:var(--space-3);">
+                    <div style="width:32px;height:32px;border-radius:var(--radius-md);background:var(--color-accent-bg);display:flex;align-items:center;justify-content:center;color:var(--color-accent-hover);">
+                        <i class="bi bi-file-earmark-text"></i>
+                    </div>
+                    <div style="font-size:0.9375rem; font-weight:600;">Emitir Termo de Cautela</div>
                 </div>
             </div>
             <div class="card-body">
+
                 <!-- Banner de Atendimento Ativo -->
                 <div id="bannerAtendimento" class="alert alert-info py-2 px-3 small d-none mb-3 align-items-center justify-content-between">
-                    <div class="d-flex align-items-center gap-2">
-                        <i class="bi bi-link-45deg fs-5 text-primary"></i>
+                    <div style="display:flex; align-items:center; gap:var(--space-2);">
+                        <i class="bi bi-link-45deg fs-5"></i>
                         <div id="textoBannerAtendimento">Atendendo Chamado</div>
                     </div>
-                    <button type="button" class="btn btn-sm py-0 px-2 btn-outline-secondary" onclick="limparAtendimento()" title="Desvincular chamado">
-                        Limpar
-                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm py-0 px-2" onclick="limparAtendimento()">Limpar</button>
                 </div>
 
-                <!-- Aviso de Filtro Ativo de Categoria -->
+                <!-- Aviso de Filtro Ativo -->
                 <div id="avisoFiltroEquipamento" class="d-none"></div>
 
                 <form action="/gerar" method="POST" id="formCautela">
                     <input type="hidden" name="id_solicitacao" id="campoIdSolicitacao" value="">
 
-                    <div class="mb-3">
-                        <label class="form-label fw-medium" for="campoIdEquipamento">
-                            Equipamento para Cautela <span class="text-danger">*</span>
+                    <div style="margin-bottom:var(--space-4);">
+                        <label class="form-label" for="campoIdEquipamento">
+                            Equipamento para Cautela <span style="color:var(--status-danger-text);">*</span>
                         </label>
                         <select class="form-select" name="id_equipamento" id="campoIdEquipamento" required>
                             <option value="" disabled selected>Selecione um equipamento...</option>
                             {% for eq in equipamentos %}
-                            <option value="{{ eq.id }}" 
-                                    data-categoria="{{ eq.categoria }}" 
-                                    data-tipo="{{ eq.tipo }}" 
-                                    data-modelo="{{ eq.modelo }}" 
-                                    data-sn="{{ eq.patrimonio_sn }}" 
-                                    data-status="{{ eq.status }}"
-                                    {% if eq.status != 'Disponível' %}class="text-muted bg-light"{% endif %}>
+                            <option value="{{ eq.id }}" data-categoria="{{ eq.categoria }}" data-tipo="{{ eq.tipo }}"
+                                data-modelo="{{ eq.modelo }}" data-sn="{{ eq.patrimonio_sn }}"
+                                data-status="{{ eq.status }}" {% if eq.status != 'Disponivel' %}style="color:var(--text-muted);"{% endif %}>
                                 #{{ eq.id }} - {{ eq.tipo }} ({{ eq.modelo }} | SN: {{ eq.patrimonio_sn }}) &bull; [{{ eq.status }}]
                             </option>
                             {% endfor %}
                         </select>
-                        <div class="form-text text-muted" id="ajudaEquipamento" style="font-size: 0.74rem;">
-                            Ao atender uma solicitação, apenas equipamentos compatíveis serão permitidos.
+                        <div class="form-text" id="ajudaEquipamento">
+                            Ao atender uma solicitacao, apenas equipamentos compatíveis serao exibidos.
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label fw-medium" for="campoIdCoordenador">
-                            Coordenador Responsável <span class="text-danger">*</span>
+                    <div style="margin-bottom:var(--space-4);">
+                        <label class="form-label" for="campoIdCoordenador">
+                            Coordenador Responsavel <span style="color:var(--status-danger-text);">*</span>
                         </label>
                         <select class="form-select" name="id_coordenador" id="campoIdCoordenador" required>
                             <option value="" disabled selected>Selecione o coordenador...</option>
                             {% for coord in coordenadores %}
                             <option value="{{ coord.id }}">
-                                #{{ coord.id }} - {{ coord.nome_completo }} (CPF/Matrícula: {{ coord.cpf_matricula }})
+                                #{{ coord.id }} - {{ coord.nome_completo }} ({{ coord.cpf_matricula }})
                             </option>
                             {% endfor %}
                         </select>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label fw-medium" for="campoRdo">
-                            Número do RDO / Projeto <span class="text-danger">*</span>
+                    <div style="margin-bottom:var(--space-5);">
+                        <label class="form-label" for="campoRdo">
+                            Numero do RDO / Projeto <span style="color:var(--status-danger-text);">*</span>
                         </label>
                         <input type="text" class="form-control" name="rdo" id="campoRdo" placeholder="Ex: RDO-2026-0905" required>
                     </div>
 
-                    <button type="submit" class="btn btn-notion-brand w-100 py-2 d-flex align-items-center justify-content-center gap-2">
+                    <button type="submit" class="btn btn-primary w-100" style="height:44px;">
                         <i class="bi bi-file-earmark-pdf"></i>
-                        <span>Gerar Cautela & PDF</span>
+                        Gerar Cautela & PDF
                     </button>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- Base de Equipamentos & Coordenadores (Inventário Rápido) -->
+    <!-- Inventario de Equipamentos e Coordenadores -->
     <div class="col-lg-7">
-        <!-- Tabela de Equipamentos Cadastrados -->
-        <div class="card mb-4">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center gap-2">
-                    <i class="bi bi-hdd-stack text-secondary"></i>
-                    <span class="fw-semibold">Base de Equipamentos em Inventário</span>
+        <!-- Equipamentos -->
+        <div class="card" style="margin-bottom:var(--space-4);">
+            <div class="card-header">
+                <div style="display:flex; align-items:center; gap:var(--space-3);">
+                    <div style="width:32px;height:32px;border-radius:var(--radius-md);background:var(--status-info-bg);display:flex;align-items:center;justify-content:center;color:var(--status-info-text);">
+                        <i class="bi bi-hdd-stack"></i>
+                    </div>
+                    <div style="font-size:0.9375rem; font-weight:600;">Base de Equipamentos</div>
                 </div>
                 <span class="badge-notion badge-notion-gray">{{ equipamentos|length }} cadastrados</span>
             </div>
-            <div class="card-body p-0 table-responsive" style="max-height: 270px; overflow-y: auto;">
+            <div style="overflow-x:auto; max-height:280px; overflow-y:auto;">
                 <table class="table table-hover align-middle mb-0">
                     <thead>
                         <tr>
-                            <th class="ps-3">ID</th>
+                            <th class="ps-4">ID</th>
                             <th>Tipo / Modelo</th>
-                            <th>Patrimônio / SN</th>
+                            <th>Patrimonio / SN</th>
                             <th>Status</th>
-                            <th>Ação</th>
+                            <th>Acao</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for eq in equipamentos %}
                         <tr>
-                            <td class="ps-3 fw-semibold text-secondary">#{{ eq.id }}</td>
-                            <td>
-                                <strong>{{ eq.tipo }}</strong>
-                                <span class="text-muted small ms-1">({{ eq.modelo }})</span>
+                            <td class="ps-4">
+                                <code style="font-size:0.8rem;">#{{ eq.id }}</code>
                             </td>
-                            <td><code>{{ eq.patrimonio_sn }}</code></td>
                             <td>
-                                {% if eq.status == 'Disponível' %}
-                                <span class="badge-notion badge-notion-green">Disponível</span>
+                                <div style="font-weight:600; font-size:0.875rem;">{{ eq.tipo }}</div>
+                                <div style="font-size:0.8125rem; color:var(--text-muted);">{{ eq.modelo }}</div>
+                            </td>
+                            <td><code style="font-size:0.8rem;">{{ eq.patrimonio_sn }}</code></td>
+                            <td>
+                                {% if eq.status == 'Disponivel' %}
+                                <span class="badge-notion badge-notion-green">Disponivel</span>
                                 {% else %}
-                                <span class="badge-notion badge-notion-blue">Em Operação</span>
+                                <span class="badge-notion badge-notion-blue">Em Operacao</span>
                                 {% endif %}
                             </td>
                             <td>
-                                {% if eq.status == 'Em Operação' %}
-                                <a href="/devolver/{{ eq.id }}" class="btn btn-notion-secondary btn-sm py-0 px-2" style="font-size: 0.75rem;" title="Registrar devolução">
-                                    <i class="bi bi-arrow-return-left me-1"></i> Devolver
+                                {% if eq.status == 'Em Operacao' %}
+                                <a href="/devolver/{{ eq.id }}" class="btn btn-secondary btn-sm" style="font-size:0.8rem; padding:4px 10px;" title="Registrar devolucao">
+                                    <i class="bi bi-arrow-return-left"></i> Devolver
                                 </a>
                                 {% else %}
-                                <span class="text-muted small"><i class="bi bi-check2 text-success me-1"></i>Na Base</span>
+                                <span style="font-size:0.8125rem; color:var(--text-muted);"><i class="bi bi-check2 text-success me-1"></i>Na Base</span>
                                 {% endif %}
                             </td>
                         </tr>
@@ -316,30 +334,39 @@
             </div>
         </div>
 
-        <!-- Tabela de Coordenadores Cadastrados -->
+        <!-- Coordenadores -->
         <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center gap-2">
-                    <i class="bi bi-people text-secondary"></i>
-                    <span class="fw-semibold">Coordenadores Registrados</span>
+            <div class="card-header">
+                <div style="display:flex; align-items:center; gap:var(--space-3);">
+                    <div style="width:32px;height:32px;border-radius:var(--radius-md);background:var(--status-success-bg);display:flex;align-items:center;justify-content:center;color:var(--status-success-text);">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <div style="font-size:0.9375rem; font-weight:600;">Coordenadores Registrados</div>
                 </div>
                 <span class="badge-notion badge-notion-gray">{{ coordenadores|length }} cadastrados</span>
             </div>
-            <div class="card-body p-0 table-responsive" style="max-height: 200px; overflow-y: auto;">
+            <div style="overflow-x:auto; max-height:220px; overflow-y:auto;">
                 <table class="table table-hover align-middle mb-0">
                     <thead>
                         <tr>
-                            <th class="ps-3">ID</th>
+                            <th class="ps-4">ID</th>
                             <th>Nome Completo</th>
-                            <th>CPF / Matrícula</th>
+                            <th>CPF / Matricula</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for coord in coordenadores %}
                         <tr>
-                            <td class="ps-3 fw-semibold text-secondary">#{{ coord.id }}</td>
-                            <td><strong>{{ coord.nome_completo }}</strong></td>
-                            <td><code>{{ coord.cpf_matricula }}</code></td>
+                            <td class="ps-4"><code style="font-size:0.8rem;">#{{ coord.id }}</code></td>
+                            <td>
+                                <div style="display:flex; align-items:center; gap:var(--space-2);">
+                                    <div style="width:26px;height:26px;border-radius:50%;background:var(--color-accent-bg);color:var(--color-accent-hover);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;flex-shrink:0;">
+                                        {{ coord.nome_completo[0]|upper if coord.nome_completo else '?' }}
+                                    </div>
+                                    <span style="font-weight:500; font-size:0.875rem;">{{ coord.nome_completo }}</span>
+                                </div>
+                            </td>
+                            <td><code style="font-size:0.8rem;">{{ coord.cpf_matricula }}</code></td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -349,67 +376,74 @@
     </div>
 </div>
 
-<!-- ========================================================================= -->
-<!-- SEÇÃO 3: Cautelas Geradas & Termos Emitidos (HISTÓRICO NO FINAL DA PÁGINA) -->
-<!-- ========================================================================= -->
-<div class="card mb-4" id="secaoCautelasAdmin">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <div class="d-flex align-items-center gap-2">
-            <i class="bi bi-file-earmark-check text-secondary fs-5"></i>
+<!-- ============================================================ -->
+<!-- SECAO 3: Historico de Cautelas Geradas                       -->
+<!-- ============================================================ -->
+<div class="card" id="secaoCautelasAdmin">
+    <div class="card-header">
+        <div style="display:flex; align-items:center; gap:var(--space-3);">
+            <div style="width:32px;height:32px;border-radius:var(--radius-md);background:var(--status-success-bg);display:flex;align-items:center;justify-content:center;color:var(--status-success-text);">
+                <i class="bi bi-file-earmark-check"></i>
+            </div>
             <div>
-                <span class="fw-semibold" style="color: #373530;">Cautelas Geradas & Termos Emitidos</span>
-                <span class="text-muted fw-normal small ms-2">&bull; Histórico Geral e Acesso a PDFs</span>
+                <div style="font-size:0.9375rem; font-weight:600;">Cautelas Geradas & Termos Emitidos</div>
+                <div style="font-size:0.8125rem; color:var(--text-secondary);">Historico geral e acesso a PDFs</div>
             </div>
         </div>
-        <div class="d-flex align-items-center gap-2">
+        <div style="display:flex; align-items:center; gap:var(--space-3);">
             <span class="badge-notion badge-notion-gray">{{ cautelas|length }} cautela(s)</span>
-            <a href="/historico" class="btn btn-notion-secondary btn-sm py-1 px-2" style="font-size: 0.78rem;">
-                <i class="bi bi-clock-history me-1"></i> Histórico Completo
+            <a href="/historico" class="btn btn-secondary btn-sm">
+                <i class="bi bi-clock-history"></i> Historico Completo
             </a>
         </div>
     </div>
-    <div class="card-body p-0 table-responsive">
+    <div style="overflow-x:auto;">
         {% if cautelas %}
         <table class="table table-hover align-middle mb-0">
             <thead>
                 <tr>
-                    <th class="ps-3">Cautela</th>
+                    <th class="ps-4">Cautela</th>
                     <th>Chamado Vinculado</th>
-                    <th>Equipamento & Patrimônio</th>
-                    <th>Coordenador Responsável</th>
-                    <th>RDO Vinculado</th>
-                    <th>Data de Saída</th>
+                    <th>Equipamento & Patrimonio</th>
+                    <th>Coordenador</th>
+                    <th>RDO</th>
+                    <th>Data de Saida</th>
                     <th>Status</th>
-                    <th class="text-center">Termo de Cautela</th>
-                    <th class="text-center">Devolução</th>
+                    <th class="text-center">Termo PDF</th>
+                    <th class="text-center pe-4">Devolucao</th>
                 </tr>
             </thead>
             <tbody>
                 {% for c in cautelas %}
                 <tr>
-                    <td class="ps-3 fw-semibold text-secondary">#CAU-{{ c.id }}</td>
+                    <td class="ps-4">
+                        <code style="font-size:0.8rem; font-weight:600;">#CAU-{{ c.id }}</code>
+                    </td>
                     <td>
                         {% if c.id_solicitacao %}
                         <span class="badge-notion badge-notion-blue">#SOL-{{ c.id_solicitacao }}</span>
                         {% else %}
-                        <span class="text-muted small">Direta (Sem Chamado)</span>
+                        <span style="font-size:0.8125rem; color:var(--text-muted);">Direta</span>
                         {% endif %}
                     </td>
                     <td>
-                        <strong style="color: #373530;">{{ c.tipo }}</strong>
-                        <span class="text-muted small ms-1">({{ c.modelo }})</span>
-                        <div class="text-muted small" style="font-size: 0.74rem;">SN: <code>{{ c.patrimonio_sn }}</code></div>
+                        <div style="font-weight:600; font-size:0.875rem;">{{ c.tipo }}</div>
+                        <div style="font-size:0.8125rem; color:var(--text-muted);">{{ c.modelo }}</div>
+                        <code style="font-size:0.75rem;">{{ c.patrimonio_sn }}</code>
                     </td>
                     <td>
-                        <i class="bi bi-person text-muted me-1"></i>{{ c.coordenador }}
+                        <div style="display:flex; align-items:center; gap:var(--space-2);">
+                            <div style="width:24px;height:24px;border-radius:50%;background:var(--canvas);border:1px solid var(--border-default);display:flex;align-items:center;justify-content:center;font-size:0.7rem;color:var(--text-muted);">
+                                <i class="bi bi-person"></i>
+                            </div>
+                            <span style="font-size:0.875rem;">{{ c.coordenador }}</span>
+                        </div>
                     </td>
+                    <td><code style="font-size:0.8rem;">{{ c.rdo }}</code></td>
                     <td>
-                        <code style="color: #373530; background: #f1f1ef; padding: 2px 6px; border-radius: 4px;">{{ c.rdo }}</code>
-                    </td>
-                    <td>
-                        <div class="small">{{ c.data_saida }}</div>
+                        <div style="font-size:0.875rem;">{{ c.data_saida }}</div>
                         {% if c.data_devolucao %}
-                        <div class="text-muted small" style="font-size: 0.72rem;">Devolvido: {{ c.data_devolucao }}</div>
+                        <div style="font-size:0.75rem; color:var(--text-muted);">Dev.: {{ c.data_devolucao }}</div>
                         {% endif %}
                     </td>
                     <td>
@@ -421,21 +455,20 @@
                     </td>
                     <td class="text-center">
                         {% if c.pdf_nome %}
-                        <a href="/cautelas/{{ c.pdf_nome }}" target="_blank" 
-                           class="btn btn-notion-secondary btn-sm py-1 px-2" style="font-size: 0.78rem;" title="Visualizar ou baixar PDF do Termo">
-                            <i class="bi bi-file-earmark-pdf text-danger me-1"></i> Termo PDF
+                        <a href="/cautelas/{{ c.pdf_nome }}" target="_blank" class="btn btn-secondary btn-sm" style="font-size:0.8rem; padding:4px 10px;" title="Visualizar PDF">
+                            <i class="bi bi-file-earmark-pdf" style="color:var(--status-danger-text);"></i> PDF
                         </a>
                         {% else %}
-                        <span class="text-muted small">-</span>
+                        <span style="color:var(--text-muted);">-</span>
                         {% endif %}
                     </td>
-                    <td class="text-center">
+                    <td class="text-center pe-4">
                         {% if c.status == 'Em Campo' and c.id_equipamento %}
-                        <a href="/devolver/{{ c.id_equipamento }}" class="btn btn-notion-secondary btn-sm py-1 px-2" style="font-size: 0.78rem;" title="Registrar devolução do equipamento">
-                            <i class="bi bi-arrow-return-left me-1"></i> Devolver
+                        <a href="/devolver/{{ c.id_equipamento }}" class="btn btn-secondary btn-sm" style="font-size:0.8rem; padding:4px 10px;" title="Registrar devolucao">
+                            <i class="bi bi-arrow-return-left"></i> Devolver
                         </a>
                         {% else %}
-                        <span class="text-muted small"><i class="bi bi-check2 text-success me-1"></i>Concluído</span>
+                        <span style="font-size:0.8125rem; color:var(--text-muted);"><i class="bi bi-check2 text-success me-1"></i>Concluido</span>
                         {% endif %}
                     </td>
                 </tr>
@@ -443,28 +476,24 @@
             </tbody>
         </table>
         {% else %}
-        <div class="p-4 text-center text-muted small">
-            Nenhuma cautela emitida no momento.
+        <div class="cv-empty-state">
+            <div class="cv-empty-icon"><i class="bi bi-file-earmark-check"></i></div>
+            <div class="cv-empty-title">Nenhuma cautela emitida</div>
+            <div class="cv-empty-text">Os termos de responsabilidade gerados aparecao aqui.</div>
         </div>
         {% endif %}
     </div>
 </div>
 
 <script>
-    // Categoria ativa no filtro de atendimento
     let categoriaFiltroAtivo = null;
     let tipoSolicitadoAtivo = null;
 
-    /**
-     * Preenche os dados do formulário de cautela com base na solicitação clicada
-     * e aplica filtro ESTRITO no dropdown para proibir equipamentos de outros tipos.
-     */
     function preencherCautela(idSol, idCoord, rdo, tipoEq, nomeCoord, itemAtual, totalItens, categoriaEq) {
         document.getElementById('campoIdSolicitacao').value = idSol || '';
         categoriaFiltroAtivo = categoriaEq || null;
         tipoSolicitadoAtivo = tipoEq || '';
 
-        // 1. Seleciona o coordenador no dropdown
         if (idCoord && idCoord !== 'None') {
             let selectCoord = document.getElementById('campoIdCoordenador');
             for (let i = 0; i < selectCoord.options.length; i++) {
@@ -474,24 +503,21 @@
                 }
             }
         }
-        
-        // 2. Preenche o RDO
+
         if (rdo && rdo !== 'None' && rdo !== 'N/A') {
             document.getElementById('campoRdo').value = rdo;
         }
 
-        // 3. Aplica o filtro restrito no dropdown de equipamentos
         aplicarFiltroEquipamentos(categoriaEq, tipoEq);
 
-        // 4. Exibe o banner informativo no formulário
         let banner = document.getElementById('bannerAtendimento');
         let texto = document.getElementById('textoBannerAtendimento');
         if (banner && texto) {
             texto.innerHTML = `
                 <div>
                     <strong>Chamado #SOL-${idSol}</strong> &bull; Atendendo <strong>Item ${itemAtual || 1} de ${totalItens || 1}</strong>
-                    <div class="text-muted" style="font-size: 0.75rem;">
-                        Coordenador: <strong>${nomeCoord || 'Coordenador'}</strong> &bull; Exclusivo: <span class="badge-notion badge-notion-blue">${tipoEq}</span>
+                    <div style="font-size:0.75rem; color:var(--text-secondary); margin-top:2px;">
+                        Coordenador: <strong>${nomeCoord || 'Coordenador'}</strong> &bull; Tipo: <span class="badge-notion badge-notion-blue">${tipoEq}</span>
                     </div>
                 </div>
             `;
@@ -499,14 +525,9 @@
             banner.classList.add('d-flex');
         }
 
-        // Scroll suave até o formulário de emissão
         document.getElementById('secaoFormCautela').scrollIntoView({ behavior: 'smooth' });
     }
 
-    /**
-     * Filtra estritamente o select de equipamentos.
-     * Esconde e desabilita opções incompatíveis para que o usuário NÃO possa escolher outro tipo.
-     */
     function aplicarFiltroEquipamentos(categoria, tipoTexto) {
         let selectEq = document.getElementById('campoIdEquipamento');
         let avisoFiltro = document.getElementById('avisoFiltroEquipamento');
@@ -515,19 +536,14 @@
         let primeiroDisponivelIndex = -1;
 
         if (!categoria || categoria === 'todos') {
-            // Reabilita todos os equipamentos
             for (let i = 0; i < selectEq.options.length; i++) {
                 selectEq.options[i].hidden = false;
                 selectEq.options[i].disabled = false;
             }
-            if (avisoFiltro) {
-                avisoFiltro.className = 'd-none';
-                avisoFiltro.innerHTML = '';
-            }
+            if (avisoFiltro) { avisoFiltro.className = 'd-none'; avisoFiltro.innerHTML = ''; }
             return;
         }
 
-        // Reseta a seleção inicial
         selectEq.selectedIndex = 0;
 
         for (let i = 1; i < selectEq.options.length; i++) {
@@ -536,66 +552,49 @@
             let statusOpt = opt.getAttribute('data-status') || '';
 
             if (catOpt === categoria) {
-                opt.hidden = false;
-                opt.disabled = false;
-                totalCompativeis++;
-                if (statusOpt === 'Disponível') {
+                opt.hidden = false; opt.disabled = false; totalCompativeis++;
+                if (statusOpt === 'Disponivel') {
                     totalDisponiveis++;
-                    if (primeiroDisponivelIndex === -1) {
-                        primeiroDisponivelIndex = i;
-                    }
+                    if (primeiroDisponivelIndex === -1) primeiroDisponivelIndex = i;
                 }
             } else {
-                opt.hidden = true;
-                opt.disabled = true;
+                opt.hidden = true; opt.disabled = true;
             }
         }
 
-        // Seleciona automaticamente o primeiro equipamento disponível compatível
-        if (primeiroDisponivelIndex !== -1) {
-            selectEq.selectedIndex = primeiroDisponivelIndex;
-        }
+        if (primeiroDisponivelIndex !== -1) selectEq.selectedIndex = primeiroDisponivelIndex;
 
-        // Atualiza aviso visual para o usuário
         if (avisoFiltro) {
             avisoFiltro.classList.remove('d-none');
             if (totalCompativeis === 0) {
-                avisoFiltro.className = "alert alert-danger py-2 px-3 small mb-3";
-                avisoFiltro.innerHTML = `<i class="bi bi-x-circle me-1"></i> <strong>Nenhum equipamento cadastrado</strong> do tipo '${tipoTexto}'. Cadastre novo equipamento primeiro.`;
+                avisoFiltro.className = 'alert alert-danger py-2 px-3 small mb-3';
+                avisoFiltro.innerHTML = `<i class="bi bi-x-circle me-1"></i> <strong>Nenhum equipamento</strong> do tipo '${tipoTexto}' cadastrado. Cadastre novo equipamento primeiro.`;
             } else if (totalDisponiveis === 0) {
-                avisoFiltro.className = "alert alert-warning py-2 px-3 small mb-3";
-                avisoFiltro.innerHTML = `<i class="bi bi-exclamation-triangle me-1"></i> Atenção: Existem ${totalCompativeis} equipamento(s) '${tipoTexto}', mas <strong>nenhum está disponível</strong> no estoque no momento.`;
+                avisoFiltro.className = 'alert alert-warning py-2 px-3 small mb-3';
+                avisoFiltro.innerHTML = `<i class="bi bi-exclamation-triangle me-1"></i> ${totalCompativeis} equipamento(s) '${tipoTexto}' cadastrado(s), mas <strong>nenhum disponivel</strong> no momento.`;
             } else {
-                avisoFiltro.className = "alert alert-success py-2 px-3 small mb-3";
-                avisoFiltro.innerHTML = `<i class="bi bi-shield-check me-1"></i> <strong>Filtro de Segurança Ativo:</strong> Exibindo apenas ${totalCompativeis} equipamento(s) compatíveis com <strong>${tipoTexto}</strong> (${totalDisponiveis} disponível(is)).`;
+                avisoFiltro.className = 'alert alert-success py-2 px-3 small mb-3';
+                avisoFiltro.innerHTML = `<i class="bi bi-shield-check me-1"></i> <strong>Filtro Ativo:</strong> ${totalCompativeis} compativel(is) com <strong>${tipoTexto}</strong> (${totalDisponiveis} disponivel(is)).`;
             }
         }
     }
 
-    /**
-     * Limpa a vinculação do chamado e libera a seleção de qualquer equipamento
-     */
     function limparAtendimento() {
         document.getElementById('campoIdSolicitacao').value = '';
         categoriaFiltroAtivo = null;
         tipoSolicitadoAtivo = null;
-
         let banner = document.getElementById('bannerAtendimento');
-        if (banner) {
-            banner.classList.add('d-none');
-            banner.classList.remove('d-flex');
-        }
+        if (banner) { banner.classList.add('d-none'); banner.classList.remove('d-flex'); }
         aplicarFiltroEquipamentos('todos');
     }
 
-    // Validação estrita antes do envio do formulário
     document.getElementById('formCautela').addEventListener('submit', function(e) {
         let selectEq = document.getElementById('campoIdEquipamento');
         let idSol = document.getElementById('campoIdSolicitacao').value;
 
         if (selectEq.selectedIndex <= 0) {
             e.preventDefault();
-            alert('Por favor, selecione um equipamento válido na lista.');
+            alert('Por favor, selecione um equipamento valido na lista.');
             selectEq.focus();
             return false;
         }
@@ -603,19 +602,23 @@
         let opt = selectEq.options[selectEq.selectedIndex];
         if (opt.disabled) {
             e.preventDefault();
-            alert('O equipamento selecionado está desabilitado ou indisponível.');
+            alert('O equipamento selecionado esta desabilitado ou indisponivel.');
             return false;
         }
 
-        // Se estiver atendendo chamado, valida se a categoria bate
         if (idSol && categoriaFiltroAtivo) {
             let catSelecionada = opt.getAttribute('data-categoria');
             if (catSelecionada !== categoriaFiltroAtivo) {
                 e.preventDefault();
-                alert(`❌ Operação bloqueada! O chamado exige '${tipoSolicitadoAtivo}', mas você selecionou um equipamento incompatível.`);
+                alert('Operacao bloqueada! O chamado exige "' + tipoSolicitadoAtivo + '", mas voce selecionou um equipamento incompativel.');
                 return false;
             }
         }
+    });
+
+    // Inicializa barras de progresso com data-width
+    document.querySelectorAll('.progress-bar[data-width]').forEach(function(bar) {
+        bar.style.width = (bar.getAttribute('data-width') || '0') + '%';
     });
 </script>
 {% endblock %}

@@ -1,46 +1,80 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="row justify-content-center mt-5">
-    <div class="col-md-5 col-lg-4">
-        <div class="card border" style="border: 1px solid #e1e1df !important; border-radius: 8px !important; box-shadow: none !important;">
-            <div class="card-body p-4 bg-white">
-                <div class="text-center mb-4">
-                    <div class="d-inline-flex align-items-center justify-content-center mb-2" 
-                         style="width: 42px; height: 42px; background: #ddedea; color: #0f7b6c; border-radius: 8px; font-size: 1.25rem;">
-                        <i class="bi bi-shield-lock"></i>
-                    </div>
-                    <h5 class="fw-bold mb-1" style="color: #373530;">Sistema Cavere</h5>
-                    <p class="text-muted small mb-0">Ambipar Response &bull; Base Niterói</p>
-                </div>
+<div style="display:flex; justify-content:center; align-items:center; min-height:calc(100vh - 64px); padding: var(--space-8) var(--space-4);">
+    <div style="width:100%; max-width:420px;">
 
-                <form action="/login{% if request.args.get('next') %}?next={{ request.args.get('next') }}{% endif %}" method="POST">
-                    <div class="mb-3">
-                        <label class="form-label" style="color: #787774; font-size: 0.8rem; font-weight: 500;">USUÁRIO</label>
+        <!-- Logo / Header -->
+        <div style="text-align:center; margin-bottom: var(--space-8);">
+            <div style="display:inline-flex; align-items:center; justify-content:center; width:56px; height:56px; background:linear-gradient(135deg, var(--color-accent) 0%, #00e676 100%); border-radius:var(--radius-card); font-size:1.5rem; color:#fff; box-shadow:0 4px 16px rgba(0,200,83,0.35); margin-bottom:var(--space-4);">
+                <i class="bi bi-shield-check"></i>
+            </div>
+            <h1 style="font-size:1.5rem; font-weight:700; color:var(--text-primary); letter-spacing:-0.02em; margin:0 0 var(--space-1);">Cavere</h1>
+            <p style="font-size:0.875rem; color:var(--text-secondary); margin:0;">Ambipar Response &bull; Controle de Cautelas</p>
+        </div>
+
+        <!-- Login Card -->
+        <div class="card" style="border-radius:var(--radius-modal) !important; overflow:visible;">
+            <div class="card-body" style="padding: var(--space-8) !important;">
+                <h2 style="font-size:1.125rem; font-weight:700; color:var(--text-primary); margin:0 0 var(--space-1);">Acessar o Sistema</h2>
+                <p style="font-size:0.875rem; color:var(--text-secondary); margin:0 0 var(--space-6);">Entre com suas credenciais operacionais</p>
+
+                <form action="/login{% if request.args.get('next') %}?next={{ request.args.get('next') }}{% endif %}" method="POST" id="formLogin">
+                    <div style="margin-bottom:var(--space-4);">
+                        <label class="form-label" for="inputUsername">Usuário</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-person"></i></span>
-                            <input type="text" class="form-control" name="username" placeholder="Digite seu usuário" required autofocus>
+                            <input type="text" class="form-control" id="inputUsername" name="username" placeholder="Digite seu usuário" required autofocus autocomplete="username">
                         </div>
                     </div>
-                    <div class="mb-4">
-                        <label class="form-label" style="color: #787774; font-size: 0.8rem; font-weight: 500;">SENHA</label>
+
+                    <div style="margin-bottom:var(--space-6);">
+                        <label class="form-label" for="inputSenha">Senha</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                            <input type="password" class="form-control" name="senha" placeholder="Digite sua senha" required>
+                            <input type="password" class="form-control" id="inputSenha" name="senha" placeholder="Digite sua senha" required autocomplete="current-password">
+                            <button type="button" class="input-group-text" id="toggleSenha" style="cursor:pointer;" title="Mostrar/ocultar senha">
+                                <i class="bi bi-eye" id="iconeSenha"></i>
+                            </button>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-notion-primary w-100 py-2 d-flex align-items-center justify-content-center gap-2">
-                        <span>Acessar o Sistema</span>
-                        <i class="bi bi-arrow-right"></i>
+
+                    <button type="submit" class="btn btn-primary w-100" style="height:44px; font-size:0.9375rem; letter-spacing:0.01em;">
+                        <i class="bi bi-arrow-right-circle"></i>
+                        Acessar o Sistema
                     </button>
                 </form>
             </div>
-            <div class="card-footer py-3 text-center border-top" style="background-color: #fbfbfa; border-color: #e1e1df !important;">
-                <div class="d-flex justify-content-center gap-2">
+
+            <div class="card-footer" style="padding:var(--space-4) var(--space-8) !important; text-align:center;">
+                <div style="display:flex; align-items:center; justify-content:center; gap:var(--space-3); flex-wrap:wrap;">
+                    <span style="font-size:0.8125rem; color:var(--text-muted);">Perfis de acesso:</span>
                     <span class="badge-notion badge-notion-purple">Admin</span>
                     <span class="badge-notion badge-notion-blue">Coordenador</span>
                 </div>
             </div>
         </div>
+
+        <!-- Footer Note -->
+        <p style="text-align:center; font-size:0.75rem; color:var(--text-muted); margin-top:var(--space-6);">
+            Sistema protegido por autenticacao segura. &copy; 2026 Ambipar Response.
+        </p>
     </div>
 </div>
+
+<script>
+    // Toggle password visibility
+    document.getElementById('toggleSenha').addEventListener('click', function() {
+        const input = document.getElementById('inputSenha');
+        const icon = document.getElementById('iconeSenha');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('bi-eye');
+            icon.classList.add('bi-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('bi-eye-slash');
+            icon.classList.add('bi-eye');
+        }
+    });
+</script>
 {% endblock %}

@@ -1,78 +1,103 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-7 col-lg-6">
-        <div class="d-flex align-items-center gap-2 mb-3">
-            <a href="/" class="text-muted text-decoration-none small">
-                <i class="bi bi-arrow-left me-1"></i> Painel
-            </a>
-            <span class="text-muted small">/</span>
-            <span class="small fw-semibold" style="color: #373530;">Novo Usuário / Coordenador</span>
-        </div>
+<div style="max-width:600px; margin:0 auto;">
 
-        <div class="card">
-            <div class="card-header">
-                <div class="d-flex align-items-center gap-2">
-                    <i class="bi bi-person-gear text-secondary"></i>
-                    <span class="fw-semibold">Criar Acesso & Perfil de Usuário</span>
+    <!-- Breadcrumb -->
+    <div class="cv-breadcrumb">
+        <a href="/"><i class="bi bi-grid-1x2 me-1"></i>Painel</a>
+        <span class="sep">/</span>
+        <span class="current">Novo Usuario / Coordenador</span>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <div style="display:flex; align-items:center; gap:var(--space-3);">
+                <div style="width:32px;height:32px;border-radius:var(--radius-md);background:var(--color-accent-bg);display:flex;align-items:center;justify-content:center;color:var(--color-accent-hover);">
+                    <i class="bi bi-person-gear"></i>
+                </div>
+                <div>
+                    <div style="font-size:0.9375rem; font-weight:600;">Criar Acesso & Perfil de Usuario</div>
+                    <div style="font-size:0.8125rem; color:var(--text-secondary);">Cria login e perfil de coordenador automaticamente</div>
                 </div>
             </div>
-            <div class="card-body p-4">
-                <form action="/cadastrar-usuario" method="POST" id="formNovoUsuario">
-                    <!-- Perfil de Acesso -->
-                    <div class="mb-3">
-                        <label class="form-label">Perfil de Acesso (Papel)</label>
-                        <select class="form-select" name="role" id="selectRole" onchange="alternarCamposCoordenador()" required>
-                            <option value="coordenador" selected>Coordenador (Acesso a Meus Chamados & Solicitação)</option>
-                            <option value="admin">Administrador (Acesso Geral ao Painel & Gestão)</option>
-                        </select>
+        </div>
+
+        <div class="card-body">
+            <form action="/cadastrar-usuario" method="POST" id="formNovoUsuario">
+
+                <!-- Perfil de Acesso -->
+                <div style="margin-bottom:var(--space-5);">
+                    <label class="form-label" for="selectRole">Perfil de Acesso (Papel)</label>
+                    <select class="form-select" name="role" id="selectRole" onchange="alternarCamposCoordenador()" required>
+                        <option value="coordenador" selected>Coordenador (Acesso a Meus Chamados e Solicitacao)</option>
+                        <option value="admin">Administrador (Acesso Geral ao Painel e Gestao)</option>
+                    </select>
+                </div>
+
+                <!-- Bloco de Dados do Coordenador -->
+                <div id="blocoCoordenador" style="background:var(--canvas); border:1px solid var(--border-default); border-radius:var(--radius-md); padding:var(--space-5); margin-bottom:var(--space-5);">
+                    <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-4); padding-bottom:var(--space-3); border-bottom:1px solid var(--border-subtle);">
+                        <i class="bi bi-person-badge" style="color:var(--status-info-text);"></i>
+                        <span style="font-size:0.875rem; font-weight:600; color:var(--text-primary);">Dados do Coordenador no Sistema</span>
+                        <span class="badge-notion badge-notion-blue" style="font-size:0.7rem; margin-left:auto;">Sera criado automaticamente</span>
                     </div>
 
-                    <!-- Bloco de Dados do Coordenador -->
-                    <div id="blocoCoordenador" class="p-3 mb-3 rounded" style="background-color: #f8fafc; border: 1px solid #e2e8f0;">
-                        <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom" style="border-color: #e2e8f0 !important;">
-                            <i class="bi bi-person-badge text-primary"></i>
-                            <span class="fw-semibold small" style="color: #373530;">Dados do Coordenador no Sistema</span>
+                    <div style="margin-bottom:var(--space-4);">
+                        <label class="form-label" for="campoIdCustom">ID do Coordenador <span style="color:var(--text-muted); font-weight:400;">(Opcional)</span></label>
+                        <input type="number" class="form-control" name="id_custom" id="campoIdCustom"
+                            placeholder="Ex: 10 (Deixe em branco para automatico)">
+                        <div class="form-text">Escolha um ID especifico ou deixe em branco para auto-incremento.</div>
+                    </div>
+
+                    <div style="margin-bottom:var(--space-4);">
+                        <label class="form-label" for="campoNomeCompleto">Nome Completo do Coordenador <span style="color:var(--status-danger-text);">*</span></label>
+                        <input type="text" class="form-control" name="nome_completo" id="campoNomeCompleto"
+                            placeholder="Ex: Carlos Silva Mendes" onkeyup="sugerirLogin()">
+                    </div>
+
+                    <div>
+                        <label class="form-label" for="campoCpf">CPF ou Matricula <span style="color:var(--status-danger-text);">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-card-text"></i></span>
+                            <input type="text" class="form-control" name="cpf" id="campoCpf"
+                                placeholder="Ex: 123.456.789-00 ou M12345">
                         </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">ID do Coordenador (Opcional)</label>
-                            <input type="number" class="form-control" name="id_custom" id="campoIdCustom" placeholder="Ex: 10 (Deixe em branco para automático)">
-                            <div class="form-text text-muted" style="font-size: 0.74rem;">
-                                Permite escolher um ID específico para sincronizar cadastros ou deixar em branco para auto-incremento.
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Nome Completo do Coordenador</label>
-                            <input type="text" class="form-control" name="nome_completo" id="campoNomeCompleto" placeholder="Ex: Carlos Silva Mendes" onkeyup="sugerirLogin()">
-                        </div>
-
-                        <div class="mb-2">
-                            <label class="form-label">CPF ou Matrícula</label>
-                            <input type="text" class="form-control" name="cpf" id="campoCpf" placeholder="Ex: 123.456.789-00 ou M12345">
-                        </div>
                     </div>
+                </div>
 
-                    <!-- Bloco de Credenciais de Login -->
-                    <div class="mb-3">
-                        <label class="form-label">Nome de Usuário (Login)</label>
-                        <input type="text" class="form-control" name="username" id="campoUsername" placeholder="Ex: carlos.silva" required>
-                        <div class="form-text text-muted" style="font-size: 0.74rem;">Identificador utilizado para entrar no sistema Cavere.</div>
+                <!-- Credenciais de Login -->
+                <div style="margin-bottom:var(--space-4);">
+                    <label class="form-label" for="campoUsername">Nome de Usuario (Login) <span style="color:var(--status-danger-text);">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-at"></i></span>
+                        <input type="text" class="form-control" name="username" id="campoUsername"
+                            placeholder="Ex: carlos.silva" required autocomplete="off">
                     </div>
+                    <div class="form-text">Identificador utilizado para entrar no sistema Cavere.</div>
+                </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Senha de Acesso</label>
-                        <input type="password" class="form-control" name="senha" placeholder="Digite uma senha segura" required>
-                        <div class="form-text text-muted" style="font-size: 0.74rem;">A senha é automaticamente criptografada com hash scrypt seguro.</div>
+                <div style="margin-bottom:var(--space-6);">
+                    <label class="form-label" for="campoSenha">Senha de Acesso <span style="color:var(--status-danger-text);">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                        <input type="password" class="form-control" name="senha" id="campoSenha"
+                            placeholder="Digite uma senha segura" required>
+                        <button type="button" class="input-group-text" id="toggleSenha" style="cursor:pointer;" title="Mostrar/ocultar senha">
+                            <i class="bi bi-eye" id="iconeSenha"></i>
+                        </button>
                     </div>
+                    <div class="form-text">Senha criptografada automaticamente com scrypt seguro.</div>
+                </div>
 
-                    <div class="d-flex justify-content-between align-items-center pt-3 border-top" style="border-color: #e1e1df !important;">
-                        <a href="/" class="btn btn-notion-secondary btn-sm">Cancelar</a>
-                        <button type="submit" class="btn btn-notion-brand btn-sm px-4">Salvar Usuário & Coordenador</button>
-                    </div>
-                </form>
-            </div>
+                <!-- Botoes -->
+                <div style="display:flex; justify-content:space-between; align-items:center; padding-top:var(--space-4); border-top:1px solid var(--border-subtle);">
+                    <a href="/" class="btn btn-secondary btn-sm">Cancelar</a>
+                    <button type="submit" class="btn btn-primary" id="btnSubmit">
+                        <i class="bi bi-person-check"></i>
+                        <span id="textoBtnSubmit">Salvar Usuario & Coordenador</span>
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -83,15 +108,18 @@
         let bloco = document.getElementById('blocoCoordenador');
         let campoNome = document.getElementById('campoNomeCompleto');
         let campoCpf = document.getElementById('campoCpf');
+        let textoBtnSubmit = document.getElementById('textoBtnSubmit');
 
         if (role === 'coordenador') {
             bloco.style.display = 'block';
             campoNome.required = true;
             campoCpf.required = true;
+            textoBtnSubmit.textContent = 'Salvar Usuario & Coordenador';
         } else {
             bloco.style.display = 'none';
             campoNome.required = false;
             campoCpf.required = false;
+            textoBtnSubmit.textContent = 'Salvar Administrador';
         }
     }
 
@@ -99,20 +127,25 @@
         let nome = document.getElementById('campoNomeCompleto').value.trim();
         let campoUser = document.getElementById('campoUsername');
         if (!campoUser.dataset.editadoManualmente && nome.length > 0) {
-            let partes = nome.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").split(/\s+/);
-            if (partes.length >= 2) {
-                campoUser.value = `${partes[0]}.${partes[partes.length - 1]}`;
-            } else {
-                campoUser.value = partes[0];
-            }
+            let partes = nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').split(/\s+/);
+            campoUser.value = partes.length >= 2 ? `${partes[0]}.${partes[partes.length - 1]}` : partes[0];
         }
     }
 
     document.getElementById('campoUsername').addEventListener('input', function() {
-        this.dataset.editadoManualmente = "true";
+        this.dataset.editadoManualmente = 'true';
     });
 
-    // Inicializa na carga da tela
+    document.getElementById('toggleSenha').addEventListener('click', function() {
+        const input = document.getElementById('campoSenha');
+        const icon = document.getElementById('iconeSenha');
+        if (input.type === 'password') {
+            input.type = 'text'; icon.classList.replace('bi-eye', 'bi-eye-slash');
+        } else {
+            input.type = 'password'; icon.classList.replace('bi-eye-slash', 'bi-eye');
+        }
+    });
+
     alternarCamposCoordenador();
 </script>
 {% endblock %}
