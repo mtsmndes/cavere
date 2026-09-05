@@ -1,26 +1,35 @@
 {% extends "base.html" %}
 {% block content %}
 
-<!-- Page Header (Seção 7.C e 7.F) -->
+<!-- ============================================================ -->
+<!-- HEADER DA PÁGINA (SEÇÃO 3.B)                                 -->
+<!-- ============================================================ -->
 <div class="cv-page-banner">
     <div>
-        <h1 class="cv-page-title">Painel de Operações</h1>
-        <p class="cv-page-subtitle">Visão integrada de chamados operacionais, cautelas e gestão de ativos</p>
+        <h1 class="cv-page-title">Painel de <span class="cv-highlight">Operações</span></h1>
+        <p class="cv-page-subtitle">Visão integrada de chamados operacionais e controle de ativos</p>
     </div>
     <div style="display:flex; gap:var(--space-3); flex-wrap:wrap; align-items:center;">
-        <a href="/novo-equipamento" class="btn btn-secondary btn-sm">
-            <i class="bi bi-box-seam"></i> Novo Equipamento
-        </a>
-        <a href="/cadastrar-usuario" class="btn btn-primary btn-sm">
-            <i class="bi bi-person-plus"></i> Cadastrar Usuário / Coordenador
+        <!-- Botão para Emissão Direta / Avulsa de Cautela (abre modal) -->
+        <button type="button" class="btn btn-outline btn-sm" onclick="abrirModalCautelaAvulsa()" title="Emitir termo de cautela avulso (sem chamado vinculado)">
+            <i class="bi bi-file-earmark-plus"></i> Cautela Avulsa
+        </button>
+        <!-- Consulta Rápida ao Inventário da Base -->
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modalInventarioAtivos" title="Ver lista de equipamentos cadastrados na base">
+            <i class="bi bi-hdd-stack"></i> Base de Ativos ({{ equipamentos|length }})
+        </button>
+        <a href="/cadastrar-usuario" class="btn btn-primary btn-sm" title="Cadastrar novo usuário ou perfil de coordenador">
+            <i class="bi bi-person-plus"></i> Novo Usuário
         </a>
     </div>
 </div>
 
-<!-- KPIs de Alta Performance Operacional (Seções 7.C e 7.F) -->
-<div class="row g-3" style="margin-bottom:var(--space-6);">
+<!-- ============================================================ -->
+<!-- BLOCO ÚNICO DE KPIS OPERACIONAIS (SEÇÃO 3.C)                 -->
+<!-- ============================================================ -->
+<div class="row g-4" style="margin-bottom:var(--space-6);">
     <div class="col-sm-6 col-lg-3">
-        <div class="cv-kpi" onclick="filtrarChamadosAdmin('abertos')">
+        <div class="cv-kpi" onclick="filtrarChamadosAdmin('abertos')" title="Clique para filtrar apenas chamados em aberto">
             <div style="display:flex; align-items:center; justify-content:space-between;">
                 <div>
                     <div class="cv-kpi-label">Chamados em Aberto</div>
@@ -34,12 +43,12 @@
         </div>
     </div>
     <div class="col-sm-6 col-lg-3">
-        <div class="cv-kpi">
+        <div class="cv-kpi" data-bs-toggle="modal" data-bs-target="#modalInventarioAtivos" title="Clique para ver equipamentos na base">
             <div style="display:flex; align-items:center; justify-content:space-between;">
                 <div>
                     <div class="cv-kpi-label">Ativos na Base</div>
                     {% set na_base = equipamentos|selectattr('status', 'in', ['Disponível', 'Disponivel'])|list|length %}
-                    <div class="cv-kpi-value-hero" style="color:#166534;">{{ na_base }}</div>
+                    <div class="cv-kpi-value-hero">{{ na_base }}</div>
                 </div>
                 <div class="cv-kpi-badge accent">
                     <i class="bi bi-shield-check"></i>
@@ -48,12 +57,12 @@
         </div>
     </div>
     <div class="col-sm-6 col-lg-3">
-        <div class="cv-kpi">
+        <div class="cv-kpi" data-bs-toggle="modal" data-bs-target="#modalInventarioAtivos" title="Clique para ver equipamentos em operação">
             <div style="display:flex; align-items:center; justify-content:space-between;">
                 <div>
                     <div class="cv-kpi-label">Ativos em Campo</div>
                     {% set em_campo = equipamentos|selectattr('status', 'in', ['Em Operação', 'Em Operacao'])|list|length %}
-                    <div class="cv-kpi-value-hero" style="color:#1e40af;">{{ em_campo }}</div>
+                    <div class="cv-kpi-value-hero">{{ em_campo }}</div>
                 </div>
                 <div class="cv-kpi-badge blue">
                     <i class="bi bi-broadcast"></i>
@@ -62,7 +71,7 @@
         </div>
     </div>
     <div class="col-sm-6 col-lg-3">
-        <div class="cv-kpi">
+        <div class="cv-kpi" onclick="window.location.href='/historico'" title="Clique para abrir o Histórico Geral de Cautelas">
             <div style="display:flex; align-items:center; justify-content:space-between;">
                 <div>
                     <div class="cv-kpi-label">Termos Emitidos</div>
@@ -77,41 +86,62 @@
 </div>
 
 <!-- ============================================================ -->
-<!-- SEÇÃO 1: Solicitações de Coordenadores                       -->
+<!-- PAINEL PRINCIPAL: FILA DE OPERAÇÕES & CHAMADOS (SEÇÃO 4.A)   -->
 <!-- ============================================================ -->
 <div class="card" style="margin-bottom:var(--space-6);" id="secaoSolicitacoes">
     <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--space-3);">
         <div style="display:flex; align-items:center; gap:var(--space-3);">
-            <div style="width:32px;height:32px;border-radius:var(--radius-md);background:var(--status-warn-bg);display:flex;align-items:center;justify-content:center;color:var(--status-warn-text);">
-                <i class="bi bi-inbox"></i>
+            <div style="width:36px;height:36px;border-radius:var(--radius-md);background:var(--status-warn-bg);display:flex;align-items:center;justify-content:center;color:var(--status-warn-text);">
+                <i class="bi bi-inbox fs-5"></i>
             </div>
             <div>
-                <div style="font-size:0.9375rem; font-weight:600; color:var(--text-primary);">Solicitações de Equipamentos</div>
-                <div style="font-size:0.8125rem; color:var(--text-secondary);">Chamados operacionais dos coordenadores</div>
+                <div style="font-size:1rem; font-weight:700; color:var(--ink-900);">Fila de Solicitações Operacionais</div>
+                <div style="font-size:0.8125rem; color:var(--ink-500);">Chamados de equipamentos abertos pelos coordenadores de campo</div>
             </div>
         </div>
 
         <div style="display:flex; align-items:center; gap:var(--space-2); flex-wrap:wrap;">
-            <!-- Filtro de Abas -->
+            <!-- Grupo de Filtros Único por Contexto (Regra 4.C) -->
             <div class="btn-group btn-group-sm" role="group" id="grupoFiltroSolicitacoes">
                 <button type="button" class="btn btn-secondary active" id="filtroSol-todos" onclick="filtrarChamadosAdmin('todos')">
                     Todos <span class="badge-notion badge-notion-gray ms-1" style="font-size:0.7rem;">{{ solicitacoes|length }}</span>
                 </button>
                 <button type="button" class="btn btn-secondary" id="filtroSol-abertos" onclick="filtrarChamadosAdmin('abertos')">
-                    <i class="bi bi-hourglass-split me-1 text-warning"></i>Em Aberto
+                    <i class="bi bi-hourglass-split me-1" style="color:var(--status-warn-text);"></i>Em Aberto
                 </button>
                 <button type="button" class="btn btn-secondary" id="filtroSol-finalizados" onclick="filtrarChamadosAdmin('finalizados')">
-                    <i class="bi bi-check-circle me-1 text-success"></i>Finalizados
+                    <i class="bi bi-check-circle me-1" style="color:var(--status-success-text);"></i>Finalizados
                 </button>
             </div>
 
-            <!-- Botão de Ação Rápida para Fechar/Ocultar Finalizados -->
-            <button type="button" class="btn btn-secondary btn-sm" id="btnToggleFinalizadosAdmin" onclick="toggleFinalizadosAdmin()" title="Recolher / Ocultar chamados já finalizados">
-                <i class="bi bi-eye-slash" id="iconeToggleFinalizadosAdmin"></i>
-                <span id="textoToggleFinalizadosAdmin">Fechar Finalizados</span>
-            </button>
+            <!-- Menu Secundário de Ações (Regra 4.C) -->
+            <div class="dropdown">
+                <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="dropdownAcoesFila" data-bs-toggle="dropdown" aria-expanded="false" title="Opções e ações da fila">
+                    <i class="bi bi-three-dots-vertical"></i> Ações
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="dropdownAcoesFila" style="font-size:0.875rem; border-radius:var(--radius-md); border-color:var(--border);">
+                    <li>
+                        <a class="dropdown-item" href="javascript:void(0)" onclick="toggleFinalizadosAdmin()" id="itemMenuToggleFinalizados">
+                            <i class="bi bi-eye-slash me-2 text-muted"></i><span id="textoItemToggleFinalizados">Ocultar Finalizados</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="javascript:void(0)" onclick="reabrirTodosFinalizados()">
+                            <i class="bi bi-eye me-2 text-muted"></i>Reexibir Todos os Chamados
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item" href="/historico">
+                            <i class="bi bi-clock-history me-2 text-muted"></i>Ir para Histórico Geral de Cautelas
+                        </a>
+                    </li>
+                </ul>
+            </div>
         </div>
     </div>
+
+    <!-- Tabela da Fila Operacional (Altura Homogênea, Sem Empilhamento - Seção 5) -->
     <div style="overflow-x:auto;">
         {% if solicitacoes %}
         <table class="table table-hover align-middle table-enterprise cv-table-uniform mb-0">
@@ -121,10 +151,10 @@
                     <th>Coordenador</th>
                     <th>Equipamento Solicitado</th>
                     <th>Atendimento</th>
-                    <th>Destinatário / Base</th>
+                    <th>Destinatário & Destino</th>
                     <th>RDO</th>
                     <th>Status</th>
-                    <th class="text-center pe-4" style="min-width:140px;">Ação Operacional</th>
+                    <th class="text-center pe-4" style="min-width:145px;">Ação</th>
                 </tr>
             </thead>
             <tbody>
@@ -132,39 +162,40 @@
                 <tr class="linha-solicitacao {% if s.prioridade == 'Urgente' %}is-urgent{% endif %}"
                     data-status="{{ s.status }}"
                     data-finalizada="{{ '1' if s.status in ('Finalizada', 'Concluído', 'Concluido', 'Finalizado', 'Devolvido') else '0' }}">
+                    
                     <!-- Protocolo -->
                     <td class="ps-4">
                         <div style="display:flex; align-items:center; gap:var(--space-1);">
-                            <span style="font-weight:600; color:var(--text-primary); font-family:var(--font-mono); font-size:0.8125rem;">#SOL-{{ s.id }}</span>
+                            <span style="font-weight:600; color:var(--ink-900); font-family:var(--font-mono); font-size:0.8125rem;">#SOL-{{ s.id }}</span>
                             {% if s.prioridade == 'Urgente' %}
                             <span class="badge-notion badge-notion-red" style="font-size:0.65rem; padding:1px 6px;" title="Prioridade Urgente">Urgente</span>
                             {% endif %}
                         </div>
-                        <div style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">{{ s.data_criacao[:10] if s.data_criacao else '' }}</div>
+                        <div style="font-size:0.75rem; color:var(--ink-500); font-family:var(--font-mono);">{{ s.data_criacao[:10] if s.data_criacao else '' }}</div>
                     </td>
 
                     <!-- Coordenador -->
                     <td>
                         <div style="display:flex; align-items:center; gap:var(--space-2);">
-                            <div style="width:28px;height:28px;border-radius:50%;background:rgba(0, 200, 83, 0.12);color:var(--color-accent-hover);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0;">
+                            <div style="width:28px;height:28px;border-radius:50%;background:rgba(206, 220, 0, 0.18);color:var(--ink-900);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0;">
                                 {{ s.nome_coord[0]|upper if s.nome_coord else '?' }}
                             </div>
-                            <span style="font-weight:500; font-size:0.875rem;">{{ s.nome_coord }}</span>
+                            <span style="font-weight:500; font-size:0.875rem; color:var(--ink-900);">{{ s.nome_coord }}</span>
                         </div>
                     </td>
 
-                    <!-- Equipamento -->
+                    <!-- Equipamento Solicitado -->
                     <td>
                         <div style="display:flex; align-items:center; gap:var(--space-2);">
                             <span class="badge-notion badge-notion-green" style="font-size:0.75rem; font-weight:700;">{{ s.quantidade_total }}x</span>
-                            <span style="font-weight:600; font-size:0.875rem;">{{ s.tipo_equipamento }}</span>
+                            <span style="font-weight:600; font-size:0.875rem; color:var(--ink-900);">{{ s.tipo_equipamento }}</span>
                         </div>
                     </td>
 
-                    <!-- Atendimento (Resumo Compacto + Detalhes Popover - Seção 6.A e 6.B) -->
+                    <!-- Atendimento (Resumo Compacto + Progressive Disclosure - Regra 4.D) -->
                     <td style="min-width:180px;">
                         <div style="display:flex; align-items:center; gap:var(--space-2);">
-                            <!-- Barra de progresso enxuta com gradiente (Seção 7.D) -->
+                            <!-- Barra de progresso verde-limão com trilho sutil -->
                             <div class="progress cv-progress flex-grow-1" style="min-width:70px;">
                                 <div class="progress-bar {% if not s.concluida %}is-pending{% endif %}"
                                     role="progressbar"
@@ -172,10 +203,10 @@
                                 </div>
                             </div>
                             <!-- Fração monoespaçada limpa -->
-                            <span style="font-size:0.75rem; font-weight:600; color:var(--text-secondary); font-family:var(--font-mono); white-space:nowrap;">
+                            <span style="font-size:0.75rem; font-weight:600; color:var(--ink-500); font-family:var(--font-mono); white-space:nowrap;">
                                 {{ s.qtd_emitida }}/{{ s.quantidade_total }}
                             </span>
-                            <!-- Botão de detalhes em Popover (não polui nem expande a linha) -->
+                            <!-- Botão de detalhes flutuante (não empilha itens na linha) -->
                             {% if s.itens_emitidos or s.itens_devolvidos %}
                             <button type="button" class="cv-btn-detail"
                                 data-bs-toggle="popover"
@@ -192,16 +223,16 @@
                         </div>
                     </td>
 
-                    <!-- Destinatário / Base -->
+                    <!-- Destinatário & Destino -->
                     <td>
-                        <div style="font-size:0.875rem;"><i class="bi bi-person text-muted me-1"></i>{{ s.destinatario }}</div>
-                        <div style="font-size:0.8125rem; color:var(--text-muted);"><i class="bi bi-geo-alt me-1"></i>{{ s.plataforma }}</div>
+                        <div style="font-size:0.875rem; color:var(--ink-900);"><i class="bi bi-person text-muted me-1"></i>{{ s.destinatario }}</div>
+                        <div style="font-size:0.8125rem; color:var(--ink-500);"><i class="bi bi-geo-alt me-1"></i>{{ s.plataforma }}</div>
                     </td>
 
                     <!-- RDO -->
                     <td><code>{{ s.rdo }}</code></td>
 
-                    <!-- Status -->
+                    <!-- Status com Badges Suaves -->
                     <td>
                         {% if s.status == 'Pendente' %}
                         <span class="badge-notion badge-notion-orange"><i class="bi bi-hourglass-split me-1"></i>Pendente</span>
@@ -216,20 +247,20 @@
                         {% endif %}
                     </td>
 
-                    <!-- Ação Operacional (Padronizada de acordo com a Seção 6.C) -->
+                    <!-- Ação Operacional Única (Regra 5.3) -->
                     <td class="text-center pe-4">
                         {% if s.status in ('Pendente', 'Em Atendimento') %}
                         <button type="button"
                             class="cv-btn-action cv-btn-action-primary w-100"
-                            onclick="preencherCautela('{{ s.id }}', '{{ s.id_coordenador }}', '{{ s.rdo }}', '{{ s.tipo_equipamento }}', '{{ s.nome_coord }}', '{{ s.qtd_emitida + 1 }}', '{{ s.quantidade_total }}', '{{ s.categoria }}')"
-                            title="Emitir cautela para o item {{ s.qtd_emitida + 1 }} de {{ s.quantidade_total }}">
+                            onclick="abrirModalAtendimento('{{ s.id }}', '{{ s.id_coordenador }}', '{{ s.rdo }}', '{{ s.tipo_equipamento }}', '{{ s.nome_coord }}', '{{ s.qtd_emitida + 1 }}', '{{ s.quantidade_total }}', '{{ s.categoria }}')"
+                            title="Emitir termo de cautela para o item {{ s.qtd_emitida + 1 }} de {{ s.quantidade_total }}">
                             <i class="bi bi-arrow-down-right"></i>
                             Atender ({{ s.qtd_emitida + 1 }}/{{ s.quantidade_total }})
                         </button>
                         {% elif s.status == 'Esperando Entrega' %}
                         <a href="/solicitacao/entregar/{{ s.id }}"
                             class="cv-btn-action cv-btn-action-primary w-100"
-                            title="Confirmar entrega e finalizar chamado">
+                            title="Confirmar entrega de todos os itens e finalizar chamado">
                             <i class="bi bi-box-seam"></i>
                             Entregar
                         </a>
@@ -237,9 +268,9 @@
                         <button type="button"
                             class="cv-btn-action cv-btn-action-done w-100"
                             onclick="fecharLinhaIndividual(this)"
-                            title="Fechar e ocultar este chamado finalizado">
+                            title="Ocultar este chamado finalizado da visão de trabalho">
                             <i class="bi bi-eye-slash"></i>
-                            Fechar
+                            Ocultar
                         </button>
                         {% endif %}
                     </td>
@@ -249,81 +280,102 @@
         </table>
 
         <!-- Banner de Chamados Finalizados Ocultos -->
-        <div id="avisoFinalizadosOcultos" class="d-none" style="padding:var(--space-3) var(--space-4); background:var(--canvas); border-top:1px solid var(--border-subtle); display:flex; align-items:center; justify-content:space-between; font-size:0.8125rem; color:var(--text-secondary);">
+        <div id="avisoFinalizadosOcultos" class="d-none" style="padding:var(--space-3) var(--space-4); background:var(--canvas); border-top:1px solid var(--border-subtle); display:flex; align-items:center; justify-content:space-between; font-size:0.8125rem; color:var(--ink-500);">
             <div style="display:flex; align-items:center; gap:var(--space-2);">
                 <i class="bi bi-check2-circle text-success fs-6"></i>
-                <span><strong id="contadorFinalizadosOcultos">0</strong> chamado(s) finalizado(s) estão fechados/ocultos.</span>
+                <span><strong id="contadorFinalizadosOcultos">0</strong> chamado(s) finalizado(s) estão ocultos nesta visão.</span>
             </div>
-            <button type="button" class="btn btn-link btn-sm p-0" onclick="reabrirTodosFinalizados()" style="font-size:0.8125rem; text-decoration:none; font-weight:600; color:var(--color-accent-hover); cursor:pointer;">
-                <i class="bi bi-eye me-1"></i>Reabrir e exibir todos
+            <button type="button" class="btn btn-link btn-sm p-0" onclick="reabrirTodosFinalizados()" style="font-size:0.8125rem; text-decoration:none; font-weight:600; color:var(--ink-900); cursor:pointer;">
+                <i class="bi bi-eye me-1"></i>Reexibir todos
             </button>
         </div>
         {% else %}
         <div class="cv-empty-state">
             <div class="cv-empty-icon"><i class="bi bi-inbox"></i></div>
             <div class="cv-empty-title">Nenhuma solicitação no momento</div>
-            <div class="cv-empty-text">As solicitações abertas pelos coordenadores aparecerão aqui.</div>
+            <div class="cv-empty-text">As solicitações abertas pelos coordenadores de operações aparecerão aqui.</div>
         </div>
         {% endif %}
     </div>
 </div>
 
+<!-- Link Contextual Discreto para o Histórico de Cautelas (Substitui tabela duplicada na Home) -->
+<div style="display:flex; align-items:center; justify-content:space-between; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-card); padding:var(--space-4) var(--space-6); box-shadow:var(--shadow-1);">
+    <div style="display:flex; align-items:center; gap:var(--space-3);">
+        <div style="width:32px;height:32px;border-radius:var(--radius-md);background:rgba(206, 220, 0, 0.18);display:flex;align-items:center;justify-content:center;color:var(--ink-900);">
+            <i class="bi bi-file-earmark-check"></i>
+        </div>
+        <div>
+            <div style="font-size:0.9375rem; font-weight:600; color:var(--ink-900);">Histórico Geral de Cautelas & Auditoria</div>
+            <div style="font-size:0.8125rem; color:var(--ink-500);">Consulte todos os {{ cautelas|length }} termos emitidos, realize buscas avançadas e acesse os PDFs.</div>
+        </div>
+    </div>
+    <a href="/historico" class="btn btn-secondary btn-sm">
+        <i class="bi bi-clock-history"></i> Acessar Histórico Completo
+    </a>
+</div>
+
 <!-- ============================================================ -->
-<!-- SEÇÃO 2: Workspace (Formulário de Cautela + Inventário)      -->
+<!-- MODAL 1: EMITIR TERMO DE CAUTELA (PROGRESSIVE DISCLOSURE)    -->
 <!-- ============================================================ -->
-<div class="row g-4" style="margin-bottom:var(--space-6);">
-    <!-- Formulário de Emissão de Cautela -->
-    <div class="col-lg-5">
-        <div class="card h-100" id="secaoFormCautela">
-            <div class="card-header">
+<div class="modal fade" id="modalEmitirCautela" tabindex="-1" aria-labelledby="modalEmitirCautelaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:540px;">
+        <div class="modal-content" style="border-radius:var(--radius-modal); border:1px solid var(--border); box-shadow:var(--shadow-3);">
+            <div class="modal-header" style="background:var(--surface); border-bottom:1px solid var(--border-subtle); padding:var(--space-4) var(--space-6);">
                 <div style="display:flex; align-items:center; gap:var(--space-3);">
-                    <div style="width:32px;height:32px;border-radius:var(--radius-md);background:var(--color-accent-bg);display:flex;align-items:center;justify-content:center;color:var(--color-accent-hover);">
-                        <i class="bi bi-file-earmark-text"></i>
+                    <div style="width:36px;height:36px;border-radius:var(--radius-md);background:var(--accent-500);display:flex;align-items:center;justify-content:center;color:var(--accent-on);box-shadow:0 4px 12px var(--accent-glow);">
+                        <i class="bi bi-file-earmark-pdf fs-5"></i>
                     </div>
-                    <div style="font-size:0.9375rem; font-weight:600;">Emitir Termo de Cautela</div>
+                    <div>
+                        <h5 class="modal-title" id="modalEmitirCautelaLabel" style="font-size:1rem; font-weight:700; color:var(--ink-900);">Emitir Termo de Cautela</h5>
+                        <div id="subtituloModalCautela" style="font-size:0.8125rem; color:var(--ink-500);">Vinculação de ativo e geração de PDF</div>
+                    </div>
                 </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
             </div>
-            <div class="card-body">
 
-                <!-- Banner de Atendimento Ativo -->
-                <div id="bannerAtendimento" class="alert alert-info py-2 px-3 small d-none mb-3 align-items-center justify-content-between">
-                    <div style="display:flex; align-items:center; gap:var(--space-2);">
-                        <i class="bi bi-link-45deg fs-5"></i>
-                        <div id="textoBannerAtendimento">Atendendo Chamado</div>
+            <form action="/gerar" method="POST" id="formCautelaModal">
+                <input type="hidden" name="id_solicitacao" id="campoIdSolicitacaoModal" value="">
+
+                <div class="modal-body" style="padding:var(--space-6);">
+                    <!-- Banner Contextual do Chamado Atendido -->
+                    <div id="bannerAtendimentoModal" class="alert alert-info py-2 px-3 small d-none mb-3 align-items-center justify-content-between" style="border-radius:var(--radius-md);">
+                        <div style="display:flex; align-items:center; gap:var(--space-2);">
+                            <i class="bi bi-link-45deg fs-5"></i>
+                            <div id="textoBannerAtendimentoModal">Atendendo Chamado</div>
+                        </div>
+                        <button type="button" class="btn btn-secondary btn-sm py-0 px-2" onclick="limparAtendimentoModal()">Desvincular</button>
                     </div>
-                    <button type="button" class="btn btn-secondary btn-sm py-0 px-2" onclick="limparAtendimento()">Limpar</button>
-                </div>
 
-                <!-- Aviso de Filtro Ativo -->
-                <div id="avisoFiltroEquipamento" class="d-none"></div>
+                    <!-- Aviso de Filtro de Compatibilidade -->
+                    <div id="avisoFiltroEquipamentoModal" class="d-none"></div>
 
-                <form action="/gerar" method="POST" id="formCautela">
-                    <input type="hidden" name="id_solicitacao" id="campoIdSolicitacao" value="">
-
+                    <!-- Seleção do Equipamento -->
                     <div style="margin-bottom:var(--space-4);">
-                        <label class="form-label" for="campoIdEquipamento">
+                        <label class="form-label" for="campoIdEquipamentoModal">
                             Equipamento para Cautela <span style="color:var(--status-danger-text);">*</span>
                         </label>
-                        <select class="form-select" name="id_equipamento" id="campoIdEquipamento" required>
+                        <select class="form-select" name="id_equipamento" id="campoIdEquipamentoModal" required>
                             <option value="" disabled selected>Selecione um equipamento...</option>
                             {% for eq in equipamentos %}
                             <option value="{{ eq.id }}" data-categoria="{{ eq.categoria }}" data-tipo="{{ eq.tipo }}"
                                 data-modelo="{{ eq.modelo }}" data-sn="{{ eq.patrimonio_sn }}"
-                                data-status="{{ eq.status }}" {% if eq.status not in ('Disponível', 'Disponivel') %}disabled style="color:var(--text-muted);"{% endif %}>
+                                data-status="{{ eq.status }}" {% if eq.status not in ('Disponível', 'Disponivel') %}disabled style="color:var(--ink-300);"{% endif %}>
                                 #{{ eq.id }} - {{ eq.tipo }} ({{ eq.modelo }} | SN: {{ eq.patrimonio_sn }}) &bull; [{{ eq.status }}]
                             </option>
                             {% endfor %}
                         </select>
-                        <div class="form-text" id="ajudaEquipamento">
-                            Ao atender uma solicitação, apenas equipamentos compatíveis serão exibidos.
+                        <div class="form-text" id="ajudaEquipamentoModal">
+                            Ao atender um chamado, apenas equipamentos compatíveis e disponíveis serão exibidos.
                         </div>
                     </div>
 
+                    <!-- Seleção do Coordenador -->
                     <div style="margin-bottom:var(--space-4);">
-                        <label class="form-label" for="campoIdCoordenador">
+                        <label class="form-label" for="campoIdCoordenadorModal">
                             Coordenador Responsável <span style="color:var(--status-danger-text);">*</span>
                         </label>
-                        <select class="form-select" name="id_coordenador" id="campoIdCoordenador" required>
+                        <select class="form-select" name="id_coordenador" id="campoIdCoordenadorModal" required>
                             <option value="" disabled selected>Selecione o coordenador...</option>
                             {% for coord in coordenadores %}
                             <option value="{{ coord.id }}">
@@ -333,244 +385,149 @@
                         </select>
                     </div>
 
-                    <div style="margin-bottom:var(--space-5);">
-                        <label class="form-label" for="campoRdo">
+                    <!-- Número do RDO / Projeto -->
+                    <div style="margin-bottom:var(--space-2);">
+                        <label class="form-label" for="campoRdoModal">
                             Número do RDO / Projeto <span style="color:var(--status-danger-text);">*</span>
                         </label>
-                        <input type="text" class="form-control" name="rdo" id="campoRdo" placeholder="Ex: RDO-2026-0905" required>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary w-100" style="height:44px;">
-                        <i class="bi bi-file-earmark-pdf"></i>
-                        Gerar Cautela & PDF
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Inventário de Equipamentos e Coordenadores -->
-    <div class="col-lg-7">
-        <!-- Equipamentos -->
-        <div class="card" style="margin-bottom:var(--space-4);">
-            <div class="card-header">
-                <div style="display:flex; align-items:center; gap:var(--space-3);">
-                    <div style="width:32px;height:32px;border-radius:var(--radius-md);background:var(--status-info-bg);display:flex;align-items:center;justify-content:center;color:var(--status-info-text);">
-                        <i class="bi bi-hdd-stack"></i>
-                    </div>
-                    <div style="font-size:0.9375rem; font-weight:600;">Base de Equipamentos</div>
-                </div>
-                <span class="badge-notion badge-notion-gray">{{ equipamentos|length }} cadastrados</span>
-            </div>
-            <div style="overflow-x:auto; max-height:280px; overflow-y:auto;">
-                <table class="table table-hover align-middle table-enterprise mb-0">
-                    <thead>
-                        <tr>
-                            <th class="ps-4">ID</th>
-                            <th>Tipo / Modelo</th>
-                            <th>Patrimônio / SN</th>
-                            <th>Status</th>
-                            <th>Ação</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for eq in equipamentos %}
-                        <tr>
-                            <td class="ps-4">
-                                <code style="font-size:0.8rem;">#{{ eq.id }}</code>
-                            </td>
-                            <td>
-                                <div style="font-weight:600; font-size:0.875rem;">{{ eq.tipo }}</div>
-                                <div style="font-size:0.8125rem; color:var(--text-muted);">{{ eq.modelo }}</div>
-                            </td>
-                            <td><code style="font-size:0.8rem;">{{ eq.patrimonio_sn }}</code></td>
-                            <td>
-                                {% if eq.status in ('Disponível', 'Disponivel') %}
-                                <span class="badge-notion badge-notion-green"><i class="bi bi-check2 me-1"></i>Disponível</span>
-                                {% elif eq.status in ('Em Operação', 'Em Operacao') %}
-                                <span class="badge-notion badge-notion-blue"><i class="bi bi-broadcast me-1"></i>Em Operação</span>
-                                {% else %}
-                                <span class="badge-notion badge-notion-gray">{{ eq.status }}</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if eq.status in ('Em Operação', 'Em Operacao') %}
-                                <a href="/devolver/{{ eq.id }}" class="cv-btn-action cv-btn-action-secondary" style="height:28px; font-size:0.75rem; padding:0 8px;" title="Registrar devolução">
-                                    <i class="bi bi-arrow-return-left text-danger"></i> Devolver
-                                </a>
-                                {% else %}
-                                <span style="font-size:0.8125rem; color:var(--text-muted); display:inline-flex; align-items:center; gap:4px;"><i class="bi bi-check2 text-success"></i> Na Base</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Coordenadores -->
-        <div class="card">
-            <div class="card-header">
-                <div style="display:flex; align-items:center; gap:var(--space-3);">
-                    <div style="width:32px;height:32px;border-radius:var(--radius-md);background:var(--status-success-bg);display:flex;align-items:center;justify-content:center;color:var(--status-success-text);">
-                        <i class="bi bi-people"></i>
-                    </div>
-                    <div style="font-size:0.9375rem; font-weight:600;">Coordenadores Registrados</div>
-                </div>
-                <span class="badge-notion badge-notion-gray">{{ coordenadores|length }} cadastrados</span>
-            </div>
-            <div style="overflow-x:auto; max-height:220px; overflow-y:auto;">
-                <table class="table table-hover align-middle table-enterprise mb-0">
-                    <thead>
-                        <tr>
-                            <th class="ps-4">ID</th>
-                            <th>Nome Completo</th>
-                            <th>CPF / Matrícula</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for coord in coordenadores %}
-                        <tr>
-                            <td class="ps-4"><code style="font-size:0.8rem;">#{{ coord.id }}</code></td>
-                            <td>
-                                <div style="display:flex; align-items:center; gap:var(--space-2);">
-                                    <div style="width:26px;height:26px;border-radius:50%;background:rgba(0, 200, 83, 0.12);color:var(--color-accent-hover);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;flex-shrink:0;">
-                                        {{ coord.nome_completo[0]|upper if coord.nome_completo else '?' }}
-                                    </div>
-                                    <span style="font-weight:500; font-size:0.875rem;">{{ coord.nome_completo }}</span>
-                                </div>
-                            </td>
-                            <td><code style="font-size:0.8rem;">{{ coord.cpf_matricula }}</code></td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- ============================================================ -->
-<!-- SEÇÃO 3: Histórico de Cautelas Geradas                       -->
-<!-- ============================================================ -->
-<div class="card" id="secaoCautelasAdmin">
-    <div class="card-header">
-        <div style="display:flex; align-items:center; gap:var(--space-3);">
-            <div style="width:32px;height:32px;border-radius:var(--radius-md);background:var(--status-success-bg);display:flex;align-items:center;justify-content:center;color:var(--status-success-text);">
-                <i class="bi bi-file-earmark-check"></i>
-            </div>
-            <div>
-                <div style="font-size:0.9375rem; font-weight:600;">Cautelas Geradas & Termos Emitidos</div>
-                <div style="font-size:0.8125rem; color:var(--text-secondary);">Histórico geral e acesso a PDFs</div>
-            </div>
-        </div>
-        <div style="display:flex; align-items:center; gap:var(--space-3);">
-            <span class="badge-notion badge-notion-gray">{{ cautelas|length }} cautela(s)</span>
-            <a href="/historico" class="cv-btn-action cv-btn-action-secondary" style="height:32px;">
-                <i class="bi bi-clock-history"></i> Histórico Completo
-            </a>
-        </div>
-    </div>
-    <div style="overflow-x:auto;">
-        {% if cautelas %}
-        <table class="table table-hover align-middle table-enterprise mb-0">
-            <thead>
-                <tr>
-                    <th class="ps-4">Cautela</th>
-                    <th>Chamado Vinculado</th>
-                    <th>Equipamento & Patrimônio</th>
-                    <th>Coordenador</th>
-                    <th>RDO</th>
-                    <th>Data de Saída</th>
-                    <th>Status</th>
-                    <th class="text-center">Termo PDF</th>
-                    <th class="text-center pe-4">Devolução</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for c in cautelas %}
-                <tr>
-                    <td class="ps-4">
-                        <code style="font-size:0.8rem; font-weight:600;">#CAU-{{ c.id }}</code>
-                    </td>
-                    <td>
-                        {% if c.id_solicitacao %}
-                        <span class="badge-notion badge-notion-blue">#SOL-{{ c.id_solicitacao }}</span>
-                        {% else %}
-                        <span style="font-size:0.8125rem; color:var(--text-muted);">Direta</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        <div style="font-weight:600; font-size:0.875rem;">{{ c.tipo }}</div>
-                        <div style="font-size:0.8125rem; color:var(--text-muted);">{{ c.modelo }}</div>
-                        <code style="font-size:0.75rem;">{{ c.patrimonio_sn }}</code>
-                    </td>
-                    <td>
-                        <div style="display:flex; align-items:center; gap:var(--space-2);">
-                            <div style="width:24px;height:24px;border-radius:50%;background:var(--canvas);border:1px solid var(--border-default);display:flex;align-items:center;justify-content:center;font-size:0.7rem;color:var(--text-muted);">
-                                <i class="bi bi-person"></i>
-                            </div>
-                            <span style="font-size:0.875rem;">{{ c.coordenador }}</span>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-file-text"></i></span>
+                            <input type="text" class="form-control" name="rdo" id="campoRdoModal" placeholder="Ex: RDO-2026-0905" required>
                         </div>
-                    </td>
-                    <td><code style="font-size:0.8rem;">{{ c.rdo }}</code></td>
-                    <td>
-                        <div style="font-size:0.875rem;">{{ c.data_saida }}</div>
-                        {% if c.data_devolucao %}
-                        <div style="font-size:0.75rem; color:var(--text-muted);">Dev.: {{ c.data_devolucao }}</div>
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if c.status == 'Devolvido' %}
-                        <span class="badge-notion badge-notion-green">Devolvido</span>
-                        {% else %}
-                        <span class="badge-notion badge-notion-blue">Em Campo</span>
-                        {% endif %}
-                    </td>
-                    <td class="text-center">
-                        {% if c.pdf_nome %}
-                        <a href="/cautelas/{{ c.pdf_nome }}" target="_blank" class="cv-btn-action cv-btn-action-secondary" style="height:28px; font-size:0.75rem; padding:0 8px;" title="Visualizar PDF">
-                            <i class="bi bi-file-earmark-pdf text-danger"></i> PDF
-                        </a>
-                        {% else %}
-                        <span style="color:var(--text-muted);">-</span>
-                        {% endif %}
-                    </td>
-                    <td class="text-center pe-4">
-                        {% if c.status == 'Em Campo' and c.id_equipamento %}
-                        <a href="/devolver/{{ c.id_equipamento }}" class="cv-btn-action cv-btn-action-secondary" style="height:28px; font-size:0.75rem; padding:0 8px;" title="Registrar devolução">
-                            <i class="bi bi-arrow-return-left"></i> Devolver
-                        </a>
-                        {% else %}
-                        <span style="font-size:0.8125rem; color:var(--text-muted);"><i class="bi bi-check2 text-success me-1"></i>Concluído</span>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-        <div class="cv-empty-state">
-            <div class="cv-empty-icon"><i class="bi bi-file-earmark-check"></i></div>
-            <div class="cv-empty-title">Nenhuma cautela emitida</div>
-            <div class="cv-empty-text">Os termos de responsabilidade gerados aparecerão aqui.</div>
+                    </div>
+                </div>
+
+                <div class="modal-footer" style="background:var(--canvas); border-top:1px solid var(--border-subtle); padding:var(--space-4) var(--space-6); display:flex; justify-content:space-between;">
+                    <button type="button" class="btn btn-outline btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary btn-sm" id="btnSubmitModalCautela">
+                        <i class="bi bi-check2-circle"></i>
+                        Confirmar Saída & Gerar PDF
+                    </button>
+                </div>
+            </form>
         </div>
-        {% endif %}
     </div>
 </div>
 
+<!-- ============================================================ -->
+<!-- MODAL 2: CONSULTA À BASE DE ATIVOS E INVENTÁRIO (DRAWER)     -->
+<!-- ============================================================ -->
+<div class="modal fade" id="modalInventarioAtivos" tabindex="-1" aria-labelledby="modalInventarioLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius:var(--radius-modal); border:1px solid var(--border); box-shadow:var(--shadow-3);">
+            <div class="modal-header" style="background:var(--surface); border-bottom:1px solid var(--border-subtle); padding:var(--space-4) var(--space-6);">
+                <div style="display:flex; align-items:center; gap:var(--space-3);">
+                    <div style="width:36px;height:36px;border-radius:var(--radius-md);background:var(--status-info-bg);display:flex;align-items:center;justify-content:center;color:var(--status-info-text);">
+                        <i class="bi bi-hdd-stack fs-5"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title" id="modalInventarioLabel" style="font-size:1rem; font-weight:700; color:var(--ink-900);">Inventário da Base de Equipamentos</h5>
+                        <div style="font-size:0.8125rem; color:var(--ink-500);">Consulta rápida de disponibilidade e devolução de ativos</div>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+
+            <div class="modal-body" style="padding:var(--space-4);">
+                <!-- Campo de busca rápida no modal -->
+                <div class="input-group input-group-sm mb-3">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" id="buscaModalInventario" class="form-control" placeholder="Filtrar ativo por tipo, modelo ou patrimônio/SN..." onkeyup="filtrarTabelaInventarioModal()">
+                </div>
+
+                <div style="overflow-x:auto; max-height:360px; overflow-y:auto;">
+                    <table class="table table-hover align-middle table-enterprise mb-0" id="tabelaModalInventario">
+                        <thead>
+                            <tr>
+                                <th class="ps-4">ID</th>
+                                <th>Tipo / Modelo</th>
+                                <th>Patrimônio / SN</th>
+                                <th>Status</th>
+                                <th class="text-center pe-4">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for eq in equipamentos %}
+                            <tr class="linha-inventario-modal" data-busca="{{ eq.id }} {{ eq.tipo }} {{ eq.modelo }} {{ eq.patrimonio_sn }} {{ eq.status }}">
+                                <td class="ps-4"><code style="font-size:0.8rem;">#{{ eq.id }}</code></td>
+                                <td>
+                                    <div style="font-weight:600; font-size:0.875rem; color:var(--ink-900);">{{ eq.tipo }}</div>
+                                    <div style="font-size:0.8125rem; color:var(--ink-500);">{{ eq.modelo }}</div>
+                                </td>
+                                <td><code style="font-size:0.8rem;">{{ eq.patrimonio_sn }}</code></td>
+                                <td>
+                                    {% if eq.status in ('Disponível', 'Disponivel') %}
+                                    <span class="badge-notion badge-notion-green"><i class="bi bi-check2 me-1"></i>Disponível</span>
+                                    {% elif eq.status in ('Em Operação', 'Em Operacao') %}
+                                    <span class="badge-notion badge-notion-blue"><i class="bi bi-broadcast me-1"></i>Em Operação</span>
+                                    {% else %}
+                                    <span class="badge-notion badge-notion-gray">{{ eq.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center pe-4">
+                                    {% if eq.status in ('Em Operação', 'Em Operacao') %}
+                                    <a href="/devolver/{{ eq.id }}" class="cv-btn-action cv-btn-action-secondary" style="height:28px; font-size:0.75rem; padding:0 8px;" title="Registrar devolução de equipamento">
+                                        <i class="bi bi-arrow-return-left text-danger"></i> Devolver
+                                    </a>
+                                    {% else %}
+                                    <span style="font-size:0.8125rem; color:var(--ink-500); display:inline-flex; align-items:center; gap:4px;"><i class="bi bi-check2 text-success"></i> Na Base</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="modal-footer" style="background:var(--canvas); border-top:1px solid var(--border-subtle); padding:var(--space-3) var(--space-6); display:flex; justify-content:space-between;">
+                <span style="font-size:0.8125rem; color:var(--ink-500);">Total de <strong>{{ equipamentos|length }}</strong> equipamentos cadastrados.</span>
+                <div style="display:flex; gap:var(--space-2);">
+                    <a href="/novo-equipamento" class="btn btn-primary btn-sm">
+                        <i class="bi bi-plus-lg"></i> Novo Equipamento
+                    </a>
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SCRIPTS OPERACIONAIS                                         -->
+<!-- ============================================================ -->
 <script>
     let categoriaFiltroAtivo = null;
     let tipoSolicitadoAtivo = null;
+    let bsModalCautela = null;
 
-    function preencherCautela(idSol, idCoord, rdo, tipoEq, nomeCoord, itemAtual, totalItens, categoriaEq) {
-        document.getElementById('campoIdSolicitacao').value = idSol || '';
+    document.addEventListener('DOMContentLoaded', function() {
+        const elModal = document.getElementById('modalEmitirCautela');
+        if (elModal) {
+            bsModalCautela = new bootstrap.Modal(elModal);
+        }
+
+        // Inicializa barras de progresso com data-width
+        document.querySelectorAll('.progress-bar[data-width]').forEach(function(bar) {
+            bar.style.width = (bar.getAttribute('data-width') || '0') + '%';
+        });
+
+        // Carrega estado de chamados finalizados salvos
+        if (localStorage.getItem('cavere_finalizados_fechados_admin') === '1') {
+            finalizadosFechadosAdmin = true;
+        }
+        aplicarVisibilidadeChamados();
+    });
+
+    // --- ABERTURA DO MODAL DE CAUTELA (PROGRESSIVE DISCLOSURE) ---
+    function abrirModalAtendimento(idSol, idCoord, rdo, tipoEq, nomeCoord, itemAtual, totalItens, categoriaEq) {
+        document.getElementById('campoIdSolicitacaoModal').value = idSol || '';
         categoriaFiltroAtivo = categoriaEq || null;
         tipoSolicitadoAtivo = tipoEq || '';
 
+        // Preenche Coordenador
         if (idCoord && idCoord !== 'None') {
-            let selectCoord = document.getElementById('campoIdCoordenador');
+            const selectCoord = document.getElementById('campoIdCoordenadorModal');
             for (let i = 0; i < selectCoord.options.length; i++) {
                 if (selectCoord.options[i].value == idCoord) {
                     selectCoord.selectedIndex = i;
@@ -579,46 +536,66 @@
             }
         }
 
+        // Preenche RDO
         if (rdo && rdo !== 'None' && rdo !== 'N/A') {
-            document.getElementById('campoRdo').value = rdo;
+            document.getElementById('campoRdoModal').value = rdo;
         }
 
-        aplicarFiltroEquipamentos(categoriaEq, tipoEq);
+        // Aplica filtro inteligente de compatibilidade
+        aplicarFiltroEquipamentosModal(categoriaEq, tipoEq);
 
-        let banner = document.getElementById('bannerAtendimento');
-        let texto = document.getElementById('textoBannerAtendimento');
+        // Atualiza banner de atendimento no modal
+        const banner = document.getElementById('bannerAtendimentoModal');
+        const texto = document.getElementById('textoBannerAtendimentoModal');
+        const subtitulo = document.getElementById('subtituloModalCautela');
+
         if (banner && texto) {
-            texto.innerHTML = `
-                <div>
-                    <strong>Chamado #SOL-${idSol}</strong> &bull; Atendendo <strong>Item ${itemAtual || 1} de ${totalItens || 1}</strong>
-                    <div style="font-size:0.75rem; color:var(--text-secondary); margin-top:2px;">
-                        Coordenador: <strong>${nomeCoord || 'Coordenador'}</strong> &bull; Tipo: <span class="badge-notion badge-notion-blue">${tipoEq}</span>
-                    </div>
-                </div>
-            `;
+            texto.innerHTML = `<strong>Chamado #SOL-${idSol}</strong> &bull; Item <strong>${itemAtual || 1} de ${totalItens || 1}</strong> (${tipoEq})`;
             banner.classList.remove('d-none');
             banner.classList.add('d-flex');
         }
+        if (subtitulo) {
+            subtitulo.textContent = `Atendendo solicitação do coordenador ${nomeCoord}`;
+        }
 
-        document.getElementById('secaoFormCautela').scrollIntoView({ behavior: 'smooth' });
+        if (bsModalCautela) bsModalCautela.show();
     }
 
-    function aplicarFiltroEquipamentos(categoria, tipoTexto) {
-        let selectEq = document.getElementById('campoIdEquipamento');
-        let avisoFiltro = document.getElementById('avisoFiltroEquipamento');
+    function abrirModalCautelaAvulsa() {
+        limparAtendimentoModal();
+        const subtitulo = document.getElementById('subtituloModalCautela');
+        if (subtitulo) {
+            subtitulo.textContent = 'Emissão avulsa direta (sem chamado vinculado)';
+        }
+        if (bsModalCautela) bsModalCautela.show();
+    }
+
+    function limparAtendimentoModal() {
+        document.getElementById('campoIdSolicitacaoModal').value = '';
+        categoriaFiltroAtivo = null;
+        tipoSolicitadoAtivo = null;
+        const banner = document.getElementById('bannerAtendimentoModal');
+        if (banner) {
+            banner.classList.add('d-none');
+            banner.classList.remove('d-flex');
+        }
+        aplicarFiltroEquipamentosModal('todos');
+    }
+
+    function aplicarFiltroEquipamentosModal(categoria, tipoTexto) {
+        const selectEq = document.getElementById('campoIdEquipamentoModal');
+        const avisoFiltro = document.getElementById('avisoFiltroEquipamentoModal');
         let totalCompativeis = 0;
         let totalDisponiveis = 0;
         let primeiroDisponivelIndex = -1;
 
         if (!categoria || categoria === 'todos') {
             for (let i = 0; i < selectEq.options.length; i++) {
-                let opt = selectEq.options[i];
-                let st = (opt.getAttribute('data-status') || '').toLowerCase();
-                let isDisp = st.includes('dispon');
+                const opt = selectEq.options[i];
+                const st = (opt.getAttribute('data-status') || '').toLowerCase();
+                const isDisp = st.includes('dispon');
                 opt.hidden = false;
-                if (i > 0) {
-                    opt.disabled = !isDisp;
-                }
+                if (i > 0) opt.disabled = !isDisp;
             }
             if (avisoFiltro) { avisoFiltro.className = 'd-none'; avisoFiltro.innerHTML = ''; }
             return;
@@ -627,10 +604,10 @@
         selectEq.selectedIndex = 0;
 
         for (let i = 1; i < selectEq.options.length; i++) {
-            let opt = selectEq.options[i];
-            let catOpt = opt.getAttribute('data-categoria') || '';
-            let statusOpt = (opt.getAttribute('data-status') || '').toLowerCase();
-            let isDisponivel = statusOpt.includes('dispon');
+            const opt = selectEq.options[i];
+            const catOpt = opt.getAttribute('data-categoria') || '';
+            const statusOpt = (opt.getAttribute('data-status') || '').toLowerCase();
+            const isDisponivel = statusOpt.includes('dispon');
 
             if (catOpt === categoria) {
                 opt.hidden = false;
@@ -652,29 +629,21 @@
             avisoFiltro.classList.remove('d-none');
             if (totalCompativeis === 0) {
                 avisoFiltro.className = 'alert alert-danger py-2 px-3 small mb-3';
-                avisoFiltro.innerHTML = `<i class="bi bi-x-circle me-1"></i> <strong>Nenhum equipamento</strong> do tipo '${tipoTexto}' cadastrado. Cadastre novo equipamento primeiro.`;
+                avisoFiltro.innerHTML = `<i class="bi bi-x-circle me-1"></i> <strong>Nenhum equipamento</strong> do tipo '${tipoTexto}' cadastrado no estoque.`;
             } else if (totalDisponiveis === 0) {
                 avisoFiltro.className = 'alert alert-warning py-2 px-3 small mb-3';
-                avisoFiltro.innerHTML = `<i class="bi bi-exclamation-triangle me-1"></i> ${totalCompativeis} equipamento(s) '${tipoTexto}' cadastrado(s), mas <strong>nenhum disponível</strong> no momento (todos em operação).`;
+                avisoFiltro.innerHTML = `<i class="bi bi-exclamation-triangle me-1"></i> ${totalCompativeis} equipamento(s) compatível(is), mas <strong>nenhum disponível</strong> no momento (todos em operação).`;
             } else {
                 avisoFiltro.className = 'alert alert-success py-2 px-3 small mb-3';
-                avisoFiltro.innerHTML = `<i class="bi bi-shield-check me-1"></i> <strong>Filtro Ativo:</strong> ${totalCompativeis} compatível(is) com <strong>${tipoTexto}</strong> (${totalDisponiveis} disponível(is)).`;
+                avisoFiltro.innerHTML = `<i class="bi bi-shield-check me-1"></i> <strong>Filtro Ativo:</strong> ${totalDisponiveis} item(ns) disponível(is) para '${tipoTexto}'.`;
             }
         }
     }
 
-    function limparAtendimento() {
-        document.getElementById('campoIdSolicitacao').value = '';
-        categoriaFiltroAtivo = null;
-        tipoSolicitadoAtivo = null;
-        let banner = document.getElementById('bannerAtendimento');
-        if (banner) { banner.classList.add('d-none'); banner.classList.remove('d-flex'); }
-        aplicarFiltroEquipamentos('todos');
-    }
-
-    document.getElementById('formCautela').addEventListener('submit', function(e) {
-        let selectEq = document.getElementById('campoIdEquipamento');
-        let idSol = document.getElementById('campoIdSolicitacao').value;
+    // Validação estrita do formulário do modal
+    document.getElementById('formCautelaModal').addEventListener('submit', function(e) {
+        const selectEq = document.getElementById('campoIdEquipamentoModal');
+        const idSol = document.getElementById('campoIdSolicitacaoModal').value;
 
         if (selectEq.selectedIndex <= 0) {
             e.preventDefault();
@@ -683,15 +652,15 @@
             return false;
         }
 
-        let opt = selectEq.options[selectEq.selectedIndex];
+        const opt = selectEq.options[selectEq.selectedIndex];
         if (opt.disabled) {
             e.preventDefault();
-            alert('O equipamento selecionado está desabilitado ou indisponível.');
+            alert('O equipamento selecionado está em operação ou indisponível.');
             return false;
         }
 
         if (idSol && categoriaFiltroAtivo) {
-            let catSelecionada = opt.getAttribute('data-categoria');
+            const catSelecionada = opt.getAttribute('data-categoria');
             if (catSelecionada !== categoriaFiltroAtivo) {
                 e.preventDefault();
                 alert('Operação bloqueada! O chamado exige "' + tipoSolicitadoAtivo + '", mas você selecionou um equipamento incompatível.');
@@ -700,12 +669,17 @@
         }
     });
 
-    // Inicializa barras de progresso com data-width
-    document.querySelectorAll('.progress-bar[data-width]').forEach(function(bar) {
-        bar.style.width = (bar.getAttribute('data-width') || '0') + '%';
-    });
+    // --- FILTRAGEM DA TABELA NO MODAL DE INVENTÁRIO ---
+    function filtrarTabelaInventarioModal() {
+        const termo = (document.getElementById('buscaModalInventario')?.value || '').toLowerCase().trim();
+        const linhas = document.querySelectorAll('.linha-inventario-modal');
+        linhas.forEach(function(linha) {
+            const dados = (linha.getAttribute('data-busca') || '').toLowerCase();
+            linha.style.display = (!termo || dados.includes(termo)) ? '' : 'none';
+        });
+    }
 
-    // --- CONTROLE PARA FECHAR/OCULTAR CHAMADOS FINALIZADOS (ADMIN) ---
+    // --- CONTROLE DA FILA DE CHAMADOS OPERACIONAIS (ADMIN) ---
     let finalizadosFechadosAdmin = false;
     let filtroChamadosAtivo = 'todos';
 
@@ -739,26 +713,14 @@
             if (isFinalizada && !deveExibir) finalizadasOcultas++;
         });
 
-        // Atualiza botão de toggle
-        const btnToggle = document.getElementById('btnToggleFinalizadosAdmin');
-        const icone = document.getElementById('iconeToggleFinalizadosAdmin');
-        const texto = document.getElementById('textoToggleFinalizadosAdmin');
+        // Atualiza itens do menu de ações
+        const textoMenu = document.getElementById('textoItemToggleFinalizados');
+        if (textoMenu) {
+            textoMenu.textContent = (finalizadosFechadosAdmin || finalizadasOcultas > 0) ? 'Reexibir Finalizados' : 'Ocultar Finalizados';
+        }
+
         const aviso = document.getElementById('avisoFinalizadosOcultos');
         const contador = document.getElementById('contadorFinalizadosOcultos');
-
-        if (btnToggle && icone && texto) {
-            if (finalizadosFechadosAdmin || finalizadasOcultas > 0) {
-                btnToggle.classList.add('btn-primary');
-                btnToggle.classList.remove('btn-secondary');
-                icone.className = 'bi bi-eye';
-                texto.textContent = 'Mostrar Finalizados (' + totalFinalizadas + ')';
-            } else {
-                btnToggle.classList.remove('btn-primary');
-                btnToggle.classList.add('btn-secondary');
-                icone.className = 'bi bi-eye-slash';
-                texto.textContent = 'Fechar Finalizados';
-            }
-        }
 
         if (aviso && contador) {
             if (finalizadasOcultas > 0) {
@@ -839,11 +801,5 @@
             aplicarVisibilidadeChamados();
         }
     }
-
-    // Carrega preferência salva do usuário
-    if (localStorage.getItem('cavere_finalizados_fechados_admin') === '1') {
-        finalizadosFechadosAdmin = true;
-    }
-    aplicarVisibilidadeChamados();
 </script>
 {% endblock %}

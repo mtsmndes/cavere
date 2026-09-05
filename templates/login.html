@@ -4,47 +4,63 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Cavere — Sistema de Gestão e Controle de Cautelas de Equipamentos Operacionais. Ambipar Response.">
-    <title>Acessar o Sistema • Cavere</title>
+    <title>Acessar o Sistema • Cavere Ambipar</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
         :root {
             --font-sans: 'Inter', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             --font-mono: 'JetBrains Mono', monospace;
-            --canvas: #f1f5f9;
-            --surface-card: #ffffff;
-            --border-default: #e2e8f0;
-            --border-input: #cbd5e1;
-            --border-subtle: #f1f5f9;
-            --text-primary: #0f172a;
-            --text-secondary: #64748b;
-            --text-muted: #94a3b8;
-            --color-accent: #00C853;
-            --color-accent-hover: #00b048;
-            --color-accent-active: #009e40;
-            --color-accent-ring: rgba(0, 200, 83, 0.18);
-            --color-accent-bg: #f0fdf4;
+
+            /* ============================================================ */
+            /* PALETA AMBIPAR CORPORATE EDITION (DESIGN SYSTEM OFICIAL)     */
+            /* ============================================================ */
+            /* Cor de Acento (Verde-Limão) */
+            --accent-500: #CEDC00;
+            --accent-600: #B8C400;
+            --accent-700: #9DA800;
+            /* REGRA CRÍTICA DE CONTRASTE: Texto e ícones sobre o limão são SEMPRE quase-preto */
+            --accent-on: #14171a;
+            --accent-glow: rgba(206, 220, 0, 0.28);
+            --accent-surface: rgba(206, 220, 0, 0.12);
+
+            /* Base Neutra Estrutural */
+            --ink-900: #14171a; /* Texto primário / headings */
+            --ink-700: #2c3136; /* Grafite estrutural neutro */
+            --ink-500: #5b6168; /* Texto secundário / muted */
+            --ink-300: #9aa0a6; /* Desabilitado / ícones sutis */
+
+            /* Superfícies Claras */
+            --canvas: #f5f6f4;        /* Fundo global corporativo */
+            --surface: #ffffff;       /* Card de login */
+            --border: #e4e6e1;        /* Borda padrão */
+            --border-subtle: #edefec; /* Divisores */
+
+            /* Estados e Badges Semânticos */
+            --status-success-bg: #e3f5d8;
+            --status-success-text: #3f6e12;
+            --status-warn-bg: #f5f7c9;
+            --status-warn-text: #7a7f00;
+            --status-danger-bg: #fde3e3;
+            --status-danger-text: #b91c1c;
+            --status-info-bg: #e6eef7;
+            --status-info-text: #2c5a8c;
             --status-purple-bg: #ede9fe;
             --status-purple-text: #6d28d9;
-            --status-info-bg: #dbeafe;
-            --status-info-text: #1e40af;
-            --status-success-bg: #dcfce7;
-            --status-success-text: #166534;
-            --status-danger-bg: #fee2e2;
-            --status-danger-text: #991b1b;
-            --status-warn-bg: #fef9c3;
-            --status-warn-text: #854d0e;
+
+            /* Espaçamento e Raios */
             --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
             --space-5: 20px; --space-6: 24px; --space-8: 32px;
             --radius-sm: 6px;
             --radius-md: 8px;
-            --radius-card: 14px;
+            --radius-card: 16px;
             --radius-pill: 9999px;
-            --shadow-card: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.05);
-            --shadow-elevated: 0 20px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.08);
+
+            /* Elevação */
+            --shadow-card: 0 12px 32px -4px rgba(20, 23, 26, 0.08), 0 4px 12px -2px rgba(20, 23, 26, 0.04);
         }
 
         *, *::before, *::after {
@@ -60,7 +76,10 @@
         body {
             font-family: var(--font-sans);
             background-color: var(--canvas);
-            color: var(--text-primary);
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(206, 220, 0, 0.12) 0%, transparent 45%),
+                radial-gradient(circle at 10% 90%, rgba(44, 49, 54, 0.03) 0%, transparent 40%);
+            color: var(--ink-900);
             -webkit-font-smoothing: antialiased;
             display: flex;
             flex-direction: column;
@@ -72,7 +91,7 @@
 
         .auth-container {
             width: 100%;
-            max-width: 400px;
+            max-width: 420px;
             margin: auto;
             display: flex;
             flex-direction: column;
@@ -88,39 +107,58 @@
             align-items: center;
         }
 
-        .auth-logo-icon {
+        .auth-logo-badge {
             width: 52px;
             height: 52px;
-            background: linear-gradient(135deg, var(--color-accent) 0%, #00e676 100%);
-            border-radius: var(--radius-card);
+            background: var(--accent-500);
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #ffffff;
-            font-size: 1.5rem;
-            box-shadow: 0 4px 16px rgba(0, 200, 83, 0.28);
+            color: var(--accent-on);
+            font-size: 1.625rem;
+            box-shadow: 0 6px 20px var(--accent-glow);
             margin-bottom: var(--space-3);
-            transition: transform 0.2s ease;
+            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+            border: 1px solid rgba(255, 255, 255, 0.4);
         }
 
-        .auth-logo-icon:hover {
-            transform: scale(1.03);
+        .auth-logo-badge:hover {
+            transform: scale(1.04);
+            box-shadow: 0 8px 24px var(--accent-glow);
         }
 
         .auth-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            letter-spacing: -0.025em;
-            margin: 0 0 2px 0;
+            font-size: 1.625rem;
+            font-weight: 800;
+            color: var(--ink-900);
+            letter-spacing: -0.03em;
+            margin: 0 0 var(--space-1) 0;
             line-height: 1.2;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .auth-subtitle {
+        /* Assinatura de Marca Ambipar: Realce de Palavra-chave (Seção 3.B / 6 da Skill) */
+        .brand-meta {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
             font-size: 0.8125rem;
-            color: var(--text-secondary);
-            margin: 0;
+            color: var(--ink-500);
             font-weight: 500;
+        }
+
+        .brand-highlight {
+            background: var(--accent-500);
+            color: var(--accent-on);
+            font-weight: 700;
+            font-size: 0.72rem;
+            padding: 2px 7px;
+            border-radius: 4px;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
         }
 
         /* Flash Messages */
@@ -133,37 +171,41 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 10px 14px;
+            padding: 12px 14px;
             border-radius: var(--radius-md);
-            font-size: 0.8125rem;
+            font-size: 0.84rem;
             font-weight: 500;
-            border: 1px solid transparent;
             margin-bottom: var(--space-2);
+            border-width: 1px;
+            border-style: solid;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
         }
 
-        .auth-alert-info    { background-color: var(--status-info-bg);    color: var(--status-info-text); }
-        .auth-alert-danger  { background-color: var(--status-danger-bg);  color: var(--status-danger-text); }
-        .auth-alert-success { background-color: var(--status-success-bg); color: var(--status-success-text); }
-        .auth-alert-warning { background-color: var(--status-warn-bg);    color: var(--status-warn-text); }
+        .auth-alert-danger  { background-color: var(--status-danger-bg);  color: var(--status-danger-text); border-color: #fecaca; }
+        .auth-alert-success { background-color: var(--status-success-bg); color: var(--status-success-text); border-color: #bbf7d0; }
+        .auth-alert-warning { background-color: var(--status-warn-bg);    color: var(--status-warn-text); border-color: #fde047; }
+        .auth-alert-info    { background-color: var(--status-info-bg);    color: var(--status-info-text); border-color: #bfdbfe; }
 
         .auth-alert .btn-close {
             margin-left: auto;
             font-size: 0.7rem;
-            padding: 4px;
+            padding: 6px;
+            opacity: 0.7;
         }
+        .auth-alert .btn-close:hover { opacity: 1; }
 
-        /* Card */
+        /* Card Corporativo */
         .auth-card {
             width: 100%;
-            background: var(--surface-card);
-            border: 1px solid var(--border-default);
+            background: var(--surface);
+            border: 1px solid var(--border);
             border-radius: var(--radius-card);
             box-shadow: var(--shadow-card);
             overflow: hidden;
         }
 
         .auth-card-body {
-            padding: var(--space-6);
+            padding: var(--space-6) var(--space-6) var(--space-6);
         }
 
         .auth-card-heading {
@@ -172,20 +214,21 @@
         }
 
         .auth-card-title {
-            font-size: 1.125rem;
+            font-size: 1.1875rem;
             font-weight: 700;
-            color: var(--text-primary);
-            letter-spacing: -0.01em;
+            color: var(--ink-900);
+            letter-spacing: -0.015em;
             margin: 0 0 4px 0;
         }
 
         .auth-card-desc {
             font-size: 0.8125rem;
-            color: var(--text-secondary);
+            color: var(--ink-500);
             margin: 0;
+            line-height: 1.4;
         }
 
-        /* Form Controls */
+        /* Controles de Formulário */
         .form-group {
             margin-bottom: var(--space-4);
         }
@@ -193,16 +236,16 @@
         .form-label {
             display: block;
             font-size: 0.8125rem;
-            font-weight: 500;
-            color: #334155;
-            margin-bottom: var(--space-2);
+            font-weight: 600;
+            color: var(--ink-700);
+            margin-bottom: 6px;
         }
 
         .cv-input-box {
             display: flex;
             align-items: center;
-            height: 42px;
-            border: 1px solid var(--border-input);
+            height: 44px;
+            border: 1.5px solid var(--border);
             border-radius: var(--radius-md);
             background: #ffffff;
             transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -211,19 +254,24 @@
         }
 
         .cv-input-box:focus-within {
-            border-color: var(--color-accent) !important;
-            box-shadow: 0 0 0 3px var(--color-accent-ring) !important;
+            border-color: var(--accent-500) !important;
+            box-shadow: 0 0 0 3.5px var(--accent-glow) !important;
         }
 
         .cv-input-icon {
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 40px;
+            width: 42px;
             height: 100%;
-            color: var(--text-muted);
-            font-size: 1rem;
+            color: var(--ink-500);
+            font-size: 1.05rem;
             flex-shrink: 0;
+            transition: color 0.15s ease;
+        }
+
+        .cv-input-box:focus-within .cv-input-icon {
+            color: var(--ink-900);
         }
 
         .cv-input-field {
@@ -234,13 +282,15 @@
             box-shadow: none !important;
             padding: 0 var(--space-3) 0 0;
             font-size: 0.875rem;
-            color: var(--text-primary);
+            font-weight: 500;
+            color: var(--ink-900);
             font-family: var(--font-sans);
             background: transparent;
         }
 
         .cv-input-field::placeholder {
-            color: var(--text-muted);
+            color: var(--ink-300);
+            font-weight: 400;
             font-size: 0.8125rem;
         }
 
@@ -248,55 +298,63 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 40px;
+            width: 42px;
             height: 100%;
             background: transparent;
             border: none;
-            color: var(--text-muted);
+            color: var(--ink-500);
             cursor: pointer;
             padding: 0;
             flex-shrink: 0;
-            transition: color 0.15s ease;
+            transition: color 0.15s ease, background-color 0.15s ease;
         }
 
         .btn-toggle-pw:hover {
-            color: var(--text-primary);
+            color: var(--ink-900);
+            background-color: var(--canvas);
         }
 
-        /* Submit Button */
+        /* Botão de Submissão Primário (Seção 3.D da Skill) */
         .btn-submit {
             width: 100%;
-            height: 44px;
-            background: linear-gradient(135deg, #00C853 0%, #00b048 100%);
-            color: #ffffff;
+            height: 46px;
+            background: var(--accent-500);
+            color: var(--accent-on); /* REGRA CRÍTICA: Texto escuro sobre o limão */
             border: none;
             border-radius: var(--radius-md);
-            font-size: 0.875rem;
-            font-weight: 600;
+            font-size: 0.9rem;
+            font-weight: 700;
             font-family: var(--font-sans);
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
             cursor: pointer;
-            transition: all 0.2s ease-in-out;
+            transition: background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
             margin-top: var(--space-5);
-            box-shadow: 0 4px 12px rgba(0, 200, 83, 0.32);
+            box-shadow: 0 4px 14px var(--accent-glow);
+            letter-spacing: -0.01em;
         }
 
         .btn-submit:hover {
-            background: linear-gradient(135deg, #00b048 0%, #009e40 100%);
+            background: var(--accent-600);
+            color: var(--accent-on);
             transform: translateY(-1px);
-            box-shadow: 0 6px 18px rgba(0, 200, 83, 0.42);
-            color: #ffffff;
+            box-shadow: 0 6px 18px var(--accent-glow);
         }
 
         .btn-submit:active {
+            background: var(--accent-700);
             transform: translateY(0);
-            box-shadow: 0 2px 6px rgba(0, 200, 83, 0.3);
+            box-shadow: 0 2px 6px var(--accent-glow);
         }
 
-        /* Card Footer */
+        .btn-submit:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px var(--accent-glow), 0 4px 14px var(--accent-glow);
+        }
+
+        /* Rodapé Interno do Card */
         .auth-card-footer {
             padding: var(--space-3) var(--space-6);
             background: var(--canvas);
@@ -307,30 +365,56 @@
             font-size: 0.75rem;
         }
 
+        .auth-card-footer-label {
+            color: var(--ink-500);
+            font-weight: 500;
+        }
+
         .badge-role {
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            padding: 2px 8px;
+            padding: 2.5px 8px;
             border-radius: var(--radius-pill);
-            font-size: 0.7rem;
+            font-size: 0.72rem;
             font-weight: 600;
+            letter-spacing: 0.01em;
         }
 
-        .badge-admin { background: var(--status-purple-bg); color: var(--status-purple-text); }
-        .badge-coord { background: var(--status-info-bg);   color: var(--status-info-text); }
+        .badge-admin { 
+            background: var(--status-purple-bg); 
+            color: var(--status-purple-text); 
+            border: 1px solid rgba(109, 40, 217, 0.15);
+        }
 
-        /* System Footer */
+        .badge-coord { 
+            background: var(--status-info-bg);   
+            color: var(--status-info-text); 
+            border: 1px solid rgba(44, 90, 140, 0.15);
+        }
+
+        /* Rodapé Geral do Sistema */
         .auth-system-footer {
             margin-top: var(--space-5);
             text-align: center;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            line-height: 1.5;
+            font-size: 0.775rem;
+            color: var(--ink-500);
+            line-height: 1.6;
         }
 
         .auth-system-footer strong {
-            color: var(--text-secondary);
+            color: var(--ink-700);
+            font-weight: 600;
+        }
+
+        .auth-system-security {
+            margin-top: 6px;
+            font-size: 0.715rem;
+            color: var(--ink-300);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
         }
     </style>
 </head>
@@ -344,13 +428,13 @@
                 {% for category, message in messages %}
                 <div class="auth-alert auth-alert-{{ category }} alert alert-dismissible fade show" role="alert">
                     {% if category == 'success' %}
-                        <i class="bi bi-check2-circle fs-6 flex-shrink-0"></i>
+                        <i class="bi bi-check2-circle fs-5 flex-shrink-0"></i>
                     {% elif category == 'danger' %}
-                        <i class="bi bi-exclamation-octagon fs-6 flex-shrink-0"></i>
+                        <i class="bi bi-exclamation-octagon fs-5 flex-shrink-0"></i>
                     {% elif category == 'warning' %}
-                        <i class="bi bi-exclamation-triangle fs-6 flex-shrink-0"></i>
+                        <i class="bi bi-exclamation-triangle fs-5 flex-shrink-0"></i>
                     {% else %}
-                        <i class="bi bi-info-circle fs-6 flex-shrink-0"></i>
+                        <i class="bi bi-info-circle fs-5 flex-shrink-0"></i>
                     {% endif %}
                     <span>{{ message }}</span>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
@@ -360,13 +444,17 @@
             {% endif %}
         {% endwith %}
 
-        <!-- Branding Header -->
+        <!-- Branding Header Oficial Ambipar -->
         <div class="auth-brand">
-            <div class="auth-logo-icon">
+            <div class="auth-logo-badge">
                 <i class="bi bi-shield-check"></i>
             </div>
             <h1 class="auth-title">Cavere</h1>
-            <p class="auth-subtitle">Ambipar Response &bull; Controle de Cautelas</p>
+            <div class="brand-meta">
+                <span class="brand-highlight">Ambipar Response</span>
+                <span>&bull;</span>
+                <span>Base Operacional Niterói</span>
+            </div>
         </div>
 
         <!-- Login Card -->
@@ -374,7 +462,7 @@
             <div class="auth-card-body">
                 <div class="auth-card-heading">
                     <h2 class="auth-card-title">Acessar o Sistema</h2>
-                    <p class="auth-card-desc">Entre com suas credenciais operacionais</p>
+                    <p class="auth-card-desc">Entre com suas credenciais operacionais para gerenciar cautelas e ativos</p>
                 </div>
 
                 <form action="/login{% if request.args.get('next') %}?next={{ request.args.get('next') }}{% endif %}" method="POST" id="formLogin">
@@ -383,7 +471,7 @@
                         <div class="cv-input-box">
                             <span class="cv-input-icon"><i class="bi bi-person"></i></span>
                             <input type="text" class="cv-input-field" id="inputUsername" name="username"
-                                   placeholder="Digite seu login" required autofocus autocomplete="username">
+                                   placeholder="Digite seu usuário corporativo" required autofocus autocomplete="username">
                         </div>
                     </div>
 
@@ -392,8 +480,8 @@
                         <div class="cv-input-box">
                             <span class="cv-input-icon"><i class="bi bi-lock"></i></span>
                             <input type="password" class="cv-input-field" id="inputSenha" name="senha"
-                                   placeholder="Digite sua senha" required autocomplete="current-password">
-                            <button type="button" class="btn-toggle-pw" id="toggleSenha" title="Mostrar ou ocultar senha" tabindex="-1">
+                                   placeholder="Digite sua senha de acesso" required autocomplete="current-password">
+                            <button type="button" class="btn-toggle-pw" id="toggleSenha" title="Exibir ou ocultar senha" tabindex="-1">
                                 <i class="bi bi-eye" id="iconeSenha"></i>
                             </button>
                         </div>
@@ -401,30 +489,34 @@
 
                     <button type="submit" class="btn-submit" id="btnAcessar">
                         <span>Acessar o Sistema</span>
-                        <i class="bi bi-arrow-right-short fs-5"></i>
+                        <i class="bi bi-arrow-right fs-5"></i>
                     </button>
                 </form>
             </div>
 
             <div class="auth-card-footer">
-                <span style="color:var(--text-muted);">Perfis de Acesso:</span>
+                <span class="auth-card-footer-label">Perfis de Acesso:</span>
                 <div style="display:flex; gap:6px;">
-                    <span class="badge-role badge-admin"><i class="bi bi-shield-lock me-1"></i>Admin</span>
-                    <span class="badge-role badge-coord"><i class="bi bi-person-badge me-1"></i>Coordenador</span>
+                    <span class="badge-role badge-admin" title="Acesso administrativo global"><i class="bi bi-shield-lock me-1"></i>Admin</span>
+                    <span class="badge-role badge-coord" title="Acesso a chamados e cautelas próprias"><i class="bi bi-person-badge me-1"></i>Coordenador</span>
                 </div>
             </div>
         </div>
 
-        <!-- System Footer -->
+        <!-- Rodapé do Sistema -->
         <div class="auth-system-footer">
-            <div><strong>Ambipar Response</strong> &bull; Base Operacional Niterói</div>
-            <div>Gestão de Ativos Operacionais &bull; &copy; 2026</div>
+            <div><strong>Ambipar Response</strong> &bull; Gestão e Controle Patrimonial</div>
+            <div class="auth-system-security">
+                <i class="bi bi-lock-fill"></i>
+                <span>Ambiente Seguro &bull; Acesso restrito a colaboradores autorizados</span>
+            </div>
         </div>
 
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Toggle de visualização da senha
         const toggleBtn = document.getElementById('toggleSenha');
         const inputSenha = document.getElementById('inputSenha');
         const iconeSenha = document.getElementById('iconeSenha');
@@ -436,11 +528,26 @@
                     inputSenha.type = 'text';
                     iconeSenha.classList.remove('bi-eye');
                     iconeSenha.classList.add('bi-eye-slash');
+                    toggleBtn.setAttribute('title', 'Ocultar senha');
                 } else {
                     inputSenha.type = 'password';
                     iconeSenha.classList.remove('bi-eye-slash');
                     iconeSenha.classList.add('bi-eye');
+                    toggleBtn.setAttribute('title', 'Exibir senha');
                 }
+            });
+        }
+
+        // Feedback imediato no submit
+        const formLogin = document.getElementById('formLogin');
+        const btnAcessar = document.getElementById('btnAcessar');
+        if (formLogin && btnAcessar) {
+            formLogin.addEventListener('submit', function() {
+                btnAcessar.disabled = true;
+                btnAcessar.innerHTML = `
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="color: var(--accent-on);"></span>
+                    <span>Validando credenciais...</span>
+                `;
             });
         }
     </script>

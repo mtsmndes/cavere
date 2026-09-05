@@ -1,255 +1,225 @@
-# SKILL: Enterprise Fintech Design System (InfinitePay Standard)
-*Versão: 4.0.0-Enterprise*
-*Contexto:* Este documento é a fonte definitiva de verdade para estilização de interfaces, UI/UX e engenharia de front-end do sistema **Cavere**. O objetivo é eliminar qualquer vestígio de "vibe code" ou protótipo gerado por IA, entregando acabamento visual equivalente a um SaaS corporativo fintech de alta performance. Esta skill deve ser lida integralmente pelo agente antes de gerar qualquer tela, componente ou trecho de estilo.
+# SKILL: Cavere Design System — Ambipar Corporate Edition
+*Versão: 1.1.0 (correção de paleta)*
+*Contexto:* Esta skill substitui a identidade "InfinitePay Standard" por uma identidade
+inspirada na marca **Ambipar** real (verde-limão/chartreuse vibrante + base clara neutra),
+elevada a um padrão de produto SaaS muito acima do site institucional — que é um site de
+marketing com foto de fundo, menu poluído e uso do verde limitado a barra superior e
+destaques de texto. Aqui pegamos a cor de identidade e aplicamos com disciplina de
+dashboard operacional, não replicamos a página de marketing.
+
+**Nota sobre a cor:** o hex abaixo (`#CEDC00`) é uma extração aproximada por inspeção visual
+do print enviado. Se você tiver o manual de marca ou o SVG do logo, me envie para eu calibrar
+o hex exato — cores extraídas de screenshot podem variar um pouco por compressão/exibição.
 
 ---
 
 ## 1. Fundamentos da Identidade Visual & Tipografia
 
-- **Família Tipográfica Principal:** exclusivamente `Inter` ou `Plus Jakarta Sans` via Google Fonts:
-  `<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">`
-- **Fonte Monoespaçada (dados numéricos/financeiros):** `JetBrains Mono` ou `IBM Plex Mono` para valores monetários, IDs de transação e códigos — nunca usar a fonte padrão do sistema para números financeiros, pois alinhamento tabular é crítico em fintech.
-- **Escala de Pesos:**
-  - `400` — textos secundários, descrições, placeholders.
-  - `500` — rótulos de formulários, itens de menu, texto de tabela padrão.
-  - `600` — títulos de cards, botões de ação, dados de tabela em destaque.
-  - `700` — headers principais (`<h1>`, `<h2>`).
-  - `800` — usar com moderação, apenas em métricas de destaque (ex: valor total de dashboard).
-- **Escala Tipográfica (rem, base 16px):**
-  - Display: `2rem` / `line-height: 1.2`
-  - H1: `1.5rem` / `1.3`
-  - H2: `1.25rem` / `1.35`
-  - H3: `1.125rem` / `1.4`
-  - Body: `0.9375rem` / `1.5`
-  - Small/Caption: `0.8125rem` / `1.4`
+- **Família Tipográfica Principal:** `Inter` ou `Plus Jakarta Sans` via Google Fonts.
+- **Fonte Monoespaçada (IDs, protocolos, códigos de equipamento):** `JetBrains Mono` ou
+  `IBM Plex Mono` — alinhamento tabular limpo em `#SOL-1`, `RAD-003`, etc.
+- **Escala de Pesos:** `400` (secundário) · `500` (labels/menu) · `600` (títulos de card,
+  botões, dados de tabela) · `700` (headers) · `800` (métricas hero, uso pontual).
 
-### Paleta de Cores Estrita (Modo Clean Corporativo)
-- **Fundo Global (Canvas):** `#f8fafc`
-- **Superfícies/Cards:** `#ffffff`
-- **Superfície Elevada (modais, dropdowns):** `#ffffff` com sombra mais pronunciada (ver seção 2.B)
-- **Bordas e Divisores:** `#e2e8f0` (padrão) / `#f1f5f9` (divisores internos sutis)
-- **Texto Primário (Headings):** `#0f172a`
-- **Texto Secundário (Body/Muted):** `#64748b`
-- **Texto Desabilitado/Placeholder:** `#94a3b8`
-- **Cor de Acento (Primary / CTA):** `#00C853`
-- **Hover do Acento:** `#00b048`
-- **Active/Pressed do Acento:** `#009e40`
-- **Foco/Anel de destaque:** `rgba(0, 200, 83, 0.15)`
+### Paleta de Cores — Identidade Ambipar (corrigida)
 
-### Estados e Alertas (Badges)
+**Cor de Acento (Verde-Limão — a assinatura visual da marca):**
+- `--accent-500: #CEDC00` — cor de identidade principal, usar em destaques, CTAs e realces
+- `--accent-600: #B8C400` — hover do acento (mesma tonalidade, levemente mais escura)
+- `--accent-700: #9DA800` — active/pressed
+- `--accent-on: #14171a` — texto/ícone SOBRE o acento (o limão é muito claro para texto branco em cima — usar sempre texto quase-preto sobre ele, como no site original)
+- `--accent-glow: rgba(206, 220, 0, 0.25)` — anel de foco, sombra sutil
+
+**Base Neutra (estrutura — assume o papel que antes era do navy):**
+- `--ink-900: #14171a` — texto primário/headings, quase preto (não azul-marinho)
+- `--ink-700: #2c3136` — sidebar escura / superfícies de estrutura, cinza-grafite neutro
+- `--ink-500: #5b6168` — texto secundário/muted
+- `--ink-300: #9aa0a6` — texto desabilitado, ícones decorativos
+
+**Superfícies Claras:**
+- `--canvas: #f5f6f4` — fundo global (leve tom quente/neutro, não azulado)
+- `--surface: #ffffff` — cards
+- `--border: #e4e6e1` — bordas padrão
+- `--border-subtle: #edefec` — divisores internos
+
+**Estados e Alertas (Badges):**
 | Estado | Fundo | Texto | Uso |
 |---|---|---|---|
-| Sucesso / Disponível | `#dcfce7` | `#166534` | Transação concluída, conta ativa |
-| Alerta / Em Operação | `#fef9c3` | `#854d0e` | Processando, pendente |
-| Perigo / Erro | `#fee2e2` | `#991b1b` | Falha, bloqueado, recusado |
-| Neutro / Informativo | `#e2e8f0` | `#475569` | Rascunho, arquivado |
-| Info / Destaque Secundário | `#dbeafe` | `#1e40af` | Novo recurso, em análise |
+| Sucesso / Disponível | `#e3f5d8` | `#3f6e12` | Equipamento disponível, termo concluído |
+| Atenção / Em Operação | `#f5f7c9` | `#7a7f00` | Pendente — tom próximo ao acento mas neutralizado para não virar CTA |
+| Crítico / Emergencial | `#fde3e3` | `#b91c1c` | Bloqueado, atraso crítico |
+| Neutro | `#edefec` | `#5b6168` | Arquivado, rascunho |
+| Info | `#e6eef7` | `#2c5a8c` | Novo, em análise |
 
-### Cores Semânticas para Dados Financeiros
-- **Valores positivos/entrada:** `#166534` (texto) — nunca usar o verde de acento (`#00C853`) para não confundir com CTA.
-- **Valores negativos/saída:** `#991b1b`
-- **Gráficos financeiros:** paleta categórica com no máximo 6 cores (`#00C853`, `#3b82f6`, `#f59e0b`, `#8b5cf6`, `#ec4899`, `#64748b`), sempre dessaturadas o suficiente para não competir com o verde de acento.
+**Regra de disciplina de cor:** o verde-limão é usado como o site original usa —
+**pontualmente, para o que precisa ser visto primeiro** (CTA principal, indicador de
+destaque, marca/logo). Ele NUNCA vira cor de fundo de área grande (nada de sidebar
+inteira em limão — no site original ele é usado em faixas finas e destaques de texto,
+não em blocos enormes). Grandes áreas usam a base neutra grafite/branco; o limão aparece
+como "pontuação", não como pano de fundo.
 
 ---
 
-## 2. Sistema de Espaçamento e Elevação
+## 2. Espaçamento, Elevação e Grid
+*(disciplina técnica mantida da versão anterior)*
 
-### A. Escala de Espaçamento (base 4px, escala 1.5x)
-Usar exclusivamente múltiplos desta escala — nunca valores arbitrários (`padding: 13px` é proibido):
-`4px · 8px · 12px · 16px · 20px · 24px · 32px · 40px · 48px · 64px`
-
-### B. Escala de Elevação (Sombras)
-- **Nível 0 (plano):** sem sombra, apenas borda `1px solid #e2e8f0`.
-- **Nível 1 (card padrão):** `0 4px 6px -1px rgba(0,0,0,0.02), 0 2px 4px -2px rgba(0,0,0,0.02)`
-- **Nível 2 (dropdown, popover):** `0 10px 15px -3px rgba(0,0,0,0.04), 0 4px 6px -4px rgba(0,0,0,0.04)`
-- **Nível 3 (modal, dialog):** `0 20px 25px -5px rgba(0,0,0,0.06), 0 8px 10px -6px rgba(0,0,0,0.06)`
-- **Regra:** nunca usar `box-shadow` com opacidade acima de `0.08` — sombras duras quebram a estética "clean corporativo".
-
-### C. Grid e Layout
-- Container máximo: `1440px`, com padding lateral responsivo (`px-4` mobile, `px-6` tablet, `px-8` desktop).
-- Sidebar fixa de navegação: `260px` expandida / `72px` colapsada, com transição de `0.25s ease`.
-- Gap padrão entre cards em grid: `24px` (desktop) / `16px` (mobile).
+- **Escala de espaçamento (base 4px):** `4·8·12·16·20·24·32·40·48·64px`.
+- **Elevação:**
+  - Nível 0: sem sombra, borda `1px solid var(--border)`.
+  - Nível 1 (card): `0 4px 6px -1px rgba(20,23,26,0.04), 0 2px 4px -2px rgba(20,23,26,0.04)`
+  - Nível 2 (dropdown): `0 10px 15px -3px rgba(20,23,26,0.06)`
+  - Nível 3 (modal): `0 20px 25px -5px rgba(20,23,26,0.10)`
+- **Grid:** container máximo `1440px`; sidebar `264px` expandida / `76px` colapsada.
 
 ---
 
 ## 3. Arquitetura de Componentes
 
-### A. Navegação (Navbar / Header)
-- Altura fixa `64px`, padding `py-3 px-4`.
-- Fundo branco, sombra Nível 1 apenas na base.
-- Logotipo alinhado à esquerda; ações do usuário (avatar, notificações) à direita.
-- Item ativo do menu: fundo `#f0fdf4` (verde muito suave), texto `#166534`, borda esquerda de `3px` na cor de acento.
+### A. Sidebar de Navegação
+- Fundo `var(--ink-700)` (grafite escuro neutro — NÃO usar o limão como fundo de área grande).
+- Logotipo no topo em branco; ícone/badge de marca em `var(--accent-500)` com texto
+  `var(--accent-on)` — essa é a única mancha grande de limão permitida, e mesmo assim
+  contida a um badge pequeno.
+- Item inativo: texto `var(--ink-300)`.
+- Item ativo: fundo `rgba(206,220,0,0.12)`, texto branco, ícone `var(--accent-500)`,
+  borda esquerda `3px solid var(--accent-500)`.
 
-### B. Cards e Containers
-- `border-radius: 12px`
-- `border: 1px solid #e2e8f0`
-- Sombra Nível 1
-- Cabeçalho do card: fundo `#f8fafc` ou divisória `1px solid #f1f5f9`, nunca cores berrantes.
-- Padding interno: `20px` (compacto) ou `24px` (padrão).
+### B. Header de Página
+- Fundo `#ffffff`, borda inferior `1px solid var(--border)`.
+- Título peso `800`, `var(--ink-900)`. Descrição em `var(--ink-500)`.
+- Pode ganhar um pequeno realce de texto no estilo "highlight" do site original: uma
+  palavra-chave do título com fundo `var(--accent-500)` e texto `var(--accent-on)`,
+  `padding: 2px 6px`, `border-radius: 4px` — é a assinatura mais reconhecível da marca
+  (o "highlight" amarelo-esverdeado atrás de palavras no hero) e funciona muito bem
+  também em título de dashboard, com moderação (uma palavra, não a frase toda).
 
-### C. Tabelas de Dados (Data Tables Enterprise)
-- `<th>`: fundo `#f8fafc`, texto uppercase, `letter-spacing: 0.05em`, cor `#475569`, peso `600`, `12px`.
-- `<td>`: `align-middle`, padding `py-3 px-4`, separadores `1px solid #f1f5f9`.
-- Linha em hover: fundo `#f8fafc` com transição `0.15s`.
-- Linha selecionada: fundo `#f0fdf4`.
-- Badges internos: pílula (`border-radius: 9999px`), padding `3px 10px`, `12px`, peso `600`.
-- Valores numéricos/monetários: alinhados à direita, fonte monoespaçada.
-- **Estado vazio (empty state):** ícone outline centralizado (`48px`, cor `#94a3b8`), texto secundário explicando a ausência de dados, e um CTA quando aplicável — nunca deixar a tabela simplesmente em branco.
-- **Estado de carregamento:** usar skeleton loaders (blocos `#f1f5f9` com shimmer sutil), nunca spinners genéricos de Bootstrap centralizados na tela toda.
+### C. Cards e KPIs
+- `border-radius: 14px`, borda `1px solid var(--border)`, sombra Nível 1.
+- Cards de métrica: ícone em badge circular `40px`, fundo `rgba(206,220,0,0.15)`,
+  ícone `var(--ink-900)` (não branco — o limão claro precisa de ícone escuro em cima).
+  Número em `2.25rem`/peso `800`/`var(--ink-900)`.
 
-### D. Formulários e Inputs
-- `border-radius: 8px`, `border: 1px solid #cbd5e1`, altura `40px` (padrão) / `36px` (compacto).
-- Foco: borda `#00C853` + `box-shadow: 0 0 0 3px rgba(0,200,83,0.15)`, sem outline padrão do navegador.
-- Estado de erro: borda `#ef4444` + mensagem de erro em `12px`, cor `#991b1b`, abaixo do campo.
-- Estado desabilitado: fundo `#f8fafc`, texto `#94a3b8`, cursor `not-allowed`.
-- Labels sempre acima do campo (nunca placeholder-only), peso `500`, `13px`, cor `#334155`.
-- Botões de Ação (CTA): `border-radius: 8-10px`, peso `600`, `transition: all 0.2s ease-in-out`, `transform: translateY(-1px)` no hover, `translateY(0)` no active.
-- Botão secundário: fundo transparente, borda `1px solid #cbd5e1`, texto `#334155`.
-- Botão destrutivo: fundo `#fee2e2`, texto `#991b1b`, hover `#fecaca`.
+### D. Botões
+- **Primário:** fundo sólido `var(--accent-500)`, texto `var(--accent-on)` (quase preto —
+  nunca branco sobre o limão, contraste insuficiente), peso `600`.
+  Sombra `0 4px 12px var(--accent-glow)`. Hover: `var(--accent-600)` + leve `translateY(-1px)`.
+- **Secundário (estrutural):** fundo `var(--ink-700)`, texto branco — ações estruturais
+  importantes que não são "a ação do momento".
+- **Terciário/outline:** borda `1.5px solid var(--border)`, fundo branco, texto `var(--ink-900)`.
+- **Destrutivo:** fundo `#fde3e3`, texto `#b91c1c`.
+- Padding mínimo `10px 20px`, `border-radius: 8px`, ícone+texto com gap `8px`.
+- Nunca mais de UM botão primário (limão) visível por seção/card.
 
-### E. Modais e Overlays
-- Overlay de fundo: `rgba(15, 23, 42, 0.4)` com `backdrop-filter: blur(2px)`.
-- Modal: `border-radius: 16px`, sombra Nível 3, largura máxima `560px` (padrão) / `720px` (formulários complexos).
-- Animação de entrada: `scale(0.96) → scale(1)` + fade, `0.2s ease-out`.
+### E. Tabelas de Dados
+- `<th>`: fundo `var(--ink-700)`, texto branco/uppercase, `letter-spacing: 0.05em`,
+  `12px`, peso `600`.
+- `<td>`: fundo branco, `align-middle`, padding `py-3 px-4`, separador
+  `1px solid var(--border-subtle)`.
+- Hover de linha: fundo `var(--canvas)`. Linha selecionada: `rgba(206,220,0,0.08)`.
+- **Altura de linha fixa obrigatória** (ver Seção 4).
+- Barra de progresso: trilho `var(--border)`, preenchimento `var(--accent-500)` sólido,
+  altura mínima `8px`, `border-radius: 4px`.
+- Linha com prioridade crítica: borda esquerda `3px solid #b91c1c` na linha inteira.
 
-### F. Ícones
-- Usar exclusivamente uma biblioteca de ícones outline consistente (Lucide ou Phosphor) — nunca misturar estilos (outline + filled) na mesma tela.
-- Tamanho padrão: `16px` (inline com texto), `20px` (botões), `24px` (headers de seção).
-- Cor padrão: herdar do texto adjacente; ícones decorativos em `#94a3b8`.
+### F. Modais e Overlays
+- Overlay: `rgba(20,23,26,0.5)` com leve `backdrop-filter: blur(2px)`.
+- Modal: `border-radius: 16px`, sombra Nível 3.
 
-### G. Gráficos e Dashboards
-- Grid de fundo sutil (`#f1f5f9`), sem bordas pesadas nos eixos.
-- Tooltips de gráfico: fundo `#0f172a`, texto branco, `border-radius: 8px`, sombra Nível 2.
-- Cards de métrica (KPI): número em destaque (peso `700-800`), variação percentual com ícone de seta e cor semântica (verde/vermelho conforme seção 1).
-
----
-
-## 4. Acessibilidade e Responsividade
-- Contraste mínimo AA (4.5:1) para todo texto sobre fundo — validar especialmente textos secundários (`#64748b`) sobre branco.
-- Todo elemento interativo deve ter estado de `:focus-visible` visível (nunca `outline: none` sem substituto).
-- Áreas de toque mínimas de `40x40px` em controles mobile.
-- Breakpoints: `640px` (mobile), `768px` (tablet), `1024px` (desktop), `1440px` (wide).
-- Testar sempre com zoom de texto a 200% sem quebra de layout.
+### G. Ícones
+- Biblioteca outline única (Lucide). `16px` inline, `20px` em botões, `24px` em headers.
+  Cor herda do texto adjacente; ícones decorativos em `var(--ink-300)`.
 
 ---
 
-## 5. Diretrizes de Engenharia de Front-end (IDE Antigravity)
+## 4. Arquitetura de Informação e Estrutura de Telas (reestruturação, não maquiagem)
 
-- O agente não deve usar apenas classes utilitárias básicas do Bootstrap/Tailwind. Deve injetar um bloco de estilos customizado (`<style>` ou arquivo CSS dedicado) que sobrescreva os defaults rústicos do framework base.
-- **Centralizar tokens:** todas as cores, espaçamentos e raios definidos aqui devem existir como variáveis CSS (`:root { --color-accent: #00C853; ... }`) — nunca hardcode hex diretamente nos componentes, para permitir tematização futura.
-- Garantir responsividade total via Flexbox/Grid nativo (não depender só de `col-md-*` do Bootstrap para layouts complexos de dashboard).
-- Eliminar qualquer margem ou espaçamento fora da escala definida na Seção 2.A.
-- Toda tela nova deve ser validada mentalmente contra esta skill antes de ser entregue: tipografia, cores, espaçamento, elevação, estados (vazio/erro/carregando) e acessibilidade.
-- Ao gerar componentes reutilizáveis, documentar variantes (default, hover, active, disabled, error) explicitamente no código, não deixar implícito.
-- Nomear classes/variáveis em inglês e de forma semântica (`--surface-card`, `--text-muted`), evitando nomes genéricos como `.box1` ou `.blue-thing`.
+Esta seção existe porque um redesign visual sozinho NÃO resolve uma tela poluída — se a
+tela empilha 3-4 painéis completos (cada um com seu próprio header, filtros e tabela) na
+mesma rota, nenhuma paleta de cor vai consertar isso. O problema é de arquitetura de
+informação, não de estilo. Antes de estilizar qualquer tela, decida a estrutura seguindo
+estas regras.
 
----
+### A. Uma responsabilidade principal por tela
+- Cada rota/página deve ter **um** objetivo primário claro. Se você não consegue resumir
+  o propósito da tela em uma frase curta ("ver e agir sobre solicitações pendentes"),
+  a tela está fazendo coisa demais e precisa ser dividida em rotas separadas.
+- Regra prática: no máximo **1 bloco de KPIs/resumo** + **1 painel de conteúdo principal**
+  por tela. Se existe um segundo painel completo (com seu próprio header + filtros +
+  tabela), ele vira uma aba, uma rota separada ou um card secundário no dashboard que
+  leva para outra página — nunca fica empilhado inteiro na mesma rolagem.
 
-## 6. Regras Anti-"Vibe Code" (checklist obrigatório de revisão)
+### B. Painel Principal (Home) vira um resumo, não um agregador de tudo
+- O "Painel Principal" deve mostrar: KPIs de topo + a fila de itens que precisam de ação
+  AGORA (ex: solicitações em aberto). Qualquer outra lista completa (histórico, relatórios,
+  outro tipo de fila) sai do Painel Principal e vira sua própria página, acessível pela
+  sidebar — mesmo que hoje estejam todas amontoadas na home.
+- Pergunta de corte: "isso é algo que o usuário precisa ver TODA VEZ que abre o sistema,
+  ou é algo que ele busca quando precisa?" Só o primeiro grupo fica na home.
 
-Estas regras existem porque paleta de cores correta NÃO é suficiente — o que denuncia
-conteúdo gerado por IA é a estrutura e a disciplina de layout. Todo template deve
-passar por esta checklist antes de ser considerado pronto.
+### C. Filtros: um controle por contexto, não vários grupos de botões
+- Uma tabela tem **um** conjunto de filtros/abas por vez (ex: "Todos / Em Aberto /
+  Finalizados"), nunca dois grupos de botões concorrendo por atenção na mesma área
+  (ex: filtro de status + botão de ação em massa + outro filtro, tudo na mesma linha).
+- Ações em massa (como "Fechar Finalizados") vão para um menu secundário (kebab menu ou
+  botão "Ações" com dropdown), não como um botão do mesmo peso visual dos filtros de status.
 
-### A. Altura de linha fixa em tabelas
-- Nenhuma linha de tabela pode crescer livremente por conter uma lista de itens dentro da célula.
-- Se uma célula precisar listar múltiplos itens (ex: itens de um pedido/solicitação), mostrar
-  apenas um resumo compacto (`0/4 atendidos`, `2/2`) na própria linha, com um botão/ícone
-  "ver detalhes" que abre um popover, drawer ou linha expansível — nunca empilhar a lista
-  verticalmente dentro da célula.
-- Toda linha da mesma tabela deve ter a mesma altura (ou variação mínima e proposital).
+### D. Progressive disclosure em vez de mostrar tudo de uma vez
+- Detalhes de um item (ex: todos os itens cautelados de uma solicitação) não aparecem
+  expandidos por padrão na tabela — aparecem ao clicar/expandir (drawer lateral, modal ou
+  linha expansível). A tabela em modo padrão mostra só o resumo necessário para escanear
+  rapidamente a lista inteira.
+- Isso vale para a tela inteira também: se uma página tem "mais para mostrar", prefira um
+  link "Ver tudo" que leva para uma página dedicada, em vez de renderizar tudo inline.
 
-### B. Um sinal visual por informação, não vários repetidos
-- Progresso já comunicado por uma barra + fração (`2/2`) não deve ser repetido em badges
-  individuais por item (ex: não colocar um badge verde de check em cada item da lista
-  quando a barra de progresso já existe). Escolher **uma** representação e manter texto
-  simples para os detalhes.
-- Badges/pílulas só devem ser usadas quando o dado realmente varia entre linhas. Se uma
-  coluna inteira mostra sempre o mesmo valor (ex: toda linha com "Alta" prioridade), isso é
-  sinal de que o dado não está sendo usado de verdade — sinalizar isso ao usuário em vez de
-  simplesmente estilizar um valor estático.
-
-### C. Um botão de ação primária por linha/estado
-- Cada linha de tabela ou card deve ter no máximo **uma** ação primária visualmente
-  dominante (botão sólido). Ações secundárias (fechar, ver detalhes, cancelar) usam sempre
-  o mesmo estilo secundário/outline definido na Seção 3.D — nunca inventar uma nova forma
-  de botão para um novo estado.
-- A ação primária deve mudar de **texto/cor conforme o estado** (ex: "Atender", "Concluído",
-  "Fechar"), mas manter a **mesma forma/tamanho** de componente em todas as linhas da tabela.
-  Misturar pílula + outline + botão sólido escuro na mesma coluna é proibido.
-
-### D. Revisão obrigatória de idioma
-- Todo texto de interface (menus, títulos, labels, botões, mensagens) deve ser revisado
-  para acentuação correta em português antes de ser entregue: "Gestão", "Cadastros",
-  "Visão", "Usuários", "Ação", "Não" — nunca "Gestao", "Visao", "Usuarios", "Acao".
-- Padronizar capitalização: Title Case para títulos de botões/seções (ex: "Novo Equipamento",
-  "Cadastrar Usuário"), nunca misturar Title Case com frases em minúsculas na mesma tela.
-
-### E. Densidade de informação vs. ruído
-- Antes de finalizar uma tela, contar quantos elementos coloridos (badges, pílulas, ícones
-  de status) aparecem por linha. Mais de 2-3 elementos coloridos por linha é excesso — reduzir
-  para texto neutro ou consolidar em um único indicador.
-- Perguntar sempre: "esse elemento visual está comunicando um dado que muda, ou é decoração
-  repetida?" Se for decoração repetida, remover.
+### E. Hierarquia de navegação clara: sidebar define páginas, não a página define seções
+- A sidebar (Painel Principal, Histórico de Cautelas, Cadastros, etc.) deve refletir a
+  divisão real do sistema em páginas independentes. Se uma "seção" dentro de uma página é
+  grande e completa o suficiente para ter seu próprio filtro e tabela, ela provavelmente
+  deveria ser um item de sidebar próprio, não uma seção dentro de outra página.
+- Ao planejar a reestruturação, primeiro liste todas as "seções completas" que existem
+  hoje espalhadas pelas páginas atuais, depois decida: isso é conteúdo de resumo (fica no
+  dashboard, compacto) ou é conteúdo de gestão completo (vira página própria na sidebar)?
 
 ---
 
-## 7. Sofisticação Visual e Profundidade (evitar o "flat branco genérico")
+## 5. Checklist Anti-"Vibe Code" (mantido integralmente)
 
-"Clean corporativo" NÃO significa "tudo branco e plano". O erro comum é confundir
-minimalismo com ausência de hierarquia visual. Esta seção corrige telas que ficam
-"estouradas" (excesso de branco sem contraste, botões sem peso, sem profundidade).
+1. **Altura de linha fixa:** nenhuma célula de tabela empilha listas verticalmente;
+   usar resumo compacto (`0/4`) + expansão em popover/drawer.
+2. **Um sinal por informação:** não repetir progresso já mostrado em barra através de
+   badges individuais por item.
+3. **Um botão de ação primária por linha/estado:** mesma forma de componente, mudando
+   texto/cor por estado — nunca misturar pílula + outline + sólido na mesma coluna.
+4. **Revisão de idioma:** acentuação correta ("Gestão", "Visão", "Usuários", "Ação"),
+   Title Case consistente.
+5. **Densidade de cor:** máximo 2-3 elementos coloridos por linha de tabela.
 
-### A. Sidebar com contraste real
-- A sidebar de navegação deve usar fundo escuro `#0f172a` (Slate 900) — não branco.
-  Isso cria uma âncora visual forte e imediatamente tira a sensação de "template cru".
-- Texto de itens inativos: `#94a3b8`. Item ativo: fundo `rgba(0,200,83,0.12)`, texto
-  `#ffffff` ou `#4ade80`, ícone na cor de acento, borda esquerda de `3px` em `#00C853`.
-- Logotipo/nome do sistema no topo da sidebar em branco, com o ícone em destaque
-  dentro de um badge com leve gradiente do accent (`linear-gradient(135deg, #00C853, #00b048)`).
+---
 
-### B. Botões com peso e profundidade reais
-- Botão primário: fundo em **gradiente sutil**, não cor sólida chapada —
-  `linear-gradient(135deg, #00C853 0%, #00b048 100%)`.
-- Sombra colorida (não cinza) no botão primário: `box-shadow: 0 4px 12px rgba(0,200,83,0.3)`,
-  aumentando para `0 6px 16px rgba(0,200,83,0.4)` no hover, junto com `translateY(-1px)`.
-- Padding generoso: mínimo `10px 20px`, nunca botões "apertados". Ícone + texto com
-  gap de `8px`, ícone sempre com o mesmo peso visual do texto (não fino demais).
-- Botão secundário: borda `1.5px` (não `1px`) para ter presença, fundo `#ffffff`,
-  hover com fundo `#f8fafc` E leve elevação de sombra (não só troca de cor).
-- Nunca deixar um botão "flutuando" sem nenhuma sombra — todo botão clicável tem
-  ao menos uma sombra Nível 0.5 sutil para parecer tátil.
+## 6. O que Melhoramos em Relação ao Site Institucional da Ambipar
 
-### C. Camadas de superfície (parar de usar branco puro em tudo)
-- Canvas de fundo: `#f1f5f9` (levemente mais escuro que o `#f8fafc` original) para os
-  cards brancos se destacarem de verdade por contraste.
-- Cabeçalho de página (título + descrição + ações): pode receber uma faixa de fundo
-  sutil (`#ffffff` com borda inferior `2px solid #f1f5f9`) para se separar do conteúdo,
-  em vez de tudo flutuar no mesmo branco do canvas.
-- Cards de KPI/métrica: ícone dentro de um badge circular colorido com fundo em
-  gradiente suave da cor semântica (ex: `radial-gradient` do accent a 12% de opacidade),
-  não apenas um ícone solto cinza ao lado do número.
+- **Sem foto de fundo genérica** (céu/floresta) atrás de conteúdo funcional — isso é ok
+  para marketing, péssimo para um dashboard que precisa de legibilidade constante.
+  Usamos o realce "highlight" de texto (que É um elemento de marca forte) sem depender
+  da fotografia.
+- **Sem menu de 8+ níveis** — navegação enxuta (Painel, Histórico, Cadastros).
+- **Limão como pontuação, não como bloco decorativo** — no site ele aparece na barra
+  superior inteira; num produto operacional isso cansaria a vista em uso prolongado,
+  então reservamos para CTA, ícone de marca e o highlight de texto.
+- **Ícones outline modernos (Lucide/Phosphor)**, não os ícones datados do site institucional.
+- **Contraste de texto corrigido:** o site usa texto preto sobre limão só no highlight
+  pontual — replicamos essa regra de contraste (nunca texto branco sobre o acento).
 
-### D. Tabelas com mais presença visual
-- Header de tabela: considerar fundo `#0f172a` com texto branco em telas de alta
-  densidade operacional (dashboards de operação), OU manter `#f8fafc` mas com borda
-  inferior mais grossa (`2px`) para dar mais separação — nunca uma linha `1px` fraca
-  que faz a tabela parecer "sem acabamento".
-- Barras de progresso: usar gradiente (`linear-gradient(90deg, #00C853, #00e676)`) em vez
-  de cor sólida chapada, com leve `border-radius` e altura mínima de `8px` (nunca fios finos).
-- Linhas com prioridade alta/crítica podem receber uma borda esquerda colorida de `3px`
-  na linha inteira (não só um badge), reforçando hierarquia sem poluir com mais badges.
+---
 
-### E. Micro-interações obrigatórias
-- Todo elemento interativo (botão, linha de tabela, card clicável) precisa de transição
-  perceptível (`0.2s ease`) em pelo menos duas propriedades (ex: cor + sombra, ou
-  transform + sombra) — hover que só muda opacidade de forma imperceptível é proibido.
-- Ícones de ação (editar, fechar, expandir) devem ter um estado de hover com fundo
-  circular sutil (`rgba(0,0,0,0.05)`), nunca ficar "soltos" sem feedback visual.
+## 7. Diretrizes de Engenharia de Front-end (IDE Antigravity)
 
-### F. Tipografia com mais impacto
-- Números de destaque em cards de KPI podem subir para `2.25rem`/peso `800` (acima do
-  teto da Seção 1) especificamente nesses cards — eles são o elemento hero da tela e
-  devem competir visualmente com o resto, não ficar do mesmo tamanho que um subtítulo.
-- Títulos de página (`Painel de Operações`, etc.) podem usar peso `800` em vez de `700`
-  para dar mais presença ao topo da hierarquia.
+- Antes de escrever qualquer CSS, resolva a reestruturação da Seção 4: mapeie quais
+  rotas/páginas vão existir e o que sai do Painel Principal. Estrutura primeiro, estilo depois.
+- Centralizar todos os tokens de cor/espaçamento acima como variáveis CSS em `:root`.
+- Ao migrar de qualquer versão anterior desta skill (verde InfinitePay ou navy/laranja),
+  trocar sistematicamente para os tokens `--accent-500` (`#CEDC00`) e `--ink-700`
+  (grafite) — migração completa tela por tela, nunca dois sistemas de cor coexistindo.
+- **Atenção especial ao contraste:** qualquer texto ou ícone que caia sobre `--accent-500`
+  deve usar `--accent-on` (quase preto), nunca branco.
+- Validar cada tela nova contra as Seções 4 e 5 (estrutura + checklist visual) antes de entregar.

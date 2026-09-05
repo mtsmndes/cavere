@@ -1,25 +1,42 @@
 {% extends "base.html" %}
 {% block content %}
 
+<!-- Coleta de tipos e coordenadores únicos para os filtros -->
+{% set tipos_unicos = [] %}
+{% set coords_unicos = [] %}
+{% for c in cautelas %}
+    {% if c.tipo and c.tipo not in tipos_unicos %}
+        {% set _ = tipos_unicos.append(c.tipo) %}
+    {% endif %}
+    {% if c.coordenador and c.coordenador != 'N/A' and c.coordenador not in coords_unicos %}
+        {% set _ = coords_unicos.append(c.coordenador) %}
+    {% endif %}
+{% endfor %}
+
+<!-- Breadcrumb -->
+<div class="cv-breadcrumb">
+    <a href="/"><i class="bi bi-grid-1x2 me-1"></i>Painel Principal</a>
+    <span class="sep">/</span>
+    <span class="current">Histórico Geral de Cautelas</span>
+</div>
+
 <!-- Page Header (Seções 7.C e 7.F) -->
 <div class="cv-page-banner">
     <div>
         <h1 class="cv-page-title">Histórico Geral de Cautelas</h1>
-        <p class="cv-page-subtitle">Registro auditável de saídas, devoluções e termos gerados</p>
+        <p class="cv-page-subtitle">Registro auditável e rastreamento completo de saídas, termos emitidos e devoluções</p>
     </div>
-    <div style="min-width:260px;">
-        <div class="input-group input-group-sm">
-            <span class="input-group-text"><i class="bi bi-search"></i></span>
-            <input type="text" id="filtroTexto" class="form-control"
-                placeholder="Filtrar por RDO, responsável, SN..." onkeyup="aplicarFiltros()">
-        </div>
+    <div style="display:flex; gap:var(--space-2); align-items:center;">
+        <a href="/" class="btn btn-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Painel Principal
+        </a>
     </div>
 </div>
 
 <!-- KPI Cards (Seções 7.C e 7.F) -->
-<div class="row g-3" style="margin-bottom:var(--space-6);">
+<div class="row g-4" style="margin-bottom:var(--space-6);">
     <div class="col-sm-4">
-        <div class="cv-kpi" onclick="filtrarStatus('Todos')">
+        <div class="cv-kpi" onclick="filtrarStatusRapido('Todos')" title="Clique para exibir todas as cautelas">
             <div style="display:flex; align-items:center; justify-content:space-between;">
                 <div>
                     <div class="cv-kpi-label">Total Registrado</div>
@@ -32,7 +49,7 @@
         </div>
     </div>
     <div class="col-sm-4">
-        <div class="cv-kpi" onclick="filtrarStatus('Em Campo')">
+        <div class="cv-kpi" onclick="filtrarStatusRapido('Em Campo')" title="Clique para filtrar apenas ativos em campo">
             <div style="display:flex; align-items:center; justify-content:space-between;">
                 <div>
                     <div class="cv-kpi-label">Em Campo (Ativos)</div>
@@ -45,7 +62,7 @@
         </div>
     </div>
     <div class="col-sm-4">
-        <div class="cv-kpi" onclick="filtrarStatus('Devolvido')">
+        <div class="cv-kpi" onclick="filtrarStatusRapido('Devolvido')" title="Clique para filtrar apenas ativos devolvidos">
             <div style="display:flex; align-items:center; justify-content:space-between;">
                 <div>
                     <div class="cv-kpi-label">Devolvidos à Base</div>
@@ -59,7 +76,108 @@
     </div>
 </div>
 
-<!-- Tabela de Cautelas -->
+<!-- ============================================================ -->
+<!-- PAINEL DE PESQUISA & FILTROS AVANÇADOS (SEÇÃO 7.C)            -->
+<!-- ============================================================ -->
+<div class="card" style="margin-bottom:var(--space-5);" id="painelPesquisaCautelas">
+    <div class="card-header" style="background:#f8fafc !important; border-bottom:1px solid var(--border-subtle) !important;">
+        <div style="display:flex; align-items:center; gap:var(--space-2);">
+            <i class="bi bi-search text-primary" style="font-size:1.1rem;"></i>
+            <span style="font-weight:700; font-size:0.9375rem; color:var(--text-primary);">Pesquisar & Filtrar Cautelas</span>
+        </div>
+        <span class="badge-notion badge-notion-gray" id="badgeFiltroAtivo" style="display:none;">Filtros Ativos</span>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <!-- Termo de Busca Geral -->
+            <div class="col-lg-4 col-md-12">
+                <label class="form-label" for="campoBuscaTexto">
+                    <i class="bi bi-fonts me-1 text-muted"></i> Busca por Termo
+                </label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" id="campoBuscaTexto" class="form-control"
+                        placeholder="Buscar por RDO, modelo, patrimônio/SN, coordenador..." onkeyup="executarFiltrosCautelas()">
+                    <button class="btn btn-outline-secondary" type="button" id="btnLimparBuscaTexto" onclick="limparBuscaTexto()" title="Limpar busca" style="display:none;">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+                <div class="form-text">Pesquise por qualquer palavra-chave ou código.</div>
+            </div>
+
+            <!-- Filtro por Status -->
+            <div class="col-lg-2 col-md-4 col-sm-6">
+                <label class="form-label" for="filtroStatusSelect">
+                    <i class="bi bi-flag me-1 text-muted"></i> Situação
+                </label>
+                <select class="form-select" id="filtroStatusSelect" onchange="executarFiltrosCautelas()">
+                    <option value="Todos" selected>Todas as Situações</option>
+                    <option value="Em Campo">Em Campo (Ativo)</option>
+                    <option value="Devolvido">Devolvido à Base</option>
+                </select>
+            </div>
+
+            <!-- Filtro por Tipo de Equipamento -->
+            <div class="col-lg-3 col-md-4 col-sm-6">
+                <label class="form-label" for="filtroTipoSelect">
+                    <i class="bi bi-hdd-stack me-1 text-muted"></i> Tipo de Equipamento
+                </label>
+                <select class="form-select" id="filtroTipoSelect" onchange="executarFiltrosCautelas()">
+                    <option value="Todos" selected>Todos os Tipos</option>
+                    {% for t in tipos_unicos|sort %}
+                    <option value="{{ t }}">{{ t }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Filtro por Coordenador Responsável -->
+            <div class="col-lg-3 col-md-4 col-sm-12">
+                <label class="form-label" for="filtroCoordSelect">
+                    <i class="bi bi-person me-1 text-muted"></i> Coordenador
+                </label>
+                <select class="form-select" id="filtroCoordSelect" onchange="executarFiltrosCautelas()">
+                    <option value="Todos" selected>Todos os Coordenadores</option>
+                    {% for co in coords_unicos|sort %}
+                    <option value="{{ co }}">{{ co }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- Filtros por Período de Data -->
+        <div class="row g-3 mt-1 pt-3" style="border-top:1px dashed var(--border-subtle);">
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label" for="filtroDataInicio">
+                    <i class="bi bi-calendar-event me-1 text-muted"></i> Data de Saída (A partir de)
+                </label>
+                <input type="date" class="form-control" id="filtroDataInicio" onchange="executarFiltrosCautelas()">
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label" for="filtroDataFim">
+                    <i class="bi bi-calendar-check me-1 text-muted"></i> Data de Saída (Até)
+                </label>
+                <input type="date" class="form-control" id="filtroDataFim" onchange="executarFiltrosCautelas()">
+            </div>
+
+            <!-- Ações e Contador -->
+            <div class="col-lg-6 col-md-12 d-flex align-items-end justify-content-between flex-wrap gap-2">
+                <div style="font-size:0.875rem; color:var(--text-secondary); display:flex; align-items:center; gap:var(--space-2);">
+                    <i class="bi bi-funnel text-primary"></i>
+                    <span>Exibindo <strong id="contadorResultados" style="color:var(--color-accent-hover); font-family:var(--font-mono); font-size:1rem;">{{ cautelas|length }}</strong> de <strong style="font-family:var(--font-mono);">{{ cautelas|length }}</strong> cautela(s)</span>
+                </div>
+                <div style="display:flex; gap:var(--space-2);">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="resetarTodosFiltros()" title="Limpar todos os campos de pesquisa">
+                        <i class="bi bi-arrow-counterclockwise"></i> Limpar Filtros
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TABELA DE RESULTADOS (SEÇÃO 7.D)                             -->
+<!-- ============================================================ -->
 <div class="card">
     <div class="card-header">
         <div style="display:flex; align-items:center; gap:var(--space-3);">
@@ -67,17 +185,21 @@
                 <i class="bi bi-file-earmark-check"></i>
             </div>
             <div>
-                <div style="font-size:0.9375rem; font-weight:600;">Base de Cautelas Registradas</div>
-                <div style="font-size:0.8125rem; color:var(--text-secondary);">Histórico geral de termos auditáveis</div>
+                <div style="font-size:0.9375rem; font-weight:600;">Base Geral de Cautelas Registradas</div>
+                <div style="font-size:0.8125rem; color:var(--text-secondary);">Histórico auditável e termos em PDF</div>
             </div>
         </div>
-        <div style="display:flex; align-items:center; gap:var(--space-3);">
-            <span class="badge-notion badge-notion-gray">{{ cautelas|length }} registros</span>
-            <div class="btn-group btn-group-sm">
-                <button type="button" class="btn btn-secondary active" id="filtroBtnTodos" onclick="filtrarStatus('Todos')">Todos</button>
-                <button type="button" class="btn btn-secondary" id="filtroBtnCampo" onclick="filtrarStatus('Em Campo')">Em Campo</button>
-                <button type="button" class="btn btn-secondary" id="filtroBtnDevolvidos" onclick="filtrarStatus('Devolvido')">Devolvidos</button>
-            </div>
+        <!-- Abas Rápidas de Status -->
+        <div class="btn-group btn-group-sm" id="grupoFiltrosStatus">
+            <button type="button" class="btn btn-secondary active" id="filtroBtn-Todos" onclick="filtrarStatusRapido('Todos')">
+                Todos <span class="badge-notion badge-notion-gray ms-1" style="font-size:0.7rem;">{{ contadores.Total }}</span>
+            </button>
+            <button type="button" class="btn btn-secondary" id="filtroBtn-EmCampo" onclick="filtrarStatusRapido('Em Campo')">
+                <i class="bi bi-broadcast me-1 text-primary"></i>Em Campo
+            </button>
+            <button type="button" class="btn btn-secondary" id="filtroBtn-Devolvido" onclick="filtrarStatusRapido('Devolvido')">
+                <i class="bi bi-check2-circle me-1 text-success"></i>Devolvidos
+            </button>
         </div>
     </div>
     <div style="overflow-x:auto;">
@@ -85,10 +207,12 @@
         <table class="table table-hover align-middle table-enterprise cv-table-uniform mb-0" id="tabelaHistorico">
             <thead>
                 <tr>
-                    <th class="ps-4">ID</th>
-                    <th>Equipamento</th>
-                    <th>Responsável</th>
-                    <th>RDO Vinculado</th>
+                    <th class="ps-4">Cautela</th>
+                    <th>Chamado</th>
+                    <th>Equipamento & Modelo</th>
+                    <th>Patrimônio / SN</th>
+                    <th>Coordenador</th>
+                    <th>RDO</th>
                     <th>Data de Saída</th>
                     <th>Situação / Devolução</th>
                     <th class="text-center">Termo PDF</th>
@@ -97,51 +221,108 @@
             </thead>
             <tbody>
                 {% for c in cautelas %}
-                <tr class="linha-cautela" data-status="{{ c.status }}"
-                    data-texto="{{ c.id }} {{ c.tipo }} {{ c.modelo }} {{ c.patrimonio_sn }} {{ c.coordenador }} {{ c.rdo }} {{ c.status }}">
-                    <td class="ps-4"><code style="font-size:0.8rem; font-weight:600;">#CAU-{{ c.id }}</code></td>
+                <tr class="linha-cautela"
+                    data-status="{{ c.status }}"
+                    data-tipo="{{ c.tipo }}"
+                    data-coordenador="{{ c.coordenador }}"
+                    data-data="{{ c.data_saida[:10] if c.data_saida else '' }}"
+                    data-busca="{{ c.id }} {{ c.id_solicitacao or '' }} {{ c.tipo }} {{ c.modelo }} {{ c.patrimonio_sn }} {{ c.coordenador }} {{ c.rdo }} {{ c.status }} {{ c.data_saida }}">
+                    <!-- ID Cautela -->
+                    <td class="ps-4">
+                        <code style="font-size:0.8125rem; font-weight:700;">#CAU-{{ c.id }}</code>
+                    </td>
+
+                    <!-- Chamado Vinculado -->
+                    <td>
+                        {% if c.id_solicitacao %}
+                        <span class="badge-notion badge-notion-blue">#SOL-{{ c.id_solicitacao }}</span>
+                        {% else %}
+                        <span style="font-size:0.8125rem; color:var(--text-muted);">&mdash;</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Equipamento & Modelo -->
                     <td>
                         <div style="font-weight:600; font-size:0.875rem;">{{ c.tipo }}</div>
                         <div style="font-size:0.8125rem; color:var(--text-muted);">{{ c.modelo }}</div>
+                    </td>
+
+                    <!-- Patrimônio / SN -->
+                    <td>
                         <code style="font-size:0.75rem;">{{ c.patrimonio_sn }}</code>
                     </td>
+
+                    <!-- Coordenador -->
                     <td>
                         <div style="display:flex; align-items:center; gap:var(--space-2);">
-                            <div style="width:26px;height:26px;border-radius:50%;background:rgba(0, 200, 83, 0.12);color:var(--color-accent-hover);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;">
+                            <div style="width:26px;height:26px;border-radius:50%;background:rgba(0, 200, 83, 0.12);color:var(--color-accent-hover);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;flex-shrink:0;">
                                 {{ c.coordenador[0]|upper if c.coordenador else '?' }}
                             </div>
                             <span style="font-size:0.875rem; font-weight:500;">{{ c.coordenador }}</span>
                         </div>
                     </td>
+
+                    <!-- RDO -->
                     <td><code>{{ c.rdo }}</code></td>
-                    <td><div style="font-size:0.875rem;">{{ c.data_saida }}</div></td>
+
+                    <!-- Data de Saída -->
+                    <td>
+                        <div style="font-size:0.875rem; font-family:var(--font-mono);">{{ c.data_saida }}</div>
+                    </td>
+
+                    <!-- Situação -->
                     <td>
                         {% if c.status == 'Devolvido' %}
-                        <span class="badge-notion badge-notion-green">Devolvido: {{ c.data_devolucao }}</span>
+                        <div>
+                            <span class="badge-notion badge-notion-green"><i class="bi bi-check2 me-1"></i>Devolvido</span>
+                            {% if c.data_devolucao %}
+                            <div style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono); margin-top:2px;">{{ c.data_devolucao }}</div>
+                            {% endif %}
+                        </div>
                         {% else %}
-                        <span class="badge-notion badge-notion-blue">Em Campo</span>
+                        <span class="badge-notion badge-notion-blue"><i class="bi bi-broadcast me-1"></i>Em Campo</span>
                         {% endif %}
                     </td>
+
+                    <!-- Termo PDF -->
                     <td class="text-center">
                         {% if c.pdf_nome %}
-                        <a href="/cautelas/{{ c.pdf_nome }}" target="_blank" class="cv-btn-action cv-btn-action-secondary" style="height:28px; font-size:0.75rem; padding:0 8px;" title="Visualizar Termo em PDF">
+                        <a href="/cautelas/{{ c.pdf_nome }}" target="_blank" class="cv-btn-action cv-btn-action-secondary" style="height:28px; font-size:0.75rem; padding:0 10px;" title="Visualizar Termo em PDF">
                             <i class="bi bi-file-earmark-pdf text-danger"></i> PDF
                         </a>
                         {% else %}
-                        <span style="color:var(--text-muted);">-</span>
+                        <span style="color:var(--text-muted);">&mdash;</span>
                         {% endif %}
                     </td>
+
+                    <!-- Ação Operacional -->
                     <td class="text-center pe-4">
                         {% if c.status == 'Em Campo' and c.id_equipamento %}
-                        <a href="/devolver/{{ c.id_equipamento }}" class="cv-btn-action cv-btn-action-secondary" style="height:28px; font-size:0.75rem; padding:0 8px;" title="Registrar devolução de ativo">
+                        <a href="/devolver/{{ c.id_equipamento }}" class="cv-btn-action cv-btn-action-secondary" style="height:28px; font-size:0.75rem; padding:0 10px;" title="Registrar devolução de ativo">
                             <i class="bi bi-arrow-return-left text-danger"></i> Devolver
                         </a>
                         {% else %}
-                        <span style="font-size:0.8125rem; color:var(--text-muted);"><i class="bi bi-check2 text-success me-1"></i>Concluído</span>
+                        <span style="font-size:0.8125rem; color:var(--text-muted); display:inline-flex; align-items:center; gap:4px;">
+                            <i class="bi bi-check2 text-success"></i> Concluído
+                        </span>
                         {% endif %}
                     </td>
                 </tr>
                 {% endfor %}
+
+                <!-- Mensagem de Nenhum Resultado Encontrado nos Filtros -->
+                <tr id="linhaNenhumResultado" class="d-none">
+                    <td colspan="10" class="text-center py-5">
+                        <div class="cv-empty-state" style="padding:var(--space-6) 0;">
+                            <div class="cv-empty-icon" style="font-size:2.5rem;"><i class="bi bi-search"></i></div>
+                            <div class="cv-empty-title">Nenhuma cautela encontrada</div>
+                            <div class="cv-empty-text">Tente alterar os termos da busca ou redefinir os filtros selecionados.</div>
+                            <button type="button" class="btn btn-secondary btn-sm mt-2" onclick="resetarTodosFiltros()">
+                                <i class="bi bi-arrow-counterclockwise me-1"></i>Redefinir Filtros
+                            </button>
+                        </div>
+                    </td>
+                </tr>
             </tbody>
         </table>
         {% else %}
@@ -155,25 +336,101 @@
 </div>
 
 <script>
-    let statusAtivo = 'Todos';
+    function executarFiltrosCautelas() {
+        const texto = (document.getElementById('campoBuscaTexto')?.value || '').toLowerCase().trim();
+        const statusSel = document.getElementById('filtroStatusSelect')?.value || 'Todos';
+        const tipoSel = document.getElementById('filtroTipoSelect')?.value || 'Todos';
+        const coordSel = document.getElementById('filtroCoordSelect')?.value || 'Todos';
+        const dataInicio = document.getElementById('filtroDataInicio')?.value || '';
+        const dataFim = document.getElementById('filtroDataFim')?.value || '';
 
-    function filtrarStatus(status) {
-        statusAtivo = status;
-        document.getElementById('filtroBtnTodos').classList.toggle('active', status === 'Todos');
-        document.getElementById('filtroBtnCampo').classList.toggle('active', status === 'Em Campo');
-        document.getElementById('filtroBtnDevolvidos').classList.toggle('active', status === 'Devolvido');
-        aplicarFiltros();
+        // Sincroniza visualização das abas rápidas
+        document.querySelectorAll('#grupoFiltrosStatus button').forEach(b => b.classList.remove('active'));
+        const btnTabId = 'filtroBtn-' + statusSel.replace(/\s/g, '');
+        const btnTab = document.getElementById(btnTabId);
+        if (btnTab) btnTab.classList.add('active');
+
+        // Mostra ou oculta botão rápido de limpar texto
+        const btnLimparTexto = document.getElementById('btnLimparBuscaTexto');
+        if (btnLimparTexto) {
+            btnLimparTexto.style.display = texto ? 'block' : 'none';
+        }
+
+        let totalExibidas = 0;
+        const linhas = document.querySelectorAll('.linha-cautela');
+
+        linhas.forEach(function(linha) {
+            const rowStatus = linha.getAttribute('data-status') || '';
+            const rowTipo = linha.getAttribute('data-tipo') || '';
+            const rowCoord = linha.getAttribute('data-coordenador') || '';
+            const rowData = linha.getAttribute('data-data') || '';
+            const dadosBusca = (linha.getAttribute('data-busca') || '').toLowerCase();
+
+            let coincideTexto = !texto || dadosBusca.includes(texto);
+            let coincideStatus = (statusSel === 'Todos' || rowStatus === statusSel);
+            let coincideTipo = (tipoSel === 'Todos' || rowTipo === tipoSel);
+            let coincideCoord = (coordSel === 'Todos' || rowCoord === coordSel);
+            let coincideData = true;
+
+            if (dataInicio && rowData) {
+                if (rowData < dataInicio) coincideData = false;
+            }
+            if (dataFim && rowData) {
+                if (rowData > dataFim) coincideData = false;
+            }
+
+            const visivel = coincideTexto && coincideStatus && coincideTipo && coincideCoord && coincideData;
+            linha.style.display = visivel ? '' : 'none';
+            if (visivel) totalExibidas++;
+        });
+
+        // Atualiza contador de resultados
+        const contador = document.getElementById('contadorResultados');
+        if (contador) contador.textContent = totalExibidas;
+
+        // Atualiza badge de filtros ativos
+        const badgeFiltro = document.getElementById('badgeFiltroAtivo');
+        const temFiltroAtivo = texto !== '' || statusSel !== 'Todos' || tipoSel !== 'Todos' || coordSel !== 'Todos' || dataInicio !== '' || dataFim !== '';
+        if (badgeFiltro) {
+            badgeFiltro.style.display = temFiltroAtivo ? 'inline-flex' : 'none';
+        }
+
+        // Mensagem de zero resultados
+        const linhaVazia = document.getElementById('linhaNenhumResultado');
+        if (linhaVazia) {
+            linhaVazia.classList.toggle('d-none', totalExibidas > 0);
+        }
     }
 
-    function aplicarFiltros() {
-        let texto = (document.getElementById('filtroTexto')?.value || '').toLowerCase();
-        document.querySelectorAll('.linha-cautela').forEach(linha => {
-            let statusLinha = linha.getAttribute('data-status');
-            let dadosLinha = (linha.getAttribute('data-texto') || '').toLowerCase();
-            let statusMatch = (statusAtivo === 'Todos' || statusLinha === statusAtivo);
-            let textoMatch = (!texto || dadosLinha.includes(texto));
-            linha.style.display = (statusMatch && textoMatch) ? '' : 'none';
-        });
+    function filtrarStatusRapido(status) {
+        const sel = document.getElementById('filtroStatusSelect');
+        if (sel) sel.value = status;
+        executarFiltrosCautelas();
+    }
+
+    function limparBuscaTexto() {
+        const campo = document.getElementById('campoBuscaTexto');
+        if (campo) {
+            campo.value = '';
+            campo.focus();
+        }
+        executarFiltrosCautelas();
+    }
+
+    function resetarTodosFiltros() {
+        const campo = document.getElementById('campoBuscaTexto');
+        if (campo) campo.value = '';
+        const selStatus = document.getElementById('filtroStatusSelect');
+        if (selStatus) selStatus.value = 'Todos';
+        const selTipo = document.getElementById('filtroTipoSelect');
+        if (selTipo) selTipo.value = 'Todos';
+        const selCoord = document.getElementById('filtroCoordSelect');
+        if (selCoord) selCoord.value = 'Todos';
+        const dtInicio = document.getElementById('filtroDataInicio');
+        if (dtInicio) dtInicio.value = '';
+        const dtFim = document.getElementById('filtroDataFim');
+        if (dtFim) dtFim.value = '';
+        executarFiltrosCautelas();
     }
 </script>
 {% endblock %}

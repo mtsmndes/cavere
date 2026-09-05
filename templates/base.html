@@ -15,53 +15,69 @@
             --font-sans: 'Inter', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             --font-mono: 'JetBrains Mono', monospace;
 
-            /* Seção 7.C: Canvas com mais contraste e profundidade */
-            --canvas: #f1f5f9; /* Slate 100 com presença tátil para destacar os cards brancos */
-            --surface-card: #ffffff;
-            --surface-dark: #0f172a; /* Slate 900 profundo da Seção 7.A */
-            --border-default: #e2e8f0;
-            --border-subtle: #f1f5f9;
-            --text-primary: #0f172a;
-            --text-secondary: #64748b;
-            --text-muted: #94a3b8;
+            /* ============================================================ */
+            /* PALETA DE CORES — IDENTIDADE AMBIPAR CORPORATE EDITION      */
+            /* ============================================================ */
+            /* Cor de Acento (Verde-Limão — Assinatura da Marca) */
+            --accent-500: #CEDC00;
+            --accent-600: #B8C400;
+            --accent-700: #9DA800;
+            /* REGRA CRÍTICA DE CONTRASTE: Texto e ícones sobre o limão são SEMPRE quase-preto */
+            --accent-on: #14171a;
+            --accent-glow: rgba(206, 220, 0, 0.25);
+            --accent-surface: rgba(206, 220, 0, 0.12);
 
-            /* Seção 7.B: Acento, Gradientes e Sombras Coloridas */
-            --color-accent: #00C853;
-            --color-accent-hover: #00b048;
-            --color-accent-active: #009e40;
-            --color-accent-ring: rgba(0, 200, 83, 0.18);
-            --btn-primary-gradient: linear-gradient(135deg, #00C853 0%, #00b048 100%);
-            --btn-primary-hover-gradient: linear-gradient(135deg, #00b048 0%, #009e40 100%);
-            --btn-primary-shadow: 0 4px 12px rgba(0, 200, 83, 0.32);
-            --btn-primary-hover-shadow: 0 6px 18px rgba(0, 200, 83, 0.42);
+            /* Base Neutra Estrutural (substitui o navy e slate) */
+            --ink-900: #14171a; /* Headings, texto primário */
+            --ink-700: #2c3136; /* Sidebar escura, cabeçalhos de tabela th, botões estruturais */
+            --ink-500: #5b6168; /* Texto secundário / muted */
+            --ink-300: #9aa0a6; /* Desabilitado, ícones decorativos */
 
-            /* Badges e Cores Semânticas */
-            --status-success-bg: #dcfce7;
-            --status-success-text: #166534;
-            --status-warn-bg: #fef9c3;
-            --status-warn-text: #854d0e;
-            --status-danger-bg: #fee2e2;
-            --status-danger-text: #991b1b;
-            --status-neutral-bg: #e2e8f0;
-            --status-neutral-text: #475569;
-            --status-info-bg: #dbeafe;
-            --status-info-text: #1e40af;
+            /* Superfícies Claras */
+            --canvas: #f5f6f4;        /* Fundo global neutro com presença tátil */
+            --surface: #ffffff;       /* Cards, modais, dropdowns */
+            --surface-card: #ffffff;  /* Aliasing retrocompatível */
+            --border: #e4e6e1;        /* Bordas padrão */
+            --border-default: #e4e6e1;/* Aliasing */
+            --border-subtle: #edefec; /* Divisores internos */
+
+            /* Textos (Aliasing padronizado) */
+            --text-primary: #14171a;
+            --text-secondary: #5b6168;
+            --text-muted: #9aa0a6;
+
+            /* Badges e Cores Semânticas Corporativas */
+            --status-success-bg: #e3f5d8;
+            --status-success-text: #3f6e12;
+            --status-warn-bg: #f5f7c9;
+            --status-warn-text: #7a7f00;
+            --status-danger-bg: #fde3e3;
+            --status-danger-text: #b91c1c;
+            --status-neutral-bg: #edefec;
+            --status-neutral-text: #5b6168;
+            --status-info-bg: #e6eef7;
+            --status-info-text: #2c5a8c;
             --status-purple-bg: #ede9fe;
             --status-purple-text: #6d28d9;
 
-            /* Escala de Espaçamento 4px (Seção 2.A) */
+            /* Escala de Espaçamento 4px */
             --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
             --space-5: 20px; --space-6: 24px; --space-8: 32px;
             --space-10: 40px; --space-12: 48px; --space-16: 64px;
 
-            /* Raios e Sombras Corporativas */
-            --radius-sm: 6px; --radius-md: 8px; --radius-card: 14px;
-            --radius-pill: 9999px; --radius-modal: 16px;
-            --shadow-1: 0 4px 6px -1px rgba(15, 23, 42, 0.04), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
-            --shadow-2: 0 10px 15px -3px rgba(15, 23, 42, 0.06), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
-            --shadow-3: 0 20px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.06);
+            /* Raios e Elevação Corporativa */
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --radius-card: 14px;
+            --radius-pill: 9999px;
+            --radius-modal: 16px;
+            --shadow-0: none;
+            --shadow-1: 0 4px 6px -1px rgba(20, 23, 26, 0.04), 0 2px 4px -2px rgba(20, 23, 26, 0.04);
+            --shadow-2: 0 10px 15px -3px rgba(20, 23, 26, 0.06);
+            --shadow-3: 0 20px 25px -5px rgba(20, 23, 26, 0.10);
 
-            --sidebar-width: 260px;
+            /* Dimensões Estruturais */
+            --sidebar-width: 264px;
             --topbar-height: 64px;
         }
 
@@ -78,12 +94,12 @@
             padding: 0;
         }
 
-        /* ---- SIDEBAR COM CONTRASTE REAL (SEÇÃO 7.A) ---- */
+        /* ---- SIDEBAR DE NAVEGAÇÃO (SEÇÃO 3.A) ---- */
         .cv-sidebar {
             position: fixed;
             top: 0; left: 0; bottom: 0;
             width: var(--sidebar-width);
-            background: var(--surface-dark); /* #0f172a */
+            background: var(--ink-700); /* Grafite escuro neutro #2c3136 */
             border-right: 1px solid rgba(255, 255, 255, 0.08);
             padding: var(--space-6) var(--space-4) var(--space-5);
             z-index: 1060;
@@ -102,40 +118,43 @@
             margin-bottom: var(--space-6);
             padding: 0 var(--space-2);
         }
+        /* Badge de marca em verde-limão com texto quase-preto */
         .cv-sidebar-brand .cv-logo-icon {
             width: 40px; height: 40px;
-            background: linear-gradient(135deg, #00C853 0%, #00b048 100%);
+            background: var(--accent-500);
             border-radius: var(--radius-md);
             display: flex; align-items: center; justify-content: center;
-            color: #ffffff; font-size: 1.25rem; flex-shrink: 0;
-            box-shadow: 0 4px 14px rgba(0, 200, 83, 0.35);
+            color: var(--accent-on); font-size: 1.25rem; flex-shrink: 0;
+            font-weight: 800;
+            box-shadow: 0 4px 12px var(--accent-glow);
         }
         .cv-sidebar-brand .cv-logo-name {
             font-size: 1.125rem; font-weight: 800; color: #ffffff;
             letter-spacing: -0.025em; line-height: 1.1; display: block;
         }
         .cv-sidebar-brand .cv-logo-sub {
-            font-size: 0.75rem; color: #94a3b8; display: block; margin-top: 2px;
+            font-size: 0.75rem; color: var(--ink-300); display: block; margin-top: 2px;
         }
 
         .cv-sidebar-label {
             font-size: 0.6875rem; font-weight: 700; text-transform: uppercase;
-            letter-spacing: 0.08em; color: #64748b;
+            letter-spacing: 0.08em; color: var(--ink-300);
             padding: var(--space-3) var(--space-3) var(--space-1); margin-top: var(--space-2);
         }
 
         .cv-nav-item {
             display: flex; align-items: center; gap: var(--space-3);
             padding: var(--space-2) var(--space-3); border-radius: var(--radius-md);
-            font-size: 0.875rem; font-weight: 500; color: #94a3b8;
+            font-size: 0.875rem; font-weight: 500; color: var(--ink-300);
             text-decoration: none; transition: all 0.2s ease; margin-bottom: 2px;
         }
         .cv-nav-item:hover {
             background: rgba(255, 255, 255, 0.06); color: #ffffff;
         }
+        /* Item ativo: fundo rgba(206,220,0,0.12), texto branco, ícone limão, borda 3px limão */
         .cv-nav-item.active {
-            background: rgba(0, 200, 83, 0.12); color: #4ade80;
-            font-weight: 600; border-left: 3px solid var(--color-accent);
+            background: var(--accent-surface); color: #ffffff;
+            font-weight: 600; border-left: 3px solid var(--accent-500);
             padding-left: calc(var(--space-3) - 3px);
         }
         .cv-nav-item .nav-icon {
@@ -143,24 +162,25 @@
             font-size: 1.05rem; flex-shrink: 0;
         }
         .cv-nav-item.active .nav-icon {
-            color: var(--color-accent);
+            color: var(--accent-500);
         }
 
+        /* CTA de navegação (ex: Solicitar Equipamento) */
         .cv-sidebar-cta {
             display: flex; align-items: center; justify-content: center; gap: var(--space-2);
             padding: 10px 16px; border-radius: var(--radius-md);
             font-size: 0.875rem; font-weight: 600;
-            background: var(--btn-primary-gradient); color: #ffffff;
-            text-decoration: none; box-shadow: var(--btn-primary-shadow);
+            background: var(--accent-500); color: var(--accent-on) !important;
+            text-decoration: none; box-shadow: 0 4px 12px var(--accent-glow);
             transition: all 0.2s ease; margin-bottom: var(--space-4);
         }
         .cv-sidebar-cta:hover {
-            background: var(--btn-primary-hover-gradient);
-            transform: translateY(-1px); box-shadow: var(--btn-primary-hover-shadow);
-            color: #ffffff;
+            background: var(--accent-600);
+            transform: translateY(-1px); box-shadow: 0 6px 16px var(--accent-glow);
+            color: var(--accent-on) !important;
         }
 
-        /* Rodapé de usuário na Sidebar Escura */
+        /* Rodapé de usuário na Sidebar */
         .cv-sidebar-footer {
             margin-top: auto; padding-top: var(--space-4);
             border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -168,10 +188,10 @@
         }
         .cv-user-avatar {
             width: 34px; height: 34px; border-radius: 50%;
-            background: linear-gradient(135deg, var(--color-accent), #00e676);
-            color: #ffffff; font-size: 0.8125rem; font-weight: 700;
+            background: var(--accent-surface);
+            color: var(--accent-500); font-size: 0.8125rem; font-weight: 700;
             display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-            box-shadow: 0 2px 8px rgba(0, 200, 83, 0.3);
+            border: 1px solid rgba(206, 220, 0, 0.3);
         }
         .cv-user-details { flex: 1; min-width: 0; line-height: 1.2; }
         .cv-user-name {
@@ -179,12 +199,12 @@
             display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
         .cv-user-role {
-            font-size: 0.6875rem; color: #94a3b8; text-transform: uppercase;
+            font-size: 0.6875rem; color: var(--ink-300); text-transform: uppercase;
             letter-spacing: 0.04em; font-weight: 500;
         }
         .cv-btn-logout-dark {
             width: 32px; height: 32px; border-radius: var(--radius-md);
-            background: rgba(255, 255, 255, 0.06); color: #94a3b8;
+            background: rgba(255, 255, 255, 0.06); color: var(--ink-300);
             display: flex; align-items: center; justify-content: center;
             text-decoration: none; transition: all 0.2s ease; flex-shrink: 0;
         }
@@ -193,7 +213,7 @@
             transform: translateY(-1px);
         }
 
-        /* ---- MAIN LAYOUT COM CANVAS #f1f5f9 (SEÇÃO 7.C) ---- */
+        /* ---- MAIN LAYOUT COM CANVAS NEUTRO #f5f6f4 ---- */
         .cv-layout-wrap {
             min-height: 100vh;
             display: flex;
@@ -211,17 +231,17 @@
         .cv-topbar {
             height: var(--topbar-height);
             background: #ffffff;
-            border-bottom: 1px solid var(--border-default);
+            border-bottom: 1px solid var(--border);
             padding: 0 var(--space-8);
             display: flex; align-items: center; justify-content: space-between;
             gap: var(--space-4);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+            box-shadow: 0 1px 3px rgba(20, 23, 26, 0.02);
         }
         .cv-topbar-breadcrumb {
-            font-size: 0.8125rem; color: var(--text-secondary);
+            font-size: 0.8125rem; color: var(--ink-500);
             display: flex; align-items: center; gap: var(--space-2);
         }
-        .cv-topbar-breadcrumb strong { color: var(--text-primary); }
+        .cv-topbar-breadcrumb strong { color: var(--ink-900); }
 
         .cv-content-body {
             flex: 1; padding: var(--space-8);
@@ -234,30 +254,30 @@
             .cv-content-body { padding: var(--space-5) var(--space-4); }
         }
 
-        /* ---- CARDS FINTECH ---- */
+        /* ---- CARDS CORPORATIVOS (SEÇÃO 3.C) ---- */
         .card {
-            background: var(--surface-card) !important;
-            border: 1px solid var(--border-default) !important;
+            background: var(--surface) !important;
+            border: 1px solid var(--border) !important;
             border-radius: var(--radius-card) !important;
             box-shadow: var(--shadow-1) !important;
             overflow: hidden;
         }
         .card-header {
-            background: var(--surface-card) !important;
+            background: var(--surface) !important;
             border-bottom: 1px solid var(--border-subtle) !important;
             padding: var(--space-5) var(--space-6) !important;
             display: flex; align-items: center; justify-content: space-between;
         }
-        .card-body { padding: var(--space-6) !important; color: var(--text-primary); }
+        .card-body { padding: var(--space-6) !important; color: var(--ink-900); }
         .card-footer {
-            background: #f8fafc !important; border-top: 1px solid var(--border-subtle) !important;
+            background: var(--canvas) !important; border-top: 1px solid var(--border-subtle) !important;
             padding: var(--space-4) var(--space-6) !important;
         }
 
-        /* ---- KPI CARDS (SEÇÕES 7.C E 7.F) ---- */
+        /* ---- KPI CARDS (SEÇÃO 3.C) ---- */
         .cv-kpi {
-            background: var(--surface-card);
-            border: 1px solid var(--border-default);
+            background: var(--surface);
+            border: 1px solid var(--border);
             border-radius: var(--radius-card);
             box-shadow: var(--shadow-1);
             padding: var(--space-5) var(--space-6);
@@ -267,69 +287,70 @@
         .cv-kpi:hover {
             box-shadow: var(--shadow-2);
             transform: translateY(-2px);
-            border-color: #cbd5e1;
+            border-color: #cbd0c8;
         }
         .cv-kpi-label {
-            font-size: 0.75rem; font-weight: 700; color: var(--text-secondary);
+            font-size: 0.75rem; font-weight: 700; color: var(--ink-500);
             margin-bottom: var(--space-2); text-transform: uppercase; letter-spacing: 0.05em;
         }
         .cv-kpi-value-hero {
-            font-size: 2.25rem; font-weight: 800; color: var(--text-primary);
+            font-size: 2.25rem; font-weight: 800; color: var(--ink-900);
             font-family: var(--font-mono); line-height: 1.1;
         }
+        /* Badge circular de 40px com ícone escuro */
         .cv-kpi-badge {
-            width: 44px; height: 44px; border-radius: 50%;
+            width: 40px; height: 40px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            font-size: 1.25rem; flex-shrink: 0;
+            font-size: 1.2rem; flex-shrink: 0;
+            background: rgba(206, 220, 0, 0.15);
+            color: var(--ink-900);
         }
-        .cv-kpi-badge.accent  { background: radial-gradient(circle, rgba(0,200,83,0.2) 0%, rgba(0,200,83,0.06) 100%); color: #166534; }
-        .cv-kpi-badge.blue    { background: radial-gradient(circle, rgba(59,130,246,0.2) 0%, rgba(59,130,246,0.06) 100%); color: #1e40af; }
-        .cv-kpi-badge.yellow  { background: radial-gradient(circle, rgba(234,179,8,0.2) 0%, rgba(234,179,8,0.06) 100%); color: #854d0e; }
-        .cv-kpi-badge.neutral { background: radial-gradient(circle, rgba(100,116,139,0.2) 0%, rgba(100,116,139,0.06) 100%); color: #334155; }
+        .cv-kpi-badge.accent  { background: rgba(206, 220, 0, 0.22); color: var(--ink-900); }
+        .cv-kpi-badge.blue    { background: var(--status-info-bg); color: var(--status-info-text); }
+        .cv-kpi-badge.yellow  { background: var(--status-warn-bg); color: var(--status-warn-text); }
+        .cv-kpi-badge.neutral { background: var(--status-neutral-bg); color: var(--status-neutral-text); }
 
-        /* ---- TABELAS COM PRESENÇA VISUAL (SEÇÃO 7.D) ---- */
+        /* ---- TABELAS DE DADOS (SEÇÃO 3.E) ---- */
         .table-enterprise {
             margin-bottom: 0; border-collapse: separate; border-spacing: 0; width: 100%;
         }
         .table-enterprise thead th {
-            background: #0f172a !important; color: #f8fafc !important;
-            font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
-            letter-spacing: 0.06em; border: none !important; padding: 12px 16px; white-space: nowrap;
+            background: var(--ink-700) !important; color: #ffffff !important;
+            font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.05em; border: none !important; padding: 12px 16px; white-space: nowrap;
         }
         .table-enterprise thead th:first-child { border-top-left-radius: 8px; }
         .table-enterprise thead th:last-child { border-top-right-radius: 8px; }
         .table-enterprise tbody td {
             padding: 12px 16px; vertical-align: middle;
-            border-bottom: 1px solid #f1f5f9 !important; color: var(--text-primary);
+            border-bottom: 1px solid var(--border-subtle) !important; color: var(--ink-900);
             font-size: 0.875rem; background: #ffffff;
         }
-        .table-enterprise tbody tr:hover td { background: #f8fafc !important; }
+        .table-enterprise tbody tr:hover td { background: var(--canvas) !important; }
+        .table-enterprise tbody tr.table-active td { background: rgba(206, 220, 0, 0.08) !important; }
         .table-enterprise tbody tr:last-child td:first-child { border-bottom-left-radius: 8px; }
         .table-enterprise tbody tr:last-child td:last-child { border-bottom-right-radius: 8px; }
 
-        /* Linha uniforme e linha urgente com borda lateral de 3px (Seção 7.D) */
+        /* Altura de linha uniforme e linha de prioridade crítica (Seções 3.E e 4) */
         .cv-table-uniform tbody tr { height: 52px; }
         .cv-table-uniform tbody td { height: 52px; padding-top: var(--space-2) !important; padding-bottom: var(--space-2) !important; }
-        tr.is-urgent td:first-child { border-left: 3px solid #ef4444 !important; }
+        tr.is-urgent td:first-child { border-left: 3px solid var(--status-danger-text) !important; }
 
-        /* ---- BARRA DE PROGRESSO COM GRADIENTE 8px (SEÇÃO 7.D) ---- */
+        /* ---- BARRA DE PROGRESSO (SEÇÃO 3.E) ---- */
         .cv-progress {
-            height: 8px !important; border-radius: var(--radius-pill);
-            background: #e2e8f0; overflow: hidden;
-            box-shadow: inset 0 1px 2px rgba(0,0,0,0.06);
+            height: 8px !important; border-radius: 4px;
+            background: var(--border); overflow: hidden;
         }
         .cv-progress .progress-bar {
-            border-radius: var(--radius-pill);
-            background: linear-gradient(90deg, #00C853, #00e676) !important;
-            box-shadow: 0 1px 4px rgba(0, 200, 83, 0.35);
+            border-radius: 4px;
+            background: var(--accent-500) !important;
             transition: width 0.3s ease;
         }
         .cv-progress .progress-bar.is-pending {
-            background: linear-gradient(90deg, #3b82f6, #60a5fa) !important;
-            box-shadow: 0 1px 4px rgba(59, 130, 246, 0.35);
+            background: #9aa0a6 !important;
         }
 
-        /* ---- BOTÕES COM PESO E PROFUNDIDADE (SEÇÃO 7.B) ---- */
+        /* ---- BOTÕES CORPORATIVOS (SEÇÃO 3.D) ---- */
         .btn {
             font-family: var(--font-sans); font-size: 0.875rem; font-weight: 600;
             border-radius: var(--radius-md) !important; padding: 10px 20px; gap: 8px;
@@ -337,91 +358,140 @@
             transition: all 0.2s ease-in-out; line-height: 1.2;
         }
         .btn-sm { padding: 7px 14px; font-size: 0.8125rem; gap: 6px; }
+
+        /* Botão Primário: fundo limão, texto quase-preto (NUNCA branco!) */
         .btn-primary {
-            background: var(--btn-primary-gradient) !important; color: #ffffff !important;
-            border: none !important; box-shadow: var(--btn-primary-shadow) !important;
+            background: var(--accent-500) !important; color: var(--accent-on) !important;
+            border: none !important; box-shadow: 0 4px 12px var(--accent-glow) !important;
         }
         .btn-primary:hover {
-            background: var(--btn-primary-hover-gradient) !important;
-            transform: translateY(-1px); box-shadow: var(--btn-primary-hover-shadow) !important;
-            color: #ffffff !important;
+            background: var(--accent-600) !important;
+            transform: translateY(-1px); box-shadow: 0 6px 16px var(--accent-glow) !important;
+            color: var(--accent-on) !important;
         }
         .btn-primary:active {
-            transform: translateY(0); box-shadow: 0 2px 6px rgba(0, 200, 83, 0.3) !important;
-        }
-        .btn-secondary {
-            background: #ffffff !important; color: var(--text-primary) !important;
-            border: 1.5px solid #cbd5e1 !important; box-shadow: 0 2px 4px rgba(15, 23, 42, 0.03) !important;
-        }
-        .btn-secondary:hover {
-            background: #f8fafc !important; border-color: #94a3b8 !important;
-            color: #0f172a !important; transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(15, 23, 42, 0.06) !important;
+            background: var(--accent-700) !important;
+            transform: translateY(0); box-shadow: 0 2px 6px var(--accent-glow) !important;
+            color: var(--accent-on) !important;
         }
 
-        /* Botões de Ação na Tabela (Seção 6.C e 7.B) */
+        /* Botão Secundário Estrutural: fundo grafite escuro #2c3136, texto branco */
+        .btn-secondary {
+            background: var(--ink-700) !important; color: #ffffff !important;
+            border: none !important; box-shadow: var(--shadow-1) !important;
+        }
+        .btn-secondary:hover {
+            background: #3e444b !important; color: #ffffff !important;
+            transform: translateY(-1px); box-shadow: var(--shadow-2) !important;
+        }
+
+        /* ---- GRUPOS DE BOTÕES / ABAS DE FILTRO (SEÇÃO 4.C) ---- */
+        .btn-group {
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: var(--space-2) !important; /* Espaçamento de 8px para evitar que botões fiquem colados */
+            background: transparent !important;
+            padding: 0 !important;
+        }
+        .btn-group > .btn {
+            margin-left: 0 !important;
+            border-radius: var(--radius-md) !important;
+            flex: 0 0 auto !important;
+        }
+        /* Em grupos de filtro/visão: botão inativo é contornado/limpo e botão ativo é grafite sólido */
+        .btn-group > .btn.btn-secondary:not(.active) {
+            background: #ffffff !important;
+            color: var(--ink-700) !important;
+            border: 1.5px solid var(--border) !important;
+            box-shadow: 0 1px 2px rgba(20, 23, 26, 0.02) !important;
+            font-weight: 500;
+        }
+        .btn-group > .btn.btn-secondary:not(.active):hover {
+            background: var(--canvas) !important;
+            border-color: #cbd0c8 !important;
+            color: var(--ink-900) !important;
+            transform: translateY(-1px);
+        }
+        .btn-group > .btn.btn-secondary.active {
+            background: var(--ink-700) !important;
+            color: #ffffff !important;
+            border: 1.5px solid var(--ink-700) !important;
+            box-shadow: var(--shadow-1) !important;
+            font-weight: 600;
+        }
+
+        /* Botão Terciário / Outline */
+        .btn-outline {
+            background: #ffffff !important; color: var(--ink-900) !important;
+            border: 1.5px solid var(--border) !important;
+        }
+        .btn-outline:hover {
+            background: var(--canvas) !important; border-color: #cbd0c8 !important;
+            color: var(--ink-900) !important;
+        }
+
+        /* Botões de Ação na Tabela (Seção 3.D) */
         .cv-btn-action {
-            height: 34px; padding: 0 14px; font-size: 0.8125rem; font-weight: 600;
+            height: 32px; padding: 0 14px; font-size: 0.8125rem; font-weight: 600;
             border-radius: var(--radius-md) !important; display: inline-flex; align-items: center;
             justify-content: center; gap: 6px; white-space: nowrap; text-decoration: none;
             transition: all 0.2s ease-in-out; line-height: 1;
         }
         .cv-btn-action:hover { transform: translateY(-1px); }
+
         .cv-btn-action-primary {
-            background: var(--btn-primary-gradient) !important; color: #ffffff !important;
-            border: none !important; box-shadow: var(--btn-primary-shadow) !important;
+            background: var(--accent-500) !important; color: var(--accent-on) !important;
+            border: none !important; box-shadow: 0 2px 8px var(--accent-glow) !important;
         }
         .cv-btn-action-primary:hover {
-            background: var(--btn-primary-hover-gradient) !important;
-            box-shadow: var(--btn-primary-hover-shadow) !important; color: #ffffff !important;
-        }
-        .cv-btn-action-secondary {
-            background: #ffffff !important; color: var(--text-primary) !important;
-            border: 1.5px solid #cbd5e1 !important; box-shadow: 0 2px 4px rgba(15, 23, 42, 0.03) !important;
-        }
-        .cv-btn-action-secondary:hover {
-            background: #f8fafc !important; border-color: #94a3b8 !important;
-            color: #0f172a !important; box-shadow: 0 4px 8px rgba(15, 23, 42, 0.06) !important;
-        }
-        .cv-btn-action-done {
-            background: #ffffff !important; color: var(--text-secondary) !important;
-            border: 1.5px solid #e2e8f0 !important; box-shadow: 0 2px 4px rgba(15, 23, 42, 0.03) !important;
-        }
-        .cv-btn-action-done:hover {
-            background: #f1f5f9 !important; color: var(--text-primary) !important;
-            border-color: #cbd5e1 !important;
+            background: var(--accent-600) !important;
+            box-shadow: 0 4px 12px var(--accent-glow) !important; color: var(--accent-on) !important;
         }
 
-        /* Micro-interação no botão trigger de Popover (Seção 7.E) */
+        .cv-btn-action-secondary {
+            background: #ffffff !important; color: var(--ink-900) !important;
+            border: 1.5px solid var(--border) !important; box-shadow: 0 1px 3px rgba(20, 23, 26, 0.03) !important;
+        }
+        .cv-btn-action-secondary:hover {
+            background: var(--canvas) !important; border-color: #cbd0c8 !important;
+            color: var(--ink-900) !important;
+        }
+
+        .cv-btn-action-done {
+            background: var(--canvas) !important; color: var(--ink-500) !important;
+            border: 1px solid var(--border) !important;
+        }
+
+        /* Micro-interação no botão trigger de Popover */
         .cv-btn-detail {
             display: inline-flex; align-items: center; justify-content: center;
             width: 26px; height: 26px; border-radius: 50%;
-            border: 1px solid #cbd5e1; background: #ffffff;
-            color: var(--text-secondary); font-size: 0.8125rem;
+            border: 1px solid var(--border); background: #ffffff;
+            color: var(--ink-500); font-size: 0.8125rem;
             transition: all 0.2s ease; cursor: pointer; padding: 0;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            box-shadow: 0 1px 2px rgba(20, 23, 26, 0.04);
         }
         .cv-btn-detail:hover {
-            background: rgba(0, 0, 0, 0.05); color: var(--text-primary);
-            transform: scale(1.08); border-color: #94a3b8;
+            background: var(--canvas); color: var(--ink-900);
+            transform: scale(1.08); border-color: #cbd0c8;
         }
 
         /* ---- POPOVER CORPORATIVO ENTERPRISE ---- */
         .popover {
-            font-family: var(--font-sans); border: 1px solid var(--border-default) !important;
+            font-family: var(--font-sans); border: 1px solid var(--border) !important;
             border-radius: var(--radius-card) !important; box-shadow: var(--shadow-2) !important;
-            background: var(--surface-card) !important; padding: 0; max-width: 320px;
+            background: var(--surface) !important; padding: 0; max-width: 320px;
         }
         .popover-header {
-            background: #f8fafc !important; border-bottom: 1px solid var(--border-subtle) !important;
-            font-size: 0.8125rem; font-weight: 700; color: var(--text-primary);
+            background: var(--canvas) !important; border-bottom: 1px solid var(--border-subtle) !important;
+            font-size: 0.8125rem; font-weight: 700; color: var(--ink-900);
             padding: var(--space-3) var(--space-4);
             border-top-left-radius: calc(var(--radius-card) - 1px) !important;
             border-top-right-radius: calc(var(--radius-card) - 1px) !important;
         }
-        .popover-body { padding: var(--space-3) var(--space-4); font-size: 0.8125rem; color: var(--text-primary); }
+        .popover-body { padding: var(--space-3) var(--space-4); font-size: 0.8125rem; color: var(--ink-900); }
 
-        /* ---- BADGES ---- */
+        /* ---- BADGES CORPORATIVOS NOTION STYLE ---- */
         .badge-notion {
             display: inline-flex; align-items: center; gap: 4px;
             padding: 3px 10px; border-radius: var(--radius-pill);
@@ -434,32 +504,45 @@
         .badge-notion-red    { background: var(--status-danger-bg);   color: var(--status-danger-text); }
         .badge-notion-purple { background: var(--status-purple-bg);   color: var(--status-purple-text); }
 
-        /* ---- FORMS ---- */
-        .form-label { font-size: 0.8125rem; font-weight: 600; color: #334155; margin-bottom: var(--space-2); }
+        /* ---- FORMULÁRIOS E INPUTS ---- */
+        .form-label { font-size: 0.8125rem; font-weight: 600; color: var(--ink-700); margin-bottom: var(--space-2); }
         .form-control, .form-select {
-            background: var(--surface-card); border: 1.5px solid #cbd5e1;
-            border-radius: var(--radius-md) !important; color: var(--text-primary);
+            background: var(--surface); border: 1.5px solid var(--border);
+            border-radius: var(--radius-md) !important; color: var(--ink-900);
             font-family: var(--font-sans); font-size: 0.875rem; padding: 8px 12px; height: 40px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.02) !important;
+            box-shadow: 0 1px 2px rgba(20, 23, 26, 0.02) !important;
             transition: border-color 0.15s ease, box-shadow 0.15s ease;
         }
         .form-control:focus, .form-select:focus {
-            border-color: var(--color-accent) !important;
-            box-shadow: 0 0 0 3px var(--color-accent-ring) !important; outline: none;
+            border-color: var(--accent-500) !important;
+            box-shadow: 0 0 0 3px var(--accent-glow) !important; outline: none;
         }
-        .input-group-text { background: #f8fafc; border: 1.5px solid #cbd5e1; color: var(--text-secondary); font-size: 0.875rem; }
-        .form-text { font-size: 0.8125rem; color: var(--text-muted); margin-top: 4px; }
+        .input-group-text { background: var(--canvas); border: 1.5px solid var(--border); color: var(--ink-500); font-size: 0.875rem; }
+        .form-text { font-size: 0.8125rem; color: var(--ink-500); margin-top: 4px; }
 
-        /* ---- CABEÇALHO HERO COM FAIXA ELEVADA (SEÇÃO 7.C E 7.F) ---- */
+        /* ---- CABEÇALHO DE PÁGINA (SEÇÃO 3.B) ---- */
         .cv-page-banner {
             display: flex; align-items: center; justify-content: space-between;
             gap: var(--space-4); flex-wrap: wrap; margin-bottom: var(--space-6);
+            background: #ffffff; border: 1px solid var(--border);
+            padding: var(--space-6); border-radius: var(--radius-card);
+            box-shadow: var(--shadow-1);
         }
         .cv-page-title {
-            font-size: 1.625rem; font-weight: 800; color: #0f172a;
+            font-size: 1.625rem; font-weight: 800; color: var(--ink-900);
             letter-spacing: -0.03em; line-height: 1.2; margin: 0;
         }
-        .cv-page-subtitle { font-size: 0.875rem; color: #64748b; margin: 4px 0 0 0; }
+        .cv-page-subtitle { font-size: 0.875rem; color: var(--ink-500); margin: 4px 0 0 0; }
+
+        /* Realce estilo highlight da marca Ambipar (Seção 3.B) */
+        .cv-highlight {
+            background: var(--accent-500);
+            color: var(--accent-on);
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: inline-block;
+            font-weight: 800;
+        }
 
         /* ---- EMPTY STATE ---- */
         .cv-empty-state {
@@ -467,15 +550,15 @@
             justify-content: center; padding: var(--space-12) var(--space-8);
             text-align: center; gap: var(--space-4);
         }
-        .cv-empty-icon { font-size: 3rem; opacity: 0.35; color: var(--text-muted); }
-        .cv-empty-title { font-size: 1rem; font-weight: 700; color: var(--text-secondary); }
-        .cv-empty-text { font-size: 0.875rem; color: var(--text-muted); }
+        .cv-empty-icon { font-size: 3rem; opacity: 0.35; color: var(--ink-300); }
+        .cv-empty-title { font-size: 1rem; font-weight: 700; color: var(--ink-700); }
+        .cv-empty-text { font-size: 0.875rem; color: var(--ink-500); }
 
         /* ---- BREADCRUMB ---- */
-        .cv-breadcrumb { display: flex; align-items: center; gap: var(--space-2); font-size: 0.8125rem; color: var(--text-muted); margin-bottom: var(--space-4); }
-        .cv-breadcrumb a { color: var(--text-secondary); text-decoration: none; font-weight: 500; }
-        .cv-breadcrumb a:hover { color: var(--color-accent-hover); }
-        .cv-breadcrumb .current { color: var(--text-primary); font-weight: 600; }
+        .cv-breadcrumb { display: flex; align-items: center; gap: var(--space-2); font-size: 0.8125rem; color: var(--ink-300); margin-bottom: var(--space-4); }
+        .cv-breadcrumb a { color: var(--ink-500); text-decoration: none; font-weight: 500; }
+        .cv-breadcrumb a:hover { color: var(--ink-900); }
+        .cv-breadcrumb .current { color: var(--ink-900); font-weight: 600; }
 
         /* ---- STEPPER / TIMELINE ---- */
         .notion-stepper { display: inline-flex; align-items: center; gap: 6px; }
@@ -485,17 +568,17 @@
         }
         .notion-stepper .step-pill.active { background: var(--status-info-bg); color: var(--status-info-text); }
         .notion-stepper .step-pill.completed { background: var(--status-success-bg); color: var(--status-success-text); }
-        .notion-stepper .step-divider { color: var(--text-muted); font-size: 0.7rem; }
+        .notion-stepper .step-divider { color: var(--ink-300); font-size: 0.7rem; }
         .notion-timeline { position: relative; padding-left: 24px; }
-        .notion-timeline::before { content: ''; position: absolute; left: 7px; top: 8px; bottom: 8px; width: 2px; background: var(--border-default); }
+        .notion-timeline::before { content: ''; position: absolute; left: 7px; top: 8px; bottom: 8px; width: 2px; background: var(--border); }
         .notion-timeline-item { position: relative; margin-bottom: var(--space-5); }
-        .notion-timeline-dot { position: absolute; left: -24px; top: 6px; width: 16px; height: 16px; border-radius: 50%; background: var(--surface-card); border: 3px solid var(--text-muted); }
+        .notion-timeline-dot { position: absolute; left: -24px; top: 6px; width: 16px; height: 16px; border-radius: 50%; background: var(--surface); border: 3px solid var(--ink-300); }
         .notion-timeline-dot.Pendente { border-color: var(--status-warn-text); }
         .notion-timeline-dot.Devolvido { border-color: var(--status-success-text); }
 
         code {
-            font-family: var(--font-mono); font-size: 0.8125rem; color: #0f172a;
-            background: #e2e8f0; padding: 2px 6px; border-radius: var(--radius-sm);
+            font-family: var(--font-mono); font-size: 0.8125rem; color: var(--ink-900);
+            background: var(--status-neutral-bg); padding: 2px 6px; border-radius: var(--radius-sm);
         }
     </style>
 </head>
