@@ -1,0 +1,9 @@
+# Dependências do Sistema Cavere (Gestão e Controle de Cautelas)
+
+# Framework Web e Autenticação
+Flask>=3.0.0
+Flask-Login>=0.6.3
+Werkzeug>=3.0.0
+
+# Geração de Termos e Cautelas em PDF
+weasyprint>=60.0

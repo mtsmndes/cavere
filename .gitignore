@@ -2,3 +2,8 @@ Cavere.db
 *.db
 *.pdf
 __pycache__/
+*.py[cod]
+venv/
+.venv/
+env/
+.antigravity/
