@@ -464,6 +464,11 @@
 
     function toggleFinalizadosCoord() {
         finalizadosFechadosCoord = !finalizadosFechadosCoord;
+        if (!finalizadosFechadosCoord) {
+            document.querySelectorAll('.item-chamado').forEach(row => {
+                row.removeAttribute('data-fechada-individual');
+            });
+        }
         localStorage.setItem('cavere_finalizados_fechados_coord', finalizadosFechadosCoord ? '1' : '0');
         atualizarBotaoFinalizadosCoord();
         aplicarFiltros();

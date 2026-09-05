@@ -254,7 +254,7 @@
                 <i class="bi bi-check2-circle text-success fs-6"></i>
                 <span><strong id="contadorFinalizadosOcultos">0</strong> chamado(s) finalizado(s) estão fechados/ocultos.</span>
             </div>
-            <button type="button" class="btn btn-link btn-sm p-0" onclick="toggleFinalizadosAdmin(false)" style="font-size:0.8125rem; text-decoration:none; font-weight:600; color:var(--color-accent-hover);">
+            <button type="button" class="btn btn-link btn-sm p-0" onclick="reabrirTodosFinalizados()" style="font-size:0.8125rem; text-decoration:none; font-weight:600; color:var(--color-accent-hover); cursor:pointer;">
                 <i class="bi bi-eye me-1"></i>Reabrir e exibir todos
             </button>
         </div>
@@ -747,7 +747,7 @@
         const contador = document.getElementById('contadorFinalizadosOcultos');
 
         if (btnToggle && icone && texto) {
-            if (finalizadosFechadosAdmin) {
+            if (finalizadosFechadosAdmin || finalizadasOcultas > 0) {
                 btnToggle.classList.add('btn-primary');
                 btnToggle.classList.remove('btn-secondary');
                 icone.className = 'bi bi-eye';
@@ -772,19 +772,42 @@
         }
     }
 
+    function reabrirTodosFinalizados() {
+        finalizadosFechadosAdmin = false;
+        localStorage.setItem('cavere_finalizados_fechados_admin', '0');
+        document.querySelectorAll('.linha-solicitacao').forEach(function(row) {
+            row.removeAttribute('data-fechada-individual');
+        });
+        filtrarChamadosAdmin('todos');
+    }
+
     function toggleFinalizadosAdmin(forcarEstado) {
         if (typeof forcarEstado === 'boolean') {
             finalizadosFechadosAdmin = forcarEstado;
         } else {
-            finalizadosFechadosAdmin = !finalizadosFechadosAdmin;
+            const temOcultas = document.querySelectorAll('.linha-solicitacao[data-fechada-individual]').length > 0;
+            if (finalizadosFechadosAdmin || temOcultas) {
+                finalizadosFechadosAdmin = false;
+            } else {
+                finalizadosFechadosAdmin = true;
+            }
         }
-        // Se estava em aba 'finalizados' e clicou para fechar, volta para 'todos'
-        if (finalizadosFechadosAdmin && filtroChamadosAtivo === 'finalizados') {
+
+        if (!finalizadosFechadosAdmin) {
+            document.querySelectorAll('.linha-solicitacao').forEach(function(row) {
+                row.removeAttribute('data-fechada-individual');
+            });
+            localStorage.setItem('cavere_finalizados_fechados_admin', '0');
             filtrarChamadosAdmin('todos');
+            return;
         } else {
-            localStorage.setItem('cavere_finalizados_fechados_admin', finalizadosFechadosAdmin ? '1' : '0');
-            aplicarVisibilidadeChamados();
+            localStorage.setItem('cavere_finalizados_fechados_admin', '1');
+            if (filtroChamadosAtivo === 'finalizados') {
+                filtrarChamadosAdmin('todos');
+                return;
+            }
         }
+        aplicarVisibilidadeChamados();
     }
 
     function filtrarChamadosAdmin(tipo) {
@@ -799,6 +822,12 @@
             finalizadosFechadosAdmin = true;
         } else if (tipo === 'finalizados') {
             finalizadosFechadosAdmin = false;
+        } else if (tipo === 'todos') {
+            finalizadosFechadosAdmin = false;
+            localStorage.setItem('cavere_finalizados_fechados_admin', '0');
+            document.querySelectorAll('.linha-solicitacao').forEach(function(row) {
+                row.removeAttribute('data-fechada-individual');
+            });
         }
         aplicarVisibilidadeChamados();
     }
