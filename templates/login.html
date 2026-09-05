@@ -1,80 +1,482 @@
-{% extends "base.html" %}
-{% block content %}
-<div style="display:flex; justify-content:center; align-items:center; min-height:calc(100vh - 64px); padding: var(--space-8) var(--space-4);">
-    <div style="width:100%; max-width:420px;">
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Cavere — Sistema de Gestão e Controle de Cautelas de Equipamentos Operacionais. Ambipar Response.">
+    <title>Acessar o Sistema • Cavere</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        :root {
+            --font-sans: 'Inter', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --canvas: #f8fafc;
+            --surface-card: #ffffff;
+            --border-default: #e2e8f0;
+            --border-input: #cbd5e1;
+            --border-subtle: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --color-accent: #00C853;
+            --color-accent-hover: #00b048;
+            --color-accent-active: #009e40;
+            --color-accent-ring: rgba(0, 200, 83, 0.15);
+            --color-accent-bg: #f0fdf4;
+            --status-purple-bg: #ede9fe;
+            --status-purple-text: #6d28d9;
+            --status-info-bg: #dbeafe;
+            --status-info-text: #1e40af;
+            --status-success-bg: #dcfce7;
+            --status-success-text: #166534;
+            --status-danger-bg: #fee2e2;
+            --status-danger-text: #991b1b;
+            --status-warn-bg: #fef9c3;
+            --status-warn-text: #854d0e;
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --radius-card: 16px;
+            --radius-pill: 9999px;
+            --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 4px 10px -4px rgba(0, 0, 0, 0.02);
+            --shadow-btn: 0 4px 14px rgba(0, 200, 83, 0.3);
+        }
 
-        <!-- Logo / Header -->
-        <div style="text-align:center; margin-bottom: var(--space-8);">
-            <div style="display:inline-flex; align-items:center; justify-content:center; width:56px; height:56px; background:linear-gradient(135deg, var(--color-accent) 0%, #00e676 100%); border-radius:var(--radius-card); font-size:1.5rem; color:#fff; box-shadow:0 4px 16px rgba(0,200,83,0.35); margin-bottom:var(--space-4);">
-                <i class="bi bi-shield-check"></i>
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--canvas);
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .auth-wrapper {
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 420px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Branding Header */
+        .auth-brand {
+            text-align: center;
+            margin-bottom: 28px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .auth-logo-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--color-accent) 0%, #00e676 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 1.75rem;
+            box-shadow: 0 8px 24px rgba(0, 200, 83, 0.28);
+            margin-bottom: 16px;
+            transition: transform 0.2s ease;
+        }
+
+        .auth-logo-icon:hover {
+            transform: scale(1.03);
+        }
+
+        .auth-title {
+            font-size: 1.625rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.025em;
+            margin: 0 0 4px 0;
+            line-height: 1.2;
+        }
+
+        .auth-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin: 0;
+            font-weight: 400;
+        }
+
+        /* Flash Messages */
+        .auth-alerts {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .auth-alert {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            font-weight: 500;
+            border: 1px solid transparent;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+            margin-bottom: 10px;
+        }
+
+        .auth-alert-info {
+            background-color: var(--status-info-bg);
+            border-color: #bfdbfe;
+            color: var(--status-info-text);
+        }
+
+        .auth-alert-danger {
+            background-color: var(--status-danger-bg);
+            border-color: #fecaca;
+            color: var(--status-danger-text);
+        }
+
+        .auth-alert-success {
+            background-color: var(--status-success-bg);
+            border-color: #bbf7d0;
+            color: var(--status-success-text);
+        }
+
+        .auth-alert-warning {
+            background-color: var(--status-warn-bg);
+            border-color: #fef08a;
+            color: var(--status-warn-text);
+        }
+
+        .auth-alert .btn-close {
+            margin-left: auto;
+            font-size: 0.75rem;
+            padding: 4px;
+            opacity: 0.6;
+        }
+
+        .auth-alert .btn-close:hover {
+            opacity: 1;
+        }
+
+        /* Card */
+        .auth-card {
+            width: 100%;
+            background: var(--surface-card);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-card);
+            box-shadow: var(--shadow-card);
+            overflow: hidden;
+        }
+
+        .auth-card-body {
+            padding: 32px;
+        }
+
+        .auth-card-heading {
+            margin-bottom: 24px;
+        }
+
+        .auth-card-title {
+            font-size: 1.1875rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.01em;
+            margin: 0 0 6px 0;
+        }
+
+        .auth-card-desc {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        /* Form Controls */
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #475569;
+            margin-bottom: 6px;
+        }
+
+        .input-group {
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            border: 1px solid var(--border-input);
+            background: #ffffff;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .input-group:focus-within {
+            border-color: var(--color-accent) !important;
+            box-shadow: 0 0 0 3px var(--color-accent-ring) !important;
+        }
+
+        .input-group-text {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 0 14px;
+            display: flex;
+            align-items: center;
+            font-size: 1.05rem;
+        }
+
+        .form-control {
+            border: none !important;
+            box-shadow: none !important;
+            height: 44px;
+            padding: 0 14px 0 0;
+            font-size: 0.9375rem;
+            color: var(--text-primary);
+            background: transparent;
+            font-family: var(--font-sans);
+        }
+
+        .form-control::placeholder {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .form-control:focus {
+            outline: none !important;
+            box-shadow: none !important;
+            border: none !important;
+        }
+
+        .btn-toggle-pw {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0 14px;
+            display: flex;
+            align-items: center;
+            transition: color 0.15s ease;
+        }
+
+        .btn-toggle-pw:hover {
+            color: var(--text-primary);
+        }
+
+        /* Submit Button */
+        .btn-submit {
+            width: 100%;
+            height: 46px;
+            background: var(--color-accent);
+            color: #ffffff;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 0.9375rem;
+            font-weight: 600;
+            font-family: var(--font-sans);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            margin-top: 24px;
+        }
+
+        .btn-submit:hover {
+            background: var(--color-accent-hover);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-btn);
+            color: #ffffff;
+        }
+
+        .btn-submit:active {
+            background: var(--color-accent-active);
+            transform: translateY(0);
+        }
+
+        /* Card Footer */
+        .auth-card-footer {
+            padding: 16px 32px;
+            background: var(--canvas);
+            border-top: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .badge-role {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: var(--radius-pill);
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-admin {
+            background: var(--status-purple-bg);
+            color: var(--status-purple-text);
+        }
+
+        .badge-coord {
+            background: var(--status-info-bg);
+            color: var(--status-info-text);
+        }
+
+        /* System Footer */
+        .auth-system-footer {
+            margin-top: 24px;
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .auth-system-footer strong {
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-wrapper">
+        <div class="auth-container">
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div class="auth-alerts">
+                    {% for category, message in messages %}
+                    <div class="auth-alert auth-alert-{{ category }} alert alert-dismissible fade show" role="alert">
+                        {% if category == 'success' %}
+                            <i class="bi bi-check2-circle fs-5 flex-shrink-0"></i>
+                        {% elif category == 'danger' %}
+                            <i class="bi bi-exclamation-octagon fs-5 flex-shrink-0"></i>
+                        {% elif category == 'warning' %}
+                            <i class="bi bi-exclamation-triangle fs-5 flex-shrink-0"></i>
+                        {% else %}
+                            <i class="bi bi-info-circle fs-5 flex-shrink-0"></i>
+                        {% endif %}
+                        <span>{{ message }}</span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            {% endwith %}
+
+            <!-- Branding Header -->
+            <div class="auth-brand">
+                <div class="auth-logo-icon">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+                <h1 class="auth-title">Cavere</h1>
+                <p class="auth-subtitle">Ambipar Response &bull; Controle de Cautelas</p>
             </div>
-            <h1 style="font-size:1.5rem; font-weight:700; color:var(--text-primary); letter-spacing:-0.02em; margin:0 0 var(--space-1);">Cavere</h1>
-            <p style="font-size:0.875rem; color:var(--text-secondary); margin:0;">Ambipar Response &bull; Controle de Cautelas</p>
-        </div>
 
-        <!-- Login Card -->
-        <div class="card" style="border-radius:var(--radius-modal) !important; overflow:visible;">
-            <div class="card-body" style="padding: var(--space-8) !important;">
-                <h2 style="font-size:1.125rem; font-weight:700; color:var(--text-primary); margin:0 0 var(--space-1);">Acessar o Sistema</h2>
-                <p style="font-size:0.875rem; color:var(--text-secondary); margin:0 0 var(--space-6);">Entre com suas credenciais operacionais</p>
-
-                <form action="/login{% if request.args.get('next') %}?next={{ request.args.get('next') }}{% endif %}" method="POST" id="formLogin">
-                    <div style="margin-bottom:var(--space-4);">
-                        <label class="form-label" for="inputUsername">Usuário</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-person"></i></span>
-                            <input type="text" class="form-control" id="inputUsername" name="username" placeholder="Digite seu usuário" required autofocus autocomplete="username">
-                        </div>
+            <!-- Login Card -->
+            <div class="auth-card">
+                <div class="auth-card-body">
+                    <div class="auth-card-heading">
+                        <h2 class="auth-card-title">Acessar o Sistema</h2>
+                        <p class="auth-card-desc">Entre com suas credenciais operacionais</p>
                     </div>
 
-                    <div style="margin-bottom:var(--space-6);">
-                        <label class="form-label" for="inputSenha">Senha</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                            <input type="password" class="form-control" id="inputSenha" name="senha" placeholder="Digite sua senha" required autocomplete="current-password">
-                            <button type="button" class="input-group-text" id="toggleSenha" style="cursor:pointer;" title="Mostrar/ocultar senha">
-                                <i class="bi bi-eye" id="iconeSenha"></i>
-                            </button>
+                    <form action="/login{% if request.args.get('next') %}?next={{ request.args.get('next') }}{% endif %}" method="POST" id="formLogin">
+                        <div class="form-group">
+                            <label class="form-label" for="inputUsername">Usuário</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                <input type="text" class="form-control" id="inputUsername" name="username"
+                                       placeholder="Digite seu usuário" required autofocus autocomplete="username">
+                            </div>
                         </div>
-                    </div>
 
-                    <button type="submit" class="btn btn-primary w-100" style="height:44px; font-size:0.9375rem; letter-spacing:0.01em;">
-                        <i class="bi bi-arrow-right-circle"></i>
-                        Acessar o Sistema
-                    </button>
-                </form>
-            </div>
+                        <div class="form-group">
+                            <label class="form-label" for="inputSenha">Senha</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                <input type="password" class="form-control" id="inputSenha" name="senha"
+                                       placeholder="Digite sua senha" required autocomplete="current-password">
+                                <button type="button" class="btn-toggle-pw" id="toggleSenha" title="Mostrar/ocultar senha" tabindex="-1">
+                                    <i class="bi bi-eye" id="iconeSenha"></i>
+                                </button>
+                            </div>
+                        </div>
 
-            <div class="card-footer" style="padding:var(--space-4) var(--space-8) !important; text-align:center;">
-                <div style="display:flex; align-items:center; justify-content:center; gap:var(--space-3); flex-wrap:wrap;">
+                        <button type="submit" class="btn-submit" id="btnAcessar">
+                            <span>Acessar o Sistema</span>
+                            <i class="bi bi-arrow-right-circle"></i>
+                        </button>
+                    </form>
+                </div>
+
+                <div class="auth-card-footer">
                     <span style="font-size:0.8125rem; color:var(--text-muted);">Perfis de acesso:</span>
-                    <span class="badge-notion badge-notion-purple">Admin</span>
-                    <span class="badge-notion badge-notion-blue">Coordenador</span>
+                    <span class="badge-role badge-admin"><i class="bi bi-shield-lock me-1"></i>Admin</span>
+                    <span class="badge-role badge-coord"><i class="bi bi-person-badge me-1"></i>Coordenador</span>
                 </div>
             </div>
+
+            <!-- System Footer -->
+            <div class="auth-system-footer">
+                <div><strong>Ambipar Response</strong> &bull; Base Operacional Niterói</div>
+                <div>Sistema protegido por autenticação segura &bull; &copy; 2026</div>
+            </div>
+
         </div>
-
-        <!-- Footer Note -->
-        <p style="text-align:center; font-size:0.75rem; color:var(--text-muted); margin-top:var(--space-6);">
-            Sistema protegido por autenticacao segura. &copy; 2026 Ambipar Response.
-        </p>
     </div>
-</div>
 
-<script>
-    // Toggle password visibility
-    document.getElementById('toggleSenha').addEventListener('click', function() {
-        const input = document.getElementById('inputSenha');
-        const icon = document.getElementById('iconeSenha');
-        if (input.type === 'password') {
-            input.type = 'text';
-            icon.classList.remove('bi-eye');
-            icon.classList.add('bi-eye-slash');
-        } else {
-            input.type = 'password';
-            icon.classList.remove('bi-eye-slash');
-            icon.classList.add('bi-eye');
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Toggle password visibility
+        const toggleBtn = document.getElementById('toggleSenha');
+        const inputSenha = document.getElementById('inputSenha');
+        const iconeSenha = document.getElementById('iconeSenha');
+
+        if (toggleBtn && inputSenha && iconeSenha) {
+            toggleBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (inputSenha.type === 'password') {
+                    inputSenha.type = 'text';
+                    iconeSenha.classList.remove('bi-eye');
+                    iconeSenha.classList.add('bi-eye-slash');
+                } else {
+                    inputSenha.type = 'password';
+                    iconeSenha.classList.remove('bi-eye-slash');
+                    iconeSenha.classList.add('bi-eye');
+                }
+            });
         }
-    });
-</script>
-{% endblock %}
+    </script>
+</body>
+</html>
