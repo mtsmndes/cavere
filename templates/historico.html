@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4 pb-2 border-bottom" style="border-color: #e1e1df !important;">
+    <div>
+        <h4 class="fw-bold mb-0" style="color: #373530; letter-spacing: -0.01em;">
+            <i class="bi bi-clock-history me-2 text-secondary"></i>Histórico Geral de Cautelas
+        </h4>
+        <small class="text-muted">Registro completo de saídas e devoluções de ativos</small>
+    </div>
+    <div style="min-width: 250px;">
+        <div class="input-group input-group-sm">
+            <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
+            <input type="text" id="filtro" class="form-control border-start-0"
+                placeholder="Filtrar por RDO, responsável, SN..." onkeyup="filtrarTabela()">
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">Base de Cautelas Registradas</span>
+        <span class="badge-notion badge-notion-gray">{{ cautelas|length }} registros</span>
+    </div>
+    <div class="card-body p-0 table-responsive">
+        <table class="table table-hover align-middle" id="tabelaHistorico">
+            <thead>
+                <tr>
+                    <th class="ps-3">ID</th>
+                    <th>Equipamento</th>
+                    <th>Responsável</th>
+                    <th>RDO Vinculado</th>
+                    <th>Data Saída</th>
+                    <th>Situação / Devolução</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in cautelas %}
+                <tr>
+                    <td class="ps-3 fw-semibold text-secondary">#{{ c[0] }}</td>
+                    <td>
+                        <strong style="color: #373530;">{{ c[1] }}</strong>
+                        <span class="text-muted small ms-1">({{ c[2] }})</span>
+                        <div class="text-muted small" style="font-size: 0.74rem;">SN: <code>{{ c[3] }}</code></div>
+                    </td>
+                    <td>
+                        <i class="bi bi-person text-muted me-1"></i>{{ c[4] }}
+                    </td>
+                    <td>
+                        <code style="color: #373530; background: #f1f1ef; padding: 2px 6px; border-radius: 4px;">{{ c[5] }}</code>
+                    </td>
+                    <td>
+                        <div class="small text-muted">{{ c[6] }}</div>
+                    </td>
+                    <td>
+                        {% if c[7] %}
+                        <span class="badge-notion badge-notion-green">Devolvido: {{ c[7] }}</span>
+                        {% else %}
+                        <span class="badge-notion badge-notion-blue">Em Campo</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- LÓGICA DO FILTRO -->
+<script>
+    function filtrarTabela() {
+        let input = document.getElementById("filtro").value.toLowerCase();
+        let table = document.getElementById("tabelaHistorico");
+        let rows = table.getElementsByTagName("tr");
+
+        for (let i = 1; i < rows.length; i++) {
+            let rowText = rows[i].innerText.toLowerCase();
+            if (rowText.includes(input)) {
+                rows[i].style.display = "";
+            } else {
+                rows[i].style.display = "none";
+            }
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5 col-lg-4">
+        <div class="card border" style="border: 1px solid #e1e1df !important; border-radius: 8px !important; box-shadow: none !important;">
+            <div class="card-body p-4 bg-white">
+                <div class="text-center mb-4">
+                    <div class="d-inline-flex align-items-center justify-content-center mb-2" 
+                         style="width: 42px; height: 42px; background: #ddedea; color: #0f7b6c; border-radius: 8px; font-size: 1.25rem;">
+                        <i class="bi bi-shield-lock"></i>
+                    </div>
+                    <h5 class="fw-bold mb-1" style="color: #373530;">Sistema Cavere</h5>
+                    <p class="text-muted small mb-0">Ambipar Response &bull; Base Niterói</p>
+                </div>
+
+                <form action="/login{% if request.args.get('next') %}?next={{ request.args.get('next') }}{% endif %}" method="POST">
+                    <div class="mb-3">
+                        <label class="form-label" style="color: #787774; font-size: 0.8rem; font-weight: 500;">USUÁRIO</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-person"></i></span>
+                            <input type="text" class="form-control" name="username" placeholder="Digite seu usuário" required autofocus>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label" style="color: #787774; font-size: 0.8rem; font-weight: 500;">SENHA</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                            <input type="password" class="form-control" name="senha" placeholder="Digite sua senha" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-notion-primary w-100 py-2 d-flex align-items-center justify-content-center gap-2">
+                        <span>Acessar o Sistema</span>
+                        <i class="bi bi-arrow-right"></i>
+                    </button>
+                </form>
+            </div>
+            <div class="card-footer py-3 text-center border-top" style="background-color: #fbfbfa; border-color: #e1e1df !important;">
+                <div class="d-flex justify-content-center gap-2">
+                    <span class="badge-notion badge-notion-purple">Admin</span>
+                    <span class="badge-notion badge-notion-blue">Coordenador</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

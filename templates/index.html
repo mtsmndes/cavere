@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+{% block content %}
+<!-- Título da Página Estilo Notion -->
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4 pb-2 border-bottom" style="border-color: #e1e1df !important;">
+    <div>
+        <h4 class="fw-bold mb-0" style="color: #373530; letter-spacing: -0.01em;">
+            <i class="bi bi-grid-1x2 me-2 text-secondary"></i>Painel Principal de Operações
+        </h4>
+        <small class="text-muted">Visão integrada de chamados, controle de cautelas e ativos</small>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="/novo-equipamento" class="btn btn-notion-secondary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i> Equipamento
+        </a>
+        <a href="/novo-coordenador" class="btn btn-notion-secondary btn-sm">
+            <i class="bi bi-person-plus me-1"></i> Coordenador
+        </a>
+    </div>
+</div>
+
+<!-- Seção Superior: Solicitações Recentes de Coordenadores (Service Desk) -->
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-inbox text-secondary fs-5"></i>
+            <div>
+                <span class="fw-semibold" style="color: #373530;">Solicitações de Equipamentos</span>
+                <span class="text-muted fw-normal small ms-2">&bull; Chamados de Coordenadores</span>
+            </div>
+        </div>
+        <span class="badge-notion badge-notion-gray">
+            {{ solicitacoes|length }} chamado(s)
+        </span>
+    </div>
+    <div class="card-body p-0 table-responsive">
+        {% if solicitacoes %}
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th class="ps-3">Protocolo</th>
+                    <th>Coordenador</th>
+                    <th>Equipamento Solicitado</th>
+                    <th>Destinatário</th>
+                    <th>Plataforma / Base</th>
+                    <th>RDO</th>
+                    <th>Prioridade</th>
+                    <th>Status</th>
+                    <th class="text-center">Ação</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in solicitacoes %}
+                <tr>
+                    <td class="ps-3 fw-semibold text-secondary">#SOL-{{ s[0] }}</td>
+                    <td><strong>{{ s[1] if s[1] else 'Coordenador #' ~ s[10] }}</strong></td>
+                    <td>
+                        <span class="badge-notion badge-notion-green me-1">{{ s[3] }}x</span>
+                        <span style="color: #373530;">{{ s[2] }}</span>
+                    </td>
+                    <td><i class="bi bi-person text-muted me-1"></i>{{ s[4] }}</td>
+                    <td><i class="bi bi-geo-alt text-muted me-1"></i>{{ s[5] }}</td>
+                    <td><code style="color: #373530; background: #f1f1ef; padding: 2px 6px; border-radius: 4px;">{{ s[6] if s[6] else '-' }}</code></td>
+                    <td>
+                        {% if s[7] == 'Urgente' %}
+                        <span class="badge-notion badge-notion-red">Urgente</span>
+                        {% elif s[7] == 'Alta' %}
+                        <span class="badge-notion badge-notion-orange">Alta</span>
+                        {% else %}
+                        <span class="badge-notion badge-notion-gray">Normal</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if s[8] == 'Pendente' %}
+                        <span class="badge-notion badge-notion-orange">Pendente</span>
+                        {% elif s[8] == 'Em Operação' %}
+                        <span class="badge-notion badge-notion-blue">Em Operação</span>
+                        {% else %}
+                        <span class="badge-notion badge-notion-green">Concluído</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-notion-secondary btn-sm py-1 px-2" 
+                                onclick="preencherCautela('{{ s[10] }}', '{{ s[6] }}')" title="Preencher dados na emissão">
+                            <i class="bi bi-arrow-down-right me-1"></i> Atender
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="p-4 text-center text-muted small">
+            Nenhuma solicitação pendente no momento.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Formulário de Cautela Estilo Bloco Notion -->
+    <div class="col-lg-4">
+        <div class="card mb-4" id="secaoFormCautela">
+            <div class="card-header">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-file-earmark-text text-secondary"></i>
+                    <span class="fw-semibold">Emitir Termo de Cautela</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <form action="/gerar" method="POST" id="formCautela">
+                    <div class="mb-3">
+                        <label class="form-label">ID do Equipamento</label>
+                        <input type="number" class="form-control" name="id_equipamento" placeholder="Ex: 1" required>
+                        <div class="form-text text-muted" style="font-size: 0.75rem;">Consulte o ID na tabela ao lado.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">ID do Coordenador</label>
+                        <input type="number" class="form-control" name="id_coordenador" id="campoIdCoordenador" placeholder="Ex: 1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Número do RDO</label>
+                        <input type="text" class="form-control" name="rdo" id="campoRdo" placeholder="Ex: RDO-2026-0905" required>
+                    </div>
+                    <button type="submit" class="btn btn-notion-brand w-100 py-2 d-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-file-earmark-pdf"></i>
+                        <span>Gerar Cautela & PDF</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <!-- Tabela de Equipamentos Cadastrados (Database Notion) -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-hdd-stack text-secondary"></i>
+                    <span class="fw-semibold">Base de Equipamentos</span>
+                </div>
+                <span class="badge-notion badge-notion-gray">{{ equipamentos|length }} cadastrados</span>
+            </div>
+            <div class="card-body p-0 table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th class="ps-3">ID</th>
+                            <th>Tipo / Modelo</th>
+                            <th>Patrimônio / SN</th>
+                            <th>Status</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for eq in equipamentos %}
+                        <tr>
+                            <td class="ps-3 fw-semibold text-secondary">#{{ eq[0] }}</td>
+                            <td>
+                                <strong>{{ eq[1] }}</strong>
+                                <span class="text-muted small ms-1">({{ eq[2] }})</span>
+                            </td>
+                            <td><code>{{ eq[3] }}</code></td>
+                            <td>
+                                {% if eq[6] == 'Disponível' %}
+                                <span class="badge-notion badge-notion-green">Disponível</span>
+                                {% else %}
+                                <span class="badge-notion badge-notion-blue">Em Operação</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if eq[6] == 'Em Operação' %}
+                                <a href="/devolver/{{ eq[0] }}" class="btn btn-notion-secondary btn-sm py-1 px-2">
+                                    <i class="bi bi-arrow-return-left me-1"></i> Devolver
+                                </a>
+                                {% else %}
+                                <span class="text-muted small">Na Base</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tabela de Coordenadores Cadastrados -->
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-people text-secondary"></i>
+                    <span class="fw-semibold">Coordenadores Registrados</span>
+                </div>
+                <span class="badge-notion badge-notion-gray">{{ coordenadores|length }} pessoas</span>
+            </div>
+            <div class="card-body p-0 table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th class="ps-3">ID</th>
+                            <th>Nome Completo</th>
+                            <th>CPF / Matrícula</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for coord in coordenadores %}
+                        <tr>
+                            <td class="ps-3 fw-semibold text-secondary">#{{ coord[0] }}</td>
+                            <td><strong>{{ coord[1] }}</strong></td>
+                            <td><code>{{ coord[2] }}</code></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function preencherCautela(idCoord, rdo) {
+        if (idCoord && idCoord !== 'None') {
+            document.getElementById('campoIdCoordenador').value = idCoord;
+        }
+        if (rdo && rdo !== 'None' && rdo !== 'N/A') {
+            document.getElementById('campoRdo').value = rdo;
+        }
+        document.getElementById('secaoFormCautela').scrollIntoView({ behavior: 'smooth' });
+    }
+</script>
+{% endblock %}

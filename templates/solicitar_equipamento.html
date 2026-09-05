@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-7">
+        <div class="d-flex align-items-center gap-2 mb-3">
+            <a href="/meus-chamados" class="text-muted text-decoration-none small">
+                <i class="bi bi-arrow-left me-1"></i> Meus Chamados
+            </a>
+            <span class="text-muted small">/</span>
+            <span class="small fw-semibold" style="color: #373530;">Nova Solicitação</span>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge-notion badge-notion-green"><i class="bi bi-inbox"></i></span>
+                    <span class="fw-semibold">Abertura de Chamado de Equipamento</span>
+                </div>
+                <span class="badge-notion badge-notion-gray">
+                    Solicitante: {{ nome_coordenador }} (#{{ id_coordenador }})
+                </span>
+            </div>
+
+            <div class="card-body p-4">
+                <form action="/solicitar-equipamento" method="POST">
+                    <!-- Seção 1: Equipamento e Quantidade -->
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center gap-2 mb-3 pb-1 border-bottom" style="border-color: #f1f1ef !important;">
+                            <span class="text-secondary small fw-bold text-uppercase" style="font-size: 0.74rem; letter-spacing: 0.04em;">1. Ativo & Quantidade</span>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <label class="form-label">Tipo de Equipamento</label>
+                                <select class="form-select" name="tipo_equipamento" id="tipo_equipamento" required>
+                                    <option value="" disabled selected>Selecione...</option>
+                                    <option value="Rádio Comunicador (VHF / UHF / Intrínseco)">📻 Rádio Comunicador (VHF / UHF / Intrínseco)</option>
+                                    <option value="Celular / Smartphone Corporativo (Com PTT)">📱 Celular / Smartphone Corporativo (Com PTT)</option>
+                                    <option value="Câmera Fotográfica Intrinsecamente Segura">📷 Câmera Fotográfica Intrinsecamente Segura</option>
+                                    <option value="Tablet Operacional / Rugged Industrial">📟 Tablet Operacional / Rugged Industrial</option>
+                                    <option value="Detector de Gases / Multigás">🧪 Detector de Gases / Multigás</option>
+                                    <option value="Notebook / Estação Móvel de Operações">💻 Notebook / Estação Móvel de Operações</option>
+                                    <option value="Kit Completo de Comunicação">🧰 Kit Completo de Comunicação</option>
+                                    <option value="Outro Equipamento Operacional">⚙️ Outro Equipamento Operacional</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Quantidade</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" name="quantidade" id="quantidade" value="1" min="1" max="50" required>
+                                    <span class="input-group-text">un.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Seção 2: Destinatário e Plataforma de Destino -->
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center gap-2 mb-3 pb-1 border-bottom" style="border-color: #f1f1ef !important;">
+                            <span class="text-secondary small fw-bold text-uppercase" style="font-size: 0.74rem; letter-spacing: 0.04em;">2. Destinatário & Destino</span>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Pra quem vai esse equipamento?</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                    <input type="text" class="form-control" name="destinatario" 
+                                           placeholder="Ex: Carlos Silva (Téc. Operações)" required>
+                                </div>
+                                <div class="form-text text-muted" style="font-size: 0.74rem;">Colaborador, equipe ou função operacional.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Qual plataforma / base vai?</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                                    <input type="text" class="form-control" name="plataforma" list="sugestoesPlataformas" 
+                                           placeholder="Ex: Plataforma P-71" required>
+                                </div>
+                                <datalist id="sugestoesPlataformas">
+                                    <option value="Plataforma P-71">
+                                    <option value="Plataforma P-68">
+                                    <option value="FPSO Carioca">
+                                    <option value="FPSO Almirante Barroso">
+                                    <option value="Plataforma Mexilhão (PMX)">
+                                    <option value="Campo de Búzios">
+                                    <option value="Base Niterói (Ambipar)">
+                                    <option value="Navio de Apoio Skandi">
+                                    <option value="Terminal Ilha d'Água">
+                                </datalist>
+                                <div class="form-text text-muted" style="font-size: 0.74rem;">Unidade operacional de destino.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Seção 3: Dados Operacionais -->
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center gap-2 mb-3 pb-1 border-bottom" style="border-color: #f1f1ef !important;">
+                            <span class="text-secondary small fw-bold text-uppercase" style="font-size: 0.74rem; letter-spacing: 0.04em;">3. Planejamento & Detalhes</span>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">RDO / Projeto</label>
+                                <input type="text" class="form-control" name="rdo_projeto" placeholder="Ex: RDO-2026-0905">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Data de Necessidade</label>
+                                <input type="date" class="form-control" name="data_necessidade">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Prioridade</label>
+                                <select class="form-select" name="prioridade">
+                                    <option value="Normal" selected>Normal</option>
+                                    <option value="Alta">Alta</option>
+                                    <option value="Urgente">Urgente</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Justificativa Operacional / Observações</label>
+                                <textarea class="form-control" name="justificativa" rows="3" 
+                                          placeholder="Descreva a finalidade do uso ou instruções de entrega..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botões -->
+                    <div class="d-flex justify-content-between align-items-center pt-3 border-top" style="border-color: #e1e1df !important;">
+                        <a href="/meus-chamados" class="btn btn-notion-secondary btn-sm">
+                            Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-notion-brand btn-sm px-4">
+                            <i class="bi bi-send me-1"></i> Enviar Solicitação
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
