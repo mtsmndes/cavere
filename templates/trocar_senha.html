@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Cavere — Primeiro Acesso e Redefinição de Senha Administrativa. Ambipar Response.">
+    <title>Definir Nova Senha • Cavere Ambipar</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        :root {
+            --font-sans: 'Inter', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+
+            /* ============================================================ */
+            /* PALETA AMBIPAR CORPORATE EDITION                             */
+            /* ============================================================ */
+            --accent-500: #CEDC00;
+            --accent-600: #B8C400;
+            --accent-700: #9DA800;
+            --accent-on: #14171a; /* REGRA CRÍTICA: Texto escuro sobre o limão */
+            --accent-glow: rgba(206, 220, 0, 0.28);
+
+            --ink-900: #14171a;
+            --ink-700: #2c3136;
+            --ink-500: #5b6168;
+            --ink-300: #9aa0a6;
+
+            --canvas: #f5f6f4;
+            --surface: #ffffff;
+            --border: #e4e6e1;
+            --border-subtle: #edefec;
+
+            --status-success-bg: #e3f5d8;
+            --status-success-text: #3f6e12;
+            --status-warn-bg: #f5f7c9;
+            --status-warn-text: #7a7f00;
+            --status-danger-bg: #fde3e3;
+            --status-danger-text: #b91c1c;
+            --status-info-bg: #e6eef7;
+            --status-info-text: #2c5a8c;
+            --status-purple-bg: #ede9fe;
+            --status-purple-text: #6d28d9;
+
+            --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+            --space-5: 20px; --space-6: 24px; --space-8: 32px;
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --radius-card: 16px;
+            --radius-pill: 9999px;
+
+            --shadow-card: 0 12px 32px -4px rgba(20, 23, 26, 0.08), 0 4px 12px -2px rgba(20, 23, 26, 0.04);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+
+        html, body { min-height: 100%; margin: 0; padding: 0; }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--canvas);
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(206, 220, 0, 0.12) 0%, transparent 45%),
+                radial-gradient(circle at 10% 90%, rgba(44, 49, 54, 0.03) 0%, transparent 40%);
+            color: var(--ink-900);
+            -webkit-font-smoothing: antialiased;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: var(--space-6) var(--space-4);
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 450px;
+            margin: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Branding Header */
+        .auth-brand {
+            text-align: center;
+            margin-bottom: var(--space-5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .auth-logo-badge {
+            width: 52px;
+            height: 52px;
+            background: var(--accent-500);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent-on);
+            font-size: 1.625rem;
+            box-shadow: 0 6px 20px var(--accent-glow);
+            margin-bottom: var(--space-3);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        .auth-title {
+            font-size: 1.625rem;
+            font-weight: 800;
+            color: var(--ink-900);
+            letter-spacing: -0.03em;
+            margin: 0 0 var(--space-1) 0;
+            line-height: 1.2;
+        }
+
+        .brand-meta {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8125rem;
+            color: var(--ink-500);
+            font-weight: 500;
+        }
+
+        .brand-highlight {
+            background: var(--accent-500);
+            color: var(--accent-on);
+            font-weight: 700;
+            font-size: 0.72rem;
+            padding: 2px 7px;
+            border-radius: 4px;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+        }
+
+        /* Flash Messages */
+        .auth-alerts { width: 100%; margin-bottom: var(--space-4); }
+        .auth-alert {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: var(--radius-md);
+            font-size: 0.84rem;
+            font-weight: 500;
+            margin-bottom: var(--space-2);
+            border: 1px solid transparent;
+        }
+        .auth-alert-danger  { background-color: var(--status-danger-bg);  color: var(--status-danger-text); border-color: #fecaca; }
+        .auth-alert-success { background-color: var(--status-success-bg); color: var(--status-success-text); border-color: #bbf7d0; }
+        .auth-alert-warning { background-color: var(--status-warn-bg);    color: var(--status-warn-text); border-color: #fde047; }
+        .auth-alert-info    { background-color: var(--status-info-bg);    color: var(--status-info-text); border-color: #bfdbfe; }
+        .auth-alert .btn-close { margin-left: auto; font-size: 0.7rem; padding: 6px; }
+
+        /* Card Corporativo */
+        .auth-card {
+            width: 100%;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-card);
+            box-shadow: var(--shadow-card);
+            overflow: hidden;
+        }
+
+        .auth-card-body {
+            padding: var(--space-6);
+        }
+
+        .auth-card-heading {
+            margin-bottom: var(--space-5);
+            text-align: left;
+        }
+
+        .auth-card-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--ink-900);
+            letter-spacing: -0.015em;
+            margin: 0 0 6px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .auth-card-desc {
+            font-size: 0.8125rem;
+            color: var(--ink-500);
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        /* Banner de Política de Primeiro Acesso */
+        .policy-callout {
+            background: var(--status-warn-bg);
+            border: 1px solid rgba(122, 127, 0, 0.25);
+            border-radius: var(--radius-md);
+            padding: 10px 12px;
+            font-size: 0.775rem;
+            color: var(--status-warn-text);
+            margin-bottom: var(--space-4);
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            line-height: 1.4;
+        }
+
+        /* Controles de Formulário */
+        .form-group {
+            margin-bottom: var(--space-4);
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--ink-700);
+            margin-bottom: 6px;
+        }
+
+        .cv-input-box {
+            display: flex;
+            align-items: center;
+            height: 44px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-md);
+            background: #ffffff;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .cv-input-box:focus-within {
+            border-color: var(--accent-500) !important;
+            box-shadow: 0 0 0 3.5px var(--accent-glow) !important;
+        }
+
+        .cv-input-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 42px;
+            height: 100%;
+            color: var(--ink-500);
+            font-size: 1.05rem;
+            flex-shrink: 0;
+        }
+
+        .cv-input-box:focus-within .cv-input-icon {
+            color: var(--ink-900);
+        }
+
+        .cv-input-field {
+            flex: 1;
+            height: 100%;
+            border: none !important;
+            outline: none !important;
+            box-shadow: none !important;
+            padding: 0 var(--space-3) 0 0;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--ink-900);
+            font-family: var(--font-sans);
+            background: transparent;
+        }
+
+        .cv-input-field::placeholder {
+            color: var(--ink-300);
+            font-size: 0.8125rem;
+        }
+
+        .btn-toggle-pw {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 42px;
+            height: 100%;
+            background: transparent;
+            border: none;
+            color: var(--ink-500);
+            cursor: pointer;
+            padding: 0;
+            flex-shrink: 0;
+            transition: color 0.15s ease;
+        }
+
+        .btn-toggle-pw:hover {
+            color: var(--ink-900);
+        }
+
+        .password-checklist {
+            margin-top: 6px;
+            font-size: 0.725rem;
+            color: var(--ink-500);
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .password-checklist-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* Botão Primário */
+        .btn-submit {
+            width: 100%;
+            height: 46px;
+            background: var(--accent-500);
+            color: var(--accent-on);
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+            margin-top: var(--space-5);
+            box-shadow: 0 4px 14px var(--accent-glow);
+        }
+
+        .btn-submit:hover {
+            background: var(--accent-600);
+            color: var(--accent-on);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px var(--accent-glow);
+        }
+
+        .btn-submit:active {
+            background: var(--accent-700);
+            transform: translateY(0);
+        }
+
+        .auth-card-footer {
+            padding: var(--space-3) var(--space-6);
+            background: var(--canvas);
+            border-top: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.775rem;
+        }
+
+        .auth-system-footer {
+            margin-top: var(--space-5);
+            text-align: center;
+            font-size: 0.775rem;
+            color: var(--ink-500);
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="auth-alerts">
+                {% for category, message in messages %}
+                <div class="auth-alert auth-alert-{{ category }} alert alert-dismissible fade show" role="alert">
+                    {% if category == 'success' %}
+                        <i class="bi bi-check2-circle fs-5 flex-shrink-0"></i>
+                    {% elif category == 'danger' %}
+                        <i class="bi bi-exclamation-octagon fs-5 flex-shrink-0"></i>
+                    {% elif category == 'warning' %}
+                        <i class="bi bi-exclamation-triangle fs-5 flex-shrink-0"></i>
+                    {% else %}
+                        <i class="bi bi-info-circle fs-5 flex-shrink-0"></i>
+                    {% endif %}
+                    <span>{{ message }}</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Branding Header Oficial Ambipar -->
+        <div class="auth-brand">
+            <div class="auth-logo-badge">
+                <i class="bi bi-shield-lock"></i>
+            </div>
+            <h1 class="auth-title">Cavere</h1>
+            <div class="brand-meta">
+                <span class="brand-highlight">Ambipar Response</span>
+                <span>&bull;</span>
+                <span>Base Operacional Niterói</span>
+            </div>
+        </div>
+
+        <!-- Card de Troca de Senha Obrigatória -->
+        <div class="auth-card">
+            <div class="auth-card-body">
+                <div class="auth-card-heading">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        {% if current_user.role == 'admin' %}
+                        <span class="badge" style="background:var(--status-purple-bg); color:var(--status-purple-text); border:1px solid rgba(109, 40, 217, 0.2); font-size:0.75rem; font-weight:600; font-family:var(--font-mono);">
+                            <i class="bi bi-shield-lock-fill me-1"></i>Admin: <strong>{{ current_user.username }}</strong>
+                        </span>
+                        {% else %}
+                        <span class="badge" style="background:var(--status-info-bg); color:var(--status-info-text); border:1px solid rgba(44, 90, 140, 0.2); font-size:0.75rem; font-weight:600; font-family:var(--font-mono);">
+                            <i class="bi bi-person-badge-fill me-1"></i>Coordenador: <strong>{{ current_user.username }}</strong>
+                        </span>
+                        {% endif %}
+                        <span class="badge" style="background:var(--status-warn-bg); color:var(--status-warn-text); font-size:0.7rem; font-weight:700;">
+                            1º ACESSO OBRIGATÓRIO
+                        </span>
+                    </div>
+                    <h2 class="auth-card-title">Redefinir Senha de Acesso</h2>
+                    <p class="auth-card-desc">Substitua a credencial padrão temporária antes de acessar o sistema operacional.</p>
+                </div>
+
+                <div class="policy-callout">
+                    <i class="bi bi-shield-exclamation fs-6 flex-shrink-0 mt-1"></i>
+                    <div>
+                        <strong>Diretriz de Segurança:</strong> Novos usuários (administradores e coordenadores) devem cadastrar uma senha pessoal definitiva para liberar o acesso ao sistema.
+                    </div>
+                </div>
+
+                <form action="/trocar-senha" method="POST" id="formTrocarSenha">
+                    <!-- Senha Atual -->
+                    <div class="form-group">
+                        <label class="form-label" for="inputSenhaAtual">Senha Temporária Atual</label>
+                        <div class="cv-input-box">
+                            <span class="cv-input-icon"><i class="bi bi-key"></i></span>
+                            <input type="password" class="cv-input-field" id="inputSenhaAtual" name="senha_atual"
+                                   placeholder="Digite a senha padrão atual (ex: 123)" required autofocus autocomplete="current-password">
+                            <button type="button" class="btn-toggle-pw" onclick="toggleSenhaVisibilidade('inputSenhaAtual', this)" title="Exibir ou ocultar senha" tabindex="-1">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Nova Senha -->
+                    <div class="form-group">
+                        <label class="form-label" for="inputNovaSenha">Nova Senha Definitiva</label>
+                        <div class="cv-input-box">
+                            <span class="cv-input-icon"><i class="bi bi-lock"></i></span>
+                            <input type="password" class="cv-input-field" id="inputNovaSenha" name="nova_senha"
+                                   placeholder="Digite sua nova senha segura" required autocomplete="new-password">
+                            <button type="button" class="btn-toggle-pw" onclick="toggleSenhaVisibilidade('inputNovaSenha', this)" title="Exibir ou ocultar senha" tabindex="-1">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                        <div class="password-checklist">
+                            <span class="password-checklist-item"><i class="bi bi-check2"></i> Mínimo de 4 caracteres</span>
+                            <span class="password-checklist-item"><i class="bi bi-check2"></i> Deve ser diferente da senha padrão temporária</span>
+                        </div>
+                    </div>
+
+                    <!-- Confirmar Nova Senha -->
+                    <div class="form-group">
+                        <label class="form-label" for="inputConfirmarSenha">Confirmar Nova Senha</label>
+                        <div class="cv-input-box">
+                            <span class="cv-input-icon"><i class="bi bi-check-circle"></i></span>
+                            <input type="password" class="cv-input-field" id="inputConfirmarSenha" name="confirmar_senha"
+                                   placeholder="Repita exatamente a nova senha" required autocomplete="new-password">
+                            <button type="button" class="btn-toggle-pw" onclick="toggleSenhaVisibilidade('inputConfirmarSenha', this)" title="Exibir ou ocultar senha" tabindex="-1">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-submit" id="btnSalvarSenha">
+                        <span>Salvar Nova Senha & Liberar Acesso</span>
+                        <i class="bi bi-arrow-right fs-5"></i>
+                    </button>
+                </form>
+            </div>
+
+            <div class="auth-card-footer">
+                <span style="color:var(--ink-500);">Precisa de auxílio?</span>
+                <a href="/logout" style="color:var(--ink-700); text-decoration:none; font-weight:600; display:inline-flex; align-items:center; gap:4px;">
+                    <i class="bi bi-box-arrow-left"></i> Sair da conta
+                </a>
+            </div>
+        </div>
+
+        <!-- Rodapé do Sistema -->
+        <div class="auth-system-footer">
+            <div><strong>Ambipar Response</strong> &bull; Gestão e Controle Patrimonial</div>
+            <div style="font-size:0.715rem; color:var(--ink-300); margin-top:4px;">
+                Política de Segurança e Controle de Acessos &bull; &copy; 2026
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleSenhaVisibilidade(inputId, btn) {
+            const input = document.getElementById(inputId);
+            const icon = btn.querySelector('i');
+            if (input && icon) {
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.classList.remove('bi-eye');
+                    icon.classList.add('bi-eye-slash');
+                } else {
+                    input.type = 'password';
+                    icon.classList.remove('bi-eye-slash');
+                    icon.classList.add('bi-eye');
+                }
+            }
+        }
+
+        const formTrocar = document.getElementById('formTrocarSenha');
+        const btnSalvar = document.getElementById('btnSalvarSenha');
+        if (formTrocar && btnSalvar) {
+            formTrocar.addEventListener('submit', function() {
+                btnSalvar.disabled = true;
+                btnSalvar.innerHTML = `
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="color: var(--accent-on);"></span>
+                    <span>Salvando nova credencial...</span>
+                `;
+            });
+        }
+    </script>
+</body>
+</html>

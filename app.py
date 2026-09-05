@@ -49,11 +49,12 @@ login_manager.login_message_category = "warning"
 
 # Modelo de Usuário para autenticação
 class Usuario(UserMixin):
-    def __init__(self, id, username, senha_hash, role):
+    def __init__(self, id, username, senha_hash, role, trocar_senha=0):
         self.id = id
         self.username = username
         self.senha_hash = senha_hash
         self.role = role
+        self.trocar_senha = trocar_senha
 
     @property
     def is_admin(self):
@@ -64,18 +65,19 @@ class Usuario(UserMixin):
 def load_user(user_id):
     conexao = sqlite3.connect('Cavere.db')
     cursor = conexao.cursor()
-    cursor.execute('SELECT id, username, senha_hash, role FROM usuarios WHERE id = ?', (user_id,))
+    cursor.execute('SELECT id, username, senha_hash, role, trocar_senha FROM usuarios WHERE id = ?', (user_id,))
     dados = cursor.fetchone()
     conexao.close()
     if dados:
-        return Usuario(id=dados[0], username=dados[1], senha_hash=dados[2], role=dados[3])
+        trocar = dados[4] if len(dados) > 4 and dados[4] is not None else 0
+        return Usuario(id=dados[0], username=dados[1], senha_hash=dados[2], role=dados[3], trocar_senha=trocar)
     return None
 
 
 def inicializar_banco():
     """
     Cria as tabelas 'usuarios' e 'solicitacoes' no SQLite caso não existam,
-    garante a coluna 'id_solicitacao' na tabela 'cautelas' e inicializa um usuário admin padrão.
+    garante as colunas necessárias e inicializa um usuário admin padrão.
     """
     conexao = sqlite3.connect('Cavere.db')
     cursor = conexao.cursor()
@@ -84,7 +86,52 @@ def inicializar_banco():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
             senha_hash TEXT NOT NULL,
-            role TEXT NOT NULL CHECK(role IN ('admin', 'coordenador'))
+            role TEXT NOT NULL CHECK(role IN ('admin', 'coordenador')),
+            trocar_senha INTEGER DEFAULT 0
+        )
+    ''')
+
+    # Garante a coluna trocar_senha na tabela usuarios
+    cursor.execute("PRAGMA table_info(usuarios)")
+    colunas_usuarios = [col[1] for col in cursor.fetchall()]
+    if 'trocar_senha' not in colunas_usuarios:
+        cursor.execute("ALTER TABLE usuarios ADD COLUMN trocar_senha INTEGER DEFAULT 0")
+
+    # Tabela para equipamentos
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS equipamentos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            tipo TEXT NOT NULL,
+            modelo TEXT,
+            patrimonio_sn TEXT UNIQUE,
+            imei_1 TEXT,
+            imei_2 TEXT,
+            status TEXT DEFAULT 'Disponível'
+        )
+    ''')
+
+    # Tabela para coordenadores
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS coordenadores (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome_completo TEXT NOT NULL,
+            cpf_matricula TEXT UNIQUE NOT NULL
+        )
+    ''')
+
+    # Tabela para cautelas
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS cautelas (
+            id_cautela INTEGER PRIMARY KEY AUTOINCREMENT,
+            id_equipamento INTEGER,
+            id_coordenador INTEGER,
+            rdo_vinculado TEXT,
+            data_hora_saida DATETIME DEFAULT CURRENT_TIMESTAMP,
+            data_hora_devolucao DATETIME,
+            observacoes TEXT,
+            id_solicitacao INTEGER,
+            FOREIGN KEY(id_equipamento) REFERENCES equipamentos(id),
+            FOREIGN KEY(id_coordenador) REFERENCES coordenadores(id)
         )
     ''')
 
@@ -107,21 +154,12 @@ def inicializar_banco():
         )
     ''')
     
-    # Garante a coluna id_solicitacao na tabela cautelas
+    # Garante a coluna id_solicitacao na tabela cautelas se necessário
     cursor.execute("PRAGMA table_info(cautelas)")
     colunas_cautelas = [col[1] for col in cursor.fetchall()]
-    if 'id_solicitacao' not in colunas_cautelas:
+    if colunas_cautelas and 'id_solicitacao' not in colunas_cautelas:
         cursor.execute("ALTER TABLE cautelas ADD COLUMN id_solicitacao INTEGER")
 
-    # Se não houver nenhum usuário, cria o admin padrão com senha criptografada
-    cursor.execute('SELECT COUNT(*) FROM usuarios')
-    if cursor.fetchone()[0] == 0:
-        senha_criptografada = generate_password_hash('admin123')
-        cursor.execute('''
-            INSERT INTO usuarios (username, senha_hash, role)
-            VALUES (?, ?, ?)
-        ''', ('admin', senha_criptografada, 'admin'))
-        
     conexao.commit()
     conexao.close()
 
@@ -129,11 +167,12 @@ def inicializar_banco():
 inicializar_banco()
 
 
-def salvar_novo_usuario(username, senha_pura, role='coordenador', id_personalizado=None, nome_completo=None, cpf_matricula=None):
+def salvar_novo_usuario(username, senha_pura, role='coordenador', id_personalizado=None, nome_completo=None, cpf_matricula=None, trocar_senha=1):
     """
     Cadastra um novo usuário no banco com senha criptografada.
     Se o papel for 'coordenador', cadastra atomicamente em 'usuarios' e 'coordenadores' com o MESMO ID.
     Permite escolher um ID personalizado (se disponível) ou gerar automaticamente.
+    Por padrão corporativo de segurança, trocar_senha=1 exige redefinição no primeiro acesso.
     """
     if role not in ('admin', 'coordenador'):
         return False, "O papel (role) deve ser 'admin' ou 'coordenador'."
@@ -163,15 +202,15 @@ def salvar_novo_usuario(username, senha_pura, role='coordenador', id_personaliza
                     return False, f"O ID #{id_personalizado} já está em uso na tabela de coordenadores."
 
             cursor.execute('''
-                INSERT INTO usuarios (id, username, senha_hash, role)
-                VALUES (?, ?, ?, ?)
-            ''', (id_personalizado, username, senha_hash, role))
+                INSERT INTO usuarios (id, username, senha_hash, role, trocar_senha)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (id_personalizado, username, senha_hash, role, trocar_senha))
             user_id = id_personalizado
         else:
             cursor.execute('''
-                INSERT INTO usuarios (username, senha_hash, role)
-                VALUES (?, ?, ?)
-            ''', (username, senha_hash, role))
+                INSERT INTO usuarios (username, senha_hash, role, trocar_senha)
+                VALUES (?, ?, ?, ?)
+            ''', (username, senha_hash, role, trocar_senha))
             user_id = cursor.lastrowid
 
         # Se for coordenador, cadastra na tabela coordenadores com o MESMO ID
@@ -218,10 +257,17 @@ def exigir_autenticacao():
     if not current_user.is_authenticated:
         return login_manager.unauthorized()
 
+    # Regra: troca de senha obrigatória no 1º acesso (administradores e coordenadores)
+    if getattr(current_user, 'trocar_senha', 0) == 1:
+        rotas_permitidas_troca = ('trocar_senha', 'logout', 'static')
+        if request.endpoint not in rotas_permitidas_troca:
+            flash("Primeiro Acesso: por segurança corporativa, você deve alterar sua senha padrão para continuar.", "warning")
+            return redirect(url_for('trocar_senha'))
+
     # Regra de perfil (RBAC):
-    # O coordenador tem acesso a: meus chamados, solicitação de equipamento, logout, download de termos e estáticos
+    # O coordenador tem acesso a: meus chamados, solicitação de equipamento, logout, download de termos, estáticos e troca de senha
     if current_user.role == 'coordenador':
-        rotas_permitidas_coordenador = ('meus_chamados', 'solicitar_equipamento', 'logout', 'static', 'download_cautela')
+        rotas_permitidas_coordenador = ('meus_chamados', 'solicitar_equipamento', 'logout', 'static', 'download_cautela', 'trocar_senha')
         if request.endpoint not in rotas_permitidas_coordenador:
             flash("Acesso restrito: seu perfil de Coordenador permite acessar apenas a página de Meus Chamados e Solicitação de Equipamento.", "warning")
             return redirect(url_for('meus_chamados'))
@@ -242,14 +288,20 @@ def login():
 
         conexao = sqlite3.connect('Cavere.db')
         cursor = conexao.cursor()
-        cursor.execute('SELECT id, username, senha_hash, role FROM usuarios WHERE username = ?', (username,))
+        cursor.execute('SELECT id, username, senha_hash, role, trocar_senha FROM usuarios WHERE username = ?', (username,))
         dados = cursor.fetchone()
         conexao.close()
 
         if dados and check_password_hash(dados[2], senha):
-            usuario = Usuario(id=dados[0], username=dados[1], senha_hash=dados[2], role=dados[3])
+            trocar = dados[4] if len(dados) > 4 and dados[4] is not None else 0
+            usuario = Usuario(id=dados[0], username=dados[1], senha_hash=dados[2], role=dados[3], trocar_senha=trocar)
             login_user(usuario)
             flash(f"Bem-vindo, {usuario.username}!", "success")
+
+            # Regra: troca de senha obrigatória no 1º acesso (admin ou coordenador)
+            if usuario.trocar_senha == 1:
+                flash("Primeiro Acesso: por segurança corporativa, você deve alterar sua senha padrão para continuar.", "warning")
+                return redirect(url_for('trocar_senha'))
 
             # Regra: se o usuário tiver a role 'admin', vai para o painel principal.
             # Se for 'coordenador', só pode acessar a rota /meus-chamados.
@@ -264,6 +316,60 @@ def login():
             flash("Usuário ou senha inválidos. Tente novamente.", "danger")
 
     return render_template('login.html')
+
+
+@app.route('/trocar-senha', methods=['GET', 'POST'])
+@login_required
+def trocar_senha():
+    if request.method == 'POST':
+        senha_atual = request.form.get('senha_atual', '')
+        nova_senha = request.form.get('nova_senha', '').strip()
+        confirmar_senha = request.form.get('confirmar_senha', '').strip()
+
+        # 1. Validação da senha atual
+        if not check_password_hash(current_user.senha_hash, senha_atual):
+            flash("A senha atual informada está incorreta.", "danger")
+            return render_template('trocar_senha.html')
+
+        # 2. Validação da nova senha
+        if len(nova_senha) < 4:
+            flash("A nova senha deve possuir no mínimo 4 caracteres.", "warning")
+            return render_template('trocar_senha.html')
+
+        # 3. Não permite manter a senha padrão '123'
+        if nova_senha == '123' or nova_senha == senha_atual:
+            flash("A nova senha não pode ser a senha padrão '123' nem idêntica à senha atual.", "warning")
+            return render_template('trocar_senha.html')
+
+        # 4. Confirmação
+        if nova_senha != confirmar_senha:
+            flash("A confirmação da nova senha não confere com a nova senha digitada.", "danger")
+            return render_template('trocar_senha.html')
+
+        # 5. Atualiza no SQLite
+        novo_hash = generate_password_hash(nova_senha)
+        conexao = sqlite3.connect('Cavere.db')
+        cursor = conexao.cursor()
+        cursor.execute('''
+            UPDATE usuarios 
+            SET senha_hash = ?, trocar_senha = 0 
+            WHERE id = ?
+        ''', (novo_hash, current_user.id))
+        conexao.commit()
+        conexao.close()
+
+        # Atualiza a sessão em memória
+        current_user.senha_hash = novo_hash
+        current_user.trocar_senha = 0
+
+        if current_user.role == 'coordenador':
+            flash("Senha alterada com sucesso! Bem-vindo ao painel de Meus Chamados.", "success")
+            return redirect(url_for('meus_chamados'))
+        else:
+            flash("Senha alterada com sucesso! Seu acesso administrativo ao Cavere foi liberado.", "success")
+            return redirect(url_for('home'))
+
+    return render_template('trocar_senha.html')
 
 
 @app.route('/logout')
@@ -349,6 +455,7 @@ def cadastrar_usuario():
         id_custom = request.form.get('id_custom', '').strip()
         nome_completo = request.form.get('nome_completo', '').strip()
         cpf = request.form.get('cpf', '').strip()
+        trocar_senha = 1 if request.form.get('trocar_senha') == '1' else 0
 
         if not username or not senha:
             flash("Preencha todos os campos obrigatórios (Login e Senha).", "warning")
@@ -361,7 +468,8 @@ def cadastrar_usuario():
             role=role,
             id_personalizado=id_param,
             nome_completo=nome_completo if role == 'coordenador' else None,
-            cpf_matricula=cpf if role == 'coordenador' else None
+            cpf_matricula=cpf if role == 'coordenador' else None,
+            trocar_senha=trocar_senha
         )
         if sucesso:
             flash(mensagem, "success")
