@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <style>
         :root {
             --font-sans: 'Inter', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -53,6 +54,33 @@
             --radius-pill: 9999px;
 
             --shadow-card: 0 12px 32px -4px rgba(20, 23, 26, 0.08), 0 4px 12px -2px rgba(20, 23, 26, 0.04);
+
+            /* Sistema de Movimento — Seções 6 e 9.B */
+            --duration-micro: 120ms;
+            --duration-standard: 220ms;
+            --duration-medium: 320ms;
+            --duration-long: 450ms;
+
+            --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
+            --ease-exit: cubic-bezier(0.7, 0, 0.84, 0);
+            --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+
+            --dur-micro: var(--duration-micro);
+            --dur-default: var(--duration-standard);
+            --dur-medium: var(--duration-medium);
+            --dur-large: var(--duration-long);
+        }
+
+        i[data-lucide], svg.lucide {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            vertical-align: middle;
+        }
+        .auth-logo-badge i[data-lucide],
+        .auth-logo-badge svg.lucide {
+            width: 24px;
+            height: 24px;
         }
 
         *, *::before, *::after { box-sizing: border-box; }
@@ -84,7 +112,7 @@
             align-items: center;
         }
 
-        /* Branding Header */
+
         .auth-brand {
             text-align: center;
             margin-bottom: var(--space-5);
@@ -137,7 +165,7 @@
             text-transform: uppercase;
         }
 
-        /* Flash Messages */
+
         .auth-alerts { width: 100%; margin-bottom: var(--space-4); }
         .auth-alert {
             display: flex;
@@ -156,7 +184,7 @@
         .auth-alert-info    { background-color: var(--status-info-bg);    color: var(--status-info-text); border-color: #bfdbfe; }
         .auth-alert .btn-close { margin-left: auto; font-size: 0.7rem; padding: 6px; }
 
-        /* Card Corporativo */
+
         .auth-card {
             width: 100%;
             background: var(--surface);
@@ -193,7 +221,7 @@
             line-height: 1.5;
         }
 
-        /* Banner de Política de Primeiro Acesso */
+
         .policy-callout {
             background: var(--status-warn-bg);
             border: 1px solid rgba(122, 127, 0, 0.25);
@@ -208,7 +236,7 @@
             line-height: 1.4;
         }
 
-        /* Controles de Formulário */
+
         .form-group {
             margin-bottom: var(--space-4);
         }
@@ -228,7 +256,8 @@
             border: 1.5px solid var(--border);
             border-radius: var(--radius-md);
             background: #ffffff;
-            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+            transition: border-color 100ms cubic-bezier(0.4, 0, 0.2, 1),
+                        box-shadow 100ms cubic-bezier(0.4, 0, 0.2, 1);
             overflow: hidden;
             width: 100%;
         }
@@ -284,7 +313,7 @@
             cursor: pointer;
             padding: 0;
             flex-shrink: 0;
-            transition: color 0.15s ease;
+            transition: color 100ms cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .btn-toggle-pw:hover {
@@ -306,7 +335,7 @@
             gap: 5px;
         }
 
-        /* Botão Primário */
+
         .btn-submit {
             width: 100%;
             height: 46px;
@@ -321,7 +350,9 @@
             justify-content: center;
             gap: 8px;
             cursor: pointer;
-            transition: all 0.15s ease-in-out;
+            transition: transform var(--duration-micro) var(--ease-standard),
+                        box-shadow var(--duration-standard) var(--ease-standard),
+                        background-color var(--duration-standard) var(--ease-standard);
             margin-top: var(--space-5);
             box-shadow: 0 4px 14px var(--accent-glow);
         }
@@ -330,12 +361,14 @@
             background: var(--accent-600);
             color: var(--accent-on);
             transform: translateY(-1px);
-            box-shadow: 0 6px 18px var(--accent-glow);
+            box-shadow: 0 6px 16px rgba(206, 220, 0, 0.28);
         }
 
         .btn-submit:active {
             background: var(--accent-700);
-            transform: translateY(0);
+            transform: translateY(0) scale(0.98);
+            box-shadow: 0 2px 6px var(--accent-glow);
+            transition-duration: var(--duration-micro);
         }
 
         .auth-card-footer {
@@ -354,12 +387,18 @@
             font-size: 0.775rem;
             color: var(--ink-500);
         }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="auth-container">
 
-        <!-- Flash Messages -->
+
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
             <div class="auth-alerts">
@@ -382,10 +421,10 @@
             {% endif %}
         {% endwith %}
 
-        <!-- Branding Header Oficial Ambipar -->
+
         <div class="auth-brand">
             <div class="auth-logo-badge">
-                <i class="bi bi-shield-lock"></i>
+                <i data-lucide="shield-check"></i>
             </div>
             <h1 class="auth-title">Cavere</h1>
             <div class="brand-meta">
@@ -395,7 +434,7 @@
             </div>
         </div>
 
-        <!-- Card de Troca de Senha Obrigatória -->
+
         <div class="auth-card">
             <div class="auth-card-body">
                 <div class="auth-card-heading">
@@ -425,20 +464,20 @@
                 </div>
 
                 <form action="/trocar-senha" method="POST" id="formTrocarSenha">
-                    <!-- Senha Atual -->
+
                     <div class="form-group">
                         <label class="form-label" for="inputSenhaAtual">Senha Temporária Atual</label>
                         <div class="cv-input-box">
                             <span class="cv-input-icon"><i class="bi bi-key"></i></span>
                             <input type="password" class="cv-input-field" id="inputSenhaAtual" name="senha_atual"
-                                   placeholder="Digite a senha padrão atual (ex: 123)" required autofocus autocomplete="current-password">
+                                   placeholder="Senha temporária fornecida pelo administrador" required autofocus autocomplete="current-password">
                             <button type="button" class="btn-toggle-pw" onclick="toggleSenhaVisibilidade('inputSenhaAtual', this)" title="Exibir ou ocultar senha" tabindex="-1">
                                 <i class="bi bi-eye"></i>
                             </button>
                         </div>
                     </div>
 
-                    <!-- Nova Senha -->
+
                     <div class="form-group">
                         <label class="form-label" for="inputNovaSenha">Nova Senha Definitiva</label>
                         <div class="cv-input-box">
@@ -455,7 +494,7 @@
                         </div>
                     </div>
 
-                    <!-- Confirmar Nova Senha -->
+
                     <div class="form-group">
                         <label class="form-label" for="inputConfirmarSenha">Confirmar Nova Senha</label>
                         <div class="cv-input-box">
@@ -476,14 +515,14 @@
             </div>
 
             <div class="auth-card-footer">
-                <span style="color:var(--ink-500);">Precisa de auxílio?</span>
+                <span style="color:var(--ink-500);">Suporte:</span>
                 <a href="/logout" style="color:var(--ink-700); text-decoration:none; font-weight:600; display:inline-flex; align-items:center; gap:4px;">
                     <i class="bi bi-box-arrow-left"></i> Sair da conta
                 </a>
             </div>
         </div>
 
-        <!-- Rodapé do Sistema -->
+
         <div class="auth-system-footer">
             <div><strong>Ambipar Response</strong> &bull; Gestão e Controle Patrimonial</div>
             <div style="font-size:0.715rem; color:var(--ink-300); margin-top:4px;">
@@ -521,6 +560,10 @@
                     <span>Salvando nova credencial...</span>
                 `;
             });
+        }
+
+        if (window.lucide) {
+            lucide.createIcons();
         }
     </script>
 </body>

@@ -8,7 +8,7 @@
     .chamado-row[data-status="Finalizada"] td:first-child { border-left-color: var(--status-success-text); }
 </style>
 
-<!-- Page Header (Seções 7.C e 7.F) -->
+
 <div class="cv-page-banner">
     <div>
         <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-1);">
@@ -35,7 +35,7 @@
     </div>
 </div>
 
-<!-- KPI Cards (Seções 7.C e 7.F) -->
+
 <div class="row g-4" style="margin-bottom:var(--space-6);">
     <div class="col-sm-6 col-lg-3">
         <div class="cv-kpi" onclick="filtrarPorStatus('Todos', this)">
@@ -45,7 +45,7 @@
                     <div class="cv-kpi-value-hero">{{ contadores.get('Total', 0) }}</div>
                 </div>
                 <div class="cv-kpi-badge neutral">
-                    <i class="bi bi-collection"></i>
+                    <i data-lucide="layers"></i>
                 </div>
             </div>
         </div>
@@ -58,7 +58,7 @@
                     <div class="cv-kpi-value-hero" style="color:#854d0e;">{{ contadores.get('Pendente', 0) }}</div>
                 </div>
                 <div class="cv-kpi-badge yellow">
-                    <i class="bi bi-hourglass-split"></i>
+                    <i data-lucide="hourglass"></i>
                 </div>
             </div>
         </div>
@@ -71,7 +71,7 @@
                     <div class="cv-kpi-value-hero" style="color:#1e40af;">{{ contadores.get('Em Operação', 0) }}</div>
                 </div>
                 <div class="cv-kpi-badge blue">
-                    <i class="bi bi-broadcast"></i>
+                    <i data-lucide="radio"></i>
                 </div>
             </div>
         </div>
@@ -84,14 +84,14 @@
                     <div class="cv-kpi-value-hero" style="color:#166534;">{{ contadores.get('Devolvido', 0) + contadores.get('Finalizada', 0) }}</div>
                 </div>
                 <div class="cv-kpi-badge accent">
-                    <i class="bi bi-check2-circle"></i>
+                    <i data-lucide="check-circle-2"></i>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Filtro / Busca -->
+
 <div class="card" style="margin-bottom:var(--space-4); padding:var(--space-3) var(--space-4) !important; overflow:visible;">
     <div style="display:flex; gap:var(--space-3); align-items:center; flex-wrap:wrap; padding:0;">
         <div style="flex:1; min-width:220px;">
@@ -109,7 +109,6 @@
                 <button type="button" class="btn btn-secondary" id="filtroBtn-EsperandoEntrega" onclick="filtrarPorStatus('Esperando Entrega', this)">Esp. Entrega</button>
                 <button type="button" class="btn btn-secondary" id="filtroBtn-Finalizada" onclick="filtrarPorStatus('Finalizada', this)">Finalizados</button>
             </div>
-            <!-- Botão Fechar/Ocultar Finalizados -->
             <button type="button" class="btn btn-secondary btn-sm" id="btnToggleFinalizadosCoord" onclick="toggleFinalizadosCoord()" title="Recolher / Ocultar chamados já finalizados">
                 <i class="bi bi-eye-slash" id="iconeToggleFinalizadosCoord"></i>
                 <span id="textoToggleFinalizadosCoord">Fechar Finalizados</span>
@@ -118,9 +117,7 @@
     </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- SEÇÃO 1: Chamados de Solicitação                             -->
-<!-- ============================================================ -->
+<!-- Chamados de Solicitação de Equipamento -->
 <div class="card" style="margin-bottom:var(--space-5);">
     <div class="card-header">
         <div style="display:flex; align-items:center; gap:var(--space-3);">
@@ -154,7 +151,6 @@
                 <tr class="item-chamado chamado-row" data-status="{{ s.status }}"
                     data-finalizada="{{ '1' if s.status in ('Finalizada', 'Concluído', 'Concluido', 'Finalizado', 'Devolvido') else '0' }}"
                     data-busca="{{ s.id }} {{ s.tipo }} {{ s.quantidade }} {{ s.destinatario }} {{ s.plataforma }} {{ s.rdo }} {{ s.status }}">
-                    <!-- Protocolo -->
                     <td class="ps-4">
                         <div style="display:flex; align-items:center; gap:var(--space-1);">
                             <span style="font-size:0.8125rem; font-weight:600; font-family:var(--font-mono); color:var(--text-primary);">#SOL-{{ s.id }}</span>
@@ -165,7 +161,6 @@
                         <div style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">{{ s.data_criacao[:10] if s.data_criacao else '' }}</div>
                     </td>
 
-                    <!-- Equipamento -->
                     <td>
                         <div style="display:flex; align-items:center; gap:var(--space-2);">
                             <span class="badge-notion badge-notion-green" style="font-size:0.75rem; font-weight:700;">{{ s.quantidade }}x</span>
@@ -176,7 +171,6 @@
                         {% endif %}
                     </td>
 
-                    <!-- Atendimento (Resumo Compacto + Popover - Seção 6.A e 6.B) -->
                     <td style="min-width:180px;">
                         <div style="display:flex; align-items:center; gap:var(--space-2);">
                             <div class="progress cv-progress flex-grow-1" style="min-width:70px;">
@@ -207,12 +201,10 @@
                         </div>
                     </td>
 
-                    <!-- Destinatário -->
                     <td>
                         <div style="font-size:0.875rem;"><i class="bi bi-person text-muted me-1"></i>{{ s.destinatario }}</div>
                     </td>
 
-                    <!-- Plataforma / Destino -->
                     <td>
                         <div style="font-size:0.875rem;"><i class="bi bi-geo-alt text-muted me-1"></i><strong>{{ s.plataforma }}</strong></div>
                         {% if s.data_necessidade and s.data_necessidade != 'Imediato' %}
@@ -220,7 +212,6 @@
                         {% endif %}
                     </td>
 
-                    <!-- Etapa Operacional -->
                     <td class="text-center">
                         <div class="notion-stepper">
                             <span class="step-pill {% if s.timeline_step >= 1 %}active{% endif %}">1. Solicitado</span>
@@ -233,20 +224,18 @@
                         </div>
                     </td>
 
-                    <!-- Status -->
                     <td>
                         {% if s.status == 'Pendente' %}
-                        <span class="badge-notion badge-notion-orange"><i class="bi bi-hourglass-split me-1"></i>Pendente</span>
+                        <span class="badge-notion badge-notion-orange"><i data-lucide="hourglass" class="me-1"></i>Pendente</span>
                         {% elif s.status == 'Esperando Entrega' %}
                         <span class="badge-notion badge-notion-purple"><i class="bi bi-box-seam me-1"></i>Esperando Entrega</span>
                         {% elif s.status in ('Em Operação', 'Em Operacao') %}
-                        <span class="badge-notion badge-notion-blue"><i class="bi bi-broadcast me-1"></i>Em Operação</span>
+                        <span class="badge-notion badge-notion-blue"><i data-lucide="radio" class="me-1"></i>Em Operação</span>
                         {% else %}
-                        <span class="badge-notion badge-notion-green"><i class="bi bi-check-circle me-1"></i>Finalizada</span>
+                        <span class="badge-notion badge-notion-green"><i data-lucide="check-circle" class="me-1"></i>Finalizada</span>
                         {% endif %}
                     </td>
 
-                    <!-- Ação -->
                     <td class="text-center pe-4">
                         {% if s.status in ('Finalizada', 'Concluído', 'Concluido', 'Finalizado', 'Devolvido') %}
                         <button type="button"
@@ -277,9 +266,7 @@
     </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- SEÇÃO 2: Cautelas Emitidas (Tabela)                          -->
-<!-- ============================================================ -->
+<!-- Cautelas Emitidas e Termos de Responsabilidade -->
 <div id="containerTabela" class="card" style="margin-bottom:var(--space-4);">
     <div class="card-header">
         <div style="display:flex; align-items:center; gap:var(--space-3);">
@@ -365,13 +352,11 @@
     </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- VISÃO LINHA DO TEMPO (TIMELINE)                              -->
-<!-- ============================================================ -->
+<!-- Linha do Tempo dos Equipamentos -->
 <div id="containerTimeline" class="card" style="display:none; margin-bottom:var(--space-4);">
     <div class="card-header">
         <div style="font-size:0.9375rem; font-weight:600; display:flex; align-items:center; gap:var(--space-2);">
-            <i class="bi bi-clock-history text-secondary"></i>
+            <i class="bi bi-clock-history" style="color:var(--ink-500);"></i>
             Linha do Tempo dos Equipamentos
         </div>
     </div>
@@ -506,6 +491,8 @@
 
     function aplicarFiltros() {
         const texto = (document.getElementById('filtroTexto')?.value || '').toLowerCase().trim();
+        let visibleIndex = 0;
+
         document.querySelectorAll('.item-chamado').forEach(row => {
             const rowStatus = row.getAttribute('data-status');
             const rowBusca = (row.getAttribute('data-busca') || '').toLowerCase();
@@ -519,8 +506,29 @@
             }
 
             const coincideTexto = (texto === '' || rowBusca.includes(texto));
-            row.style.display = (coincideStatus && coincideTexto) ? '' : 'none';
+            const visivel = coincideStatus && coincideTexto;
+
+            if (!visivel) {
+                row.style.display = 'none';
+                row.style.opacity = '';
+                row.style.transform = '';
+                row.style.transition = '';
+            } else {
+                const delay = visibleIndex < 8 ? visibleIndex * 25 : 0;
+                row.style.display = '';
+                row.style.opacity = '0';
+                row.style.transform = 'translateY(4px)';
+                row.style.transition = 'none';
+                requestAnimationFrame(function() {
+                    row.style.transition = 'opacity 200ms cubic-bezier(0.4,0,0.2,1) ' + delay + 'ms, transform 200ms cubic-bezier(0.16,1,0.3,1) ' + delay + 'ms';
+                    row.style.opacity = '1';
+                    row.style.transform = 'translateY(0)';
+                });
+                visibleIndex++;
+            }
         });
+
+        let tlIndex = 0;
         document.querySelectorAll('.item-chamado-tl').forEach(item => {
             const itemStatus = item.getAttribute('data-status');
             const itemBusca = (item.getAttribute('data-busca') || '').toLowerCase();
@@ -532,20 +540,40 @@
             }
 
             const coincideTexto = (texto === '' || itemBusca.includes(texto));
-            item.style.display = (coincideStatus && coincideTexto) ? '' : 'none';
+            const visivel = coincideStatus && coincideTexto;
+
+            if (!visivel) {
+                item.style.display = 'none';
+                item.style.opacity = '';
+                item.style.transform = '';
+                item.style.transition = '';
+            } else {
+                const delay = tlIndex < 8 ? tlIndex * 25 : 0;
+                item.style.display = '';
+                item.style.opacity = '0';
+                item.style.transform = 'translateY(4px)';
+                item.style.transition = 'none';
+                requestAnimationFrame(function() {
+                    item.style.transition = 'opacity 200ms cubic-bezier(0.4,0,0.2,1) ' + delay + 'ms, transform 200ms cubic-bezier(0.16,1,0.3,1) ' + delay + 'ms';
+                    item.style.opacity = '1';
+                    item.style.transform = 'translateY(0)';
+                });
+                tlIndex++;
+            }
         });
     }
 
-    // Inicializa larguras de barras de progresso
     document.querySelectorAll('.progress-bar[data-progress]').forEach(function(bar) {
         bar.style.width = (bar.getAttribute('data-progress') || 0) + '%';
     });
 
-    // Carrega preferência salva do usuário
     if (localStorage.getItem('cavere_finalizados_fechados_coord') === '1') {
         finalizadosFechadosCoord = true;
     }
     atualizarBotaoFinalizadosCoord();
     aplicarFiltros();
+    if (window.lucide) {
+        lucide.createIcons();
+    }
 </script>
 {% endblock %}

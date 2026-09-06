@@ -1,20 +1,16 @@
 {% extends "base.html" %}
 {% block content %}
 
-<!-- ============================================================ -->
-<!-- HEADER DA PÁGINA (SEÇÃO 3.B)                                 -->
-<!-- ============================================================ -->
+
 <div class="cv-page-banner">
     <div>
         <h1 class="cv-page-title">Painel de <span class="cv-highlight">Operações</span></h1>
         <p class="cv-page-subtitle">Visão integrada de chamados operacionais e controle de ativos</p>
     </div>
     <div style="display:flex; gap:var(--space-3); flex-wrap:wrap; align-items:center;">
-        <!-- Botão para Emissão Direta / Avulsa de Cautela (abre modal) -->
         <button type="button" class="btn btn-outline btn-sm" onclick="abrirModalCautelaAvulsa()" title="Emitir termo de cautela avulso (sem chamado vinculado)">
             <i class="bi bi-file-earmark-plus"></i> Cautela Avulsa
         </button>
-        <!-- Consulta Rápida ao Inventário da Base -->
         <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modalInventarioAtivos" title="Ver lista de equipamentos cadastrados na base">
             <i class="bi bi-hdd-stack"></i> Base de Ativos ({{ equipamentos|length }})
         </button>
@@ -24,9 +20,7 @@
     </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- BLOCO ÚNICO DE KPIS OPERACIONAIS (SEÇÃO 3.C)                 -->
-<!-- ============================================================ -->
+
 <div class="row g-4" style="margin-bottom:var(--space-6);">
     <div class="col-sm-6 col-lg-3">
         <div class="cv-kpi" onclick="filtrarChamadosAdmin('abertos')" title="Clique para filtrar apenas chamados em aberto">
@@ -37,7 +31,7 @@
                     <div class="cv-kpi-value-hero">{{ abertos }}</div>
                 </div>
                 <div class="cv-kpi-badge yellow">
-                    <i class="bi bi-hourglass-split"></i>
+                    <i data-lucide="hourglass"></i>
                 </div>
             </div>
         </div>
@@ -51,7 +45,7 @@
                     <div class="cv-kpi-value-hero">{{ na_base }}</div>
                 </div>
                 <div class="cv-kpi-badge accent">
-                    <i class="bi bi-shield-check"></i>
+                    <i data-lucide="shield-check"></i>
                 </div>
             </div>
         </div>
@@ -65,7 +59,7 @@
                     <div class="cv-kpi-value-hero">{{ em_campo }}</div>
                 </div>
                 <div class="cv-kpi-badge blue">
-                    <i class="bi bi-broadcast"></i>
+                    <i data-lucide="radio"></i>
                 </div>
             </div>
         </div>
@@ -78,16 +72,14 @@
                     <div class="cv-kpi-value-hero">{{ cautelas|length }}</div>
                 </div>
                 <div class="cv-kpi-badge neutral">
-                    <i class="bi bi-file-earmark-check"></i>
+                    <i data-lucide="file-check-2"></i>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- PAINEL PRINCIPAL: FILA DE OPERAÇÕES & CHAMADOS (SEÇÃO 4.A)   -->
-<!-- ============================================================ -->
+
 <div class="card" style="margin-bottom:var(--space-6);" id="secaoSolicitacoes">
     <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--space-3);">
         <div style="display:flex; align-items:center; gap:var(--space-3);">
@@ -101,7 +93,6 @@
         </div>
 
         <div style="display:flex; align-items:center; gap:var(--space-2); flex-wrap:wrap;">
-            <!-- Grupo de Filtros Único por Contexto (Regra 4.C) -->
             <div class="btn-group btn-group-sm" role="group" id="grupoFiltroSolicitacoes">
                 <button type="button" class="btn btn-secondary active" id="filtroSol-todos" onclick="filtrarChamadosAdmin('todos')">
                     Todos <span class="badge-notion badge-notion-gray ms-1" style="font-size:0.7rem;">{{ solicitacoes|length }}</span>
@@ -114,7 +105,6 @@
                 </button>
             </div>
 
-            <!-- Menu Secundário de Ações (Regra 4.C) -->
             <div class="dropdown">
                 <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="dropdownAcoesFila" data-bs-toggle="dropdown" aria-expanded="false" title="Opções e ações da fila">
                     <i class="bi bi-three-dots-vertical"></i> Ações
@@ -141,8 +131,7 @@
         </div>
     </div>
 
-    <!-- Tabela da Fila Operacional (Altura Homogênea, Sem Empilhamento - Seção 5) -->
-    <div style="overflow-x:auto;">
+        <div style="overflow-x:auto;">
         {% if solicitacoes %}
         <table class="table table-hover align-middle table-enterprise cv-table-uniform mb-0">
             <thead>
@@ -163,7 +152,6 @@
                     data-status="{{ s.status }}"
                     data-finalizada="{{ '1' if s.status in ('Finalizada', 'Concluído', 'Concluido', 'Finalizado', 'Devolvido') else '0' }}">
                     
-                    <!-- Protocolo -->
                     <td class="ps-4">
                         <div style="display:flex; align-items:center; gap:var(--space-1);">
                             <span style="font-weight:600; color:var(--ink-900); font-family:var(--font-mono); font-size:0.8125rem;">#SOL-{{ s.id }}</span>
@@ -174,7 +162,6 @@
                         <div style="font-size:0.75rem; color:var(--ink-500); font-family:var(--font-mono);">{{ s.data_criacao[:10] if s.data_criacao else '' }}</div>
                     </td>
 
-                    <!-- Coordenador -->
                     <td>
                         <div style="display:flex; align-items:center; gap:var(--space-2);">
                             <div style="width:28px;height:28px;border-radius:50%;background:rgba(206, 220, 0, 0.18);color:var(--ink-900);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0;">
@@ -184,7 +171,6 @@
                         </div>
                     </td>
 
-                    <!-- Equipamento Solicitado -->
                     <td>
                         <div style="display:flex; align-items:center; gap:var(--space-2);">
                             <span class="badge-notion badge-notion-green" style="font-size:0.75rem; font-weight:700;">{{ s.quantidade_total }}x</span>
@@ -192,21 +178,17 @@
                         </div>
                     </td>
 
-                    <!-- Atendimento (Resumo Compacto + Progressive Disclosure - Regra 4.D) -->
                     <td style="min-width:180px;">
                         <div style="display:flex; align-items:center; gap:var(--space-2);">
-                            <!-- Barra de progresso verde-limão com trilho sutil -->
                             <div class="progress cv-progress flex-grow-1" style="min-width:70px;">
                                 <div class="progress-bar {% if not s.concluida %}is-pending{% endif %}"
                                     role="progressbar"
                                     data-width="{{ (s.qtd_emitida / s.quantidade_total * 100)|round|int if s.quantidade_total > 0 else 0 }}">
                                 </div>
                             </div>
-                            <!-- Fração monoespaçada limpa -->
                             <span style="font-size:0.75rem; font-weight:600; color:var(--ink-500); font-family:var(--font-mono); white-space:nowrap;">
                                 {{ s.qtd_emitida }}/{{ s.quantidade_total }}
                             </span>
-                            <!-- Botão de detalhes flutuante (não empilha itens na linha) -->
                             {% if s.itens_emitidos or s.itens_devolvidos %}
                             <button type="button" class="cv-btn-detail"
                                 data-bs-toggle="popover"
@@ -223,31 +205,27 @@
                         </div>
                     </td>
 
-                    <!-- Destinatário & Destino -->
                     <td>
                         <div style="font-size:0.875rem; color:var(--ink-900);"><i class="bi bi-person text-muted me-1"></i>{{ s.destinatario }}</div>
                         <div style="font-size:0.8125rem; color:var(--ink-500);"><i class="bi bi-geo-alt me-1"></i>{{ s.plataforma }}</div>
                     </td>
 
-                    <!-- RDO -->
                     <td><code>{{ s.rdo }}</code></td>
 
-                    <!-- Status com Badges Suaves -->
                     <td>
                         {% if s.status == 'Pendente' %}
-                        <span class="badge-notion badge-notion-orange"><i class="bi bi-hourglass-split me-1"></i>Pendente</span>
+                        <span class="badge-notion badge-notion-orange"><i data-lucide="hourglass" class="me-1"></i>Pendente</span>
                         {% elif s.status == 'Em Atendimento' %}
                         <span class="badge-notion badge-notion-blue"><i class="bi bi-arrow-repeat me-1"></i>Em Atendimento</span>
                         {% elif s.status == 'Esperando Entrega' %}
                         <span class="badge-notion badge-notion-purple"><i class="bi bi-box-seam me-1"></i>Esperando Entrega</span>
                         {% elif s.status in ('Finalizada', 'Concluído', 'Concluido', 'Finalizado', 'Devolvido') %}
-                        <span class="badge-notion badge-notion-green"><i class="bi bi-check-circle me-1"></i>Finalizada</span>
+                        <span class="badge-notion badge-notion-green"><i data-lucide="check-circle" class="me-1"></i>Finalizada</span>
                         {% else %}
-                        <span class="badge-notion badge-notion-blue"><i class="bi bi-broadcast me-1"></i>{{ s.status }}</span>
+                        <span class="badge-notion badge-notion-blue"><i data-lucide="radio" class="me-1"></i>{{ s.status }}</span>
                         {% endif %}
                     </td>
 
-                    <!-- Ação Operacional Única (Regra 5.3) -->
                     <td class="text-center pe-4">
                         {% if s.status in ('Pendente', 'Em Atendimento') %}
                         <button type="button"
@@ -303,7 +281,7 @@
 <div style="display:flex; align-items:center; justify-content:space-between; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-card); padding:var(--space-4) var(--space-6); box-shadow:var(--shadow-1);">
     <div style="display:flex; align-items:center; gap:var(--space-3);">
         <div style="width:32px;height:32px;border-radius:var(--radius-md);background:rgba(206, 220, 0, 0.18);display:flex;align-items:center;justify-content:center;color:var(--ink-900);">
-            <i class="bi bi-file-earmark-check"></i>
+            <i data-lucide="file-check-2"></i>
         </div>
         <div>
             <div style="font-size:0.9375rem; font-weight:600; color:var(--ink-900);">Histórico Geral de Cautelas & Auditoria</div>
@@ -315,9 +293,7 @@
     </a>
 </div>
 
-<!-- ============================================================ -->
-<!-- MODAL 1: EMITIR TERMO DE CAUTELA (PROGRESSIVE DISCLOSURE)    -->
-<!-- ============================================================ -->
+
 <div class="modal fade" id="modalEmitirCautela" tabindex="-1" aria-labelledby="modalEmitirCautelaLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width:540px;">
         <div class="modal-content" style="border-radius:var(--radius-modal); border:1px solid var(--border); box-shadow:var(--shadow-3);">
@@ -338,7 +314,6 @@
                 <input type="hidden" name="id_solicitacao" id="campoIdSolicitacaoModal" value="">
 
                 <div class="modal-body" style="padding:var(--space-6);">
-                    <!-- Banner Contextual do Chamado Atendido -->
                     <div id="bannerAtendimentoModal" class="alert alert-info py-2 px-3 small d-none mb-3 align-items-center justify-content-between" style="border-radius:var(--radius-md);">
                         <div style="display:flex; align-items:center; gap:var(--space-2);">
                             <i class="bi bi-link-45deg fs-5"></i>
@@ -347,10 +322,8 @@
                         <button type="button" class="btn btn-secondary btn-sm py-0 px-2" onclick="limparAtendimentoModal()">Desvincular</button>
                     </div>
 
-                    <!-- Aviso de Filtro de Compatibilidade -->
                     <div id="avisoFiltroEquipamentoModal" class="d-none"></div>
 
-                    <!-- Seleção do Equipamento -->
                     <div style="margin-bottom:var(--space-4);">
                         <label class="form-label" for="campoIdEquipamentoModal">
                             Equipamento para Cautela <span style="color:var(--status-danger-text);">*</span>
@@ -370,7 +343,6 @@
                         </div>
                     </div>
 
-                    <!-- Seleção do Coordenador -->
                     <div style="margin-bottom:var(--space-4);">
                         <label class="form-label" for="campoIdCoordenadorModal">
                             Coordenador Responsável <span style="color:var(--status-danger-text);">*</span>
@@ -385,7 +357,6 @@
                         </select>
                     </div>
 
-                    <!-- Número do RDO / Projeto -->
                     <div style="margin-bottom:var(--space-2);">
                         <label class="form-label" for="campoRdoModal">
                             Número do RDO / Projeto <span style="color:var(--status-danger-text);">*</span>
@@ -409,9 +380,7 @@
     </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- MODAL 2: CONSULTA À BASE DE ATIVOS E INVENTÁRIO (DRAWER)     -->
-<!-- ============================================================ -->
+
 <div class="modal fade" id="modalInventarioAtivos" tabindex="-1" aria-labelledby="modalInventarioLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content" style="border-radius:var(--radius-modal); border:1px solid var(--border); box-shadow:var(--shadow-3);">
@@ -429,7 +398,6 @@
             </div>
 
             <div class="modal-body" style="padding:var(--space-4);">
-                <!-- Campo de busca rápida no modal -->
                 <div class="input-group input-group-sm mb-3">
                     <span class="input-group-text"><i class="bi bi-search"></i></span>
                     <input type="text" id="buscaModalInventario" class="form-control" placeholder="Filtrar ativo por tipo, modelo ou patrimônio/SN..." onkeyup="filtrarTabelaInventarioModal()">
@@ -493,9 +461,7 @@
     </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- SCRIPTS OPERACIONAIS                                         -->
-<!-- ============================================================ -->
+
 <script>
     let categoriaFiltroAtivo = null;
     let tipoSolicitadoAtivo = null;
@@ -507,25 +473,24 @@
             bsModalCautela = new bootstrap.Modal(elModal);
         }
 
-        // Inicializa barras de progresso com data-width
         document.querySelectorAll('.progress-bar[data-width]').forEach(function(bar) {
             bar.style.width = (bar.getAttribute('data-width') || '0') + '%';
         });
 
-        // Carrega estado de chamados finalizados salvos
         if (localStorage.getItem('cavere_finalizados_fechados_admin') === '1') {
             finalizadosFechadosAdmin = true;
         }
         aplicarVisibilidadeChamados();
+        if (window.lucide) {
+            lucide.createIcons();
+        }
     });
 
-    // --- ABERTURA DO MODAL DE CAUTELA (PROGRESSIVE DISCLOSURE) ---
     function abrirModalAtendimento(idSol, idCoord, rdo, tipoEq, nomeCoord, itemAtual, totalItens, categoriaEq) {
         document.getElementById('campoIdSolicitacaoModal').value = idSol || '';
         categoriaFiltroAtivo = categoriaEq || null;
         tipoSolicitadoAtivo = tipoEq || '';
 
-        // Preenche Coordenador
         if (idCoord && idCoord !== 'None') {
             const selectCoord = document.getElementById('campoIdCoordenadorModal');
             for (let i = 0; i < selectCoord.options.length; i++) {
@@ -536,15 +501,12 @@
             }
         }
 
-        // Preenche RDO
         if (rdo && rdo !== 'None' && rdo !== 'N/A') {
             document.getElementById('campoRdoModal').value = rdo;
         }
 
-        // Aplica filtro inteligente de compatibilidade
         aplicarFiltroEquipamentosModal(categoriaEq, tipoEq);
 
-        // Atualiza banner de atendimento no modal
         const banner = document.getElementById('bannerAtendimentoModal');
         const texto = document.getElementById('textoBannerAtendimentoModal');
         const subtitulo = document.getElementById('subtituloModalCautela');
@@ -669,7 +631,6 @@
         }
     });
 
-    // --- FILTRAGEM DA TABELA NO MODAL DE INVENTÁRIO ---
     function filtrarTabelaInventarioModal() {
         const termo = (document.getElementById('buscaModalInventario')?.value || '').toLowerCase().trim();
         const linhas = document.querySelectorAll('.linha-inventario-modal');
@@ -679,7 +640,6 @@
         });
     }
 
-    // --- CONTROLE DA FILA DE CHAMADOS OPERACIONAIS (ADMIN) ---
     let finalizadosFechadosAdmin = false;
     let filtroChamadosAtivo = 'todos';
 
@@ -687,6 +647,7 @@
         const linhas = document.querySelectorAll('.linha-solicitacao');
         let totalFinalizadas = 0;
         let finalizadasOcultas = 0;
+        let visibleIndex = 0;
 
         linhas.forEach(function(row) {
             const isFinalizada = row.getAttribute('data-finalizada') === '1';
@@ -709,11 +670,27 @@
                 }
             }
 
-            row.style.display = deveExibir ? '' : 'none';
-            if (isFinalizada && !deveExibir) finalizadasOcultas++;
+            if (!deveExibir) {
+                row.style.display = 'none';
+                row.style.opacity = '';
+                row.style.transform = '';
+                row.style.transition = '';
+                if (isFinalizada) finalizadasOcultas++;
+            } else {
+                const delay = visibleIndex < 8 ? visibleIndex * 25 : 0;
+                row.style.display = '';
+                row.style.opacity = '0';
+                row.style.transform = 'translateY(4px)';
+                row.style.transition = 'none';
+                requestAnimationFrame(function() {
+                    row.style.transition = 'opacity 200ms cubic-bezier(0.4,0,0.2,1) ' + delay + 'ms, transform 200ms cubic-bezier(0.16,1,0.3,1) ' + delay + 'ms';
+                    row.style.opacity = '1';
+                    row.style.transform = 'translateY(0)';
+                });
+                visibleIndex++;
+            }
         });
 
-        // Atualiza itens do menu de ações
         const textoMenu = document.getElementById('textoItemToggleFinalizados');
         if (textoMenu) {
             textoMenu.textContent = (finalizadosFechadosAdmin || finalizadasOcultas > 0) ? 'Reexibir Finalizados' : 'Ocultar Finalizados';
@@ -731,6 +708,9 @@
                 aviso.classList.add('d-none');
                 aviso.classList.remove('d-flex');
             }
+        }
+        if (window.lucide) {
+            lucide.createIcons();
         }
     }
 

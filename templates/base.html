@@ -10,15 +10,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <style>
         :root {
             --font-sans: 'Inter', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             --font-mono: 'JetBrains Mono', monospace;
 
-            /* ============================================================ */
-            /* PALETA DE CORES — IDENTIDADE AMBIPAR CORPORATE EDITION      */
-            /* ============================================================ */
-            /* Cor de Acento (Verde-Limão — Assinatura da Marca) */
+
             --accent-500: #CEDC00;
             --accent-600: #B8C400;
             --accent-700: #9DA800;
@@ -28,18 +26,18 @@
             --accent-surface: rgba(206, 220, 0, 0.12);
 
             /* Base Neutra Estrutural (substitui o navy e slate) */
-            --ink-900: #14171a; /* Headings, texto primário */
-            --ink-700: #2c3136; /* Sidebar escura, cabeçalhos de tabela th, botões estruturais */
-            --ink-500: #5b6168; /* Texto secundário / muted */
-            --ink-300: #9aa0a6; /* Desabilitado, ícones decorativos */
+            --ink-900: #14171a;
+            --ink-700: #2c3136;
+            --ink-500: #5b6168;
+            --ink-300: #9aa0a6;
 
             /* Superfícies Claras */
-            --canvas: #f5f6f4;        /* Fundo global neutro com presença tátil */
-            --surface: #ffffff;       /* Cards, modais, dropdowns */
-            --surface-card: #ffffff;  /* Aliasing retrocompatível */
-            --border: #e4e6e1;        /* Bordas padrão */
-            --border-default: #e4e6e1;/* Aliasing */
-            --border-subtle: #edefec; /* Divisores internos */
+            --canvas: #f5f6f4;
+            --surface: #ffffff;
+            --surface-card: #ffffff;
+            --border: #e4e6e1;
+            --border-default: #e4e6e1;
+            --border-subtle: #edefec;
 
             /* Textos (Aliasing padronizado) */
             --text-primary: #14171a;
@@ -79,6 +77,43 @@
             /* Dimensões Estruturais */
             --sidebar-width: 264px;
             --topbar-height: 64px;
+
+            /* Sistema de Movimento — Seções 6 e 9.B */
+            --duration-micro: 120ms;
+            --duration-standard: 220ms;
+            --duration-medium: 320ms;
+            --duration-long: 450ms;
+
+            --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
+            --ease-exit: cubic-bezier(0.7, 0, 0.84, 0);
+            --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+
+            --dur-micro: var(--duration-micro);
+            --dur-default: var(--duration-standard);
+            --dur-medium: var(--duration-medium);
+            --dur-large: var(--duration-long);
+        }
+
+        i[data-lucide], svg.lucide {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            vertical-align: middle;
+        }
+        .cv-kpi-badge i[data-lucide],
+        .cv-kpi-badge svg.lucide {
+            width: 20px;
+            height: 20px;
+        }
+        .badge-notion i[data-lucide],
+        .badge-notion svg.lucide {
+            width: 14px;
+            height: 14px;
+        }
+        .cv-logo-icon i[data-lucide],
+        .cv-logo-icon svg.lucide {
+            width: 20px;
+            height: 20px;
         }
 
         *, *::before, *::after { box-sizing: border-box; }
@@ -94,12 +129,11 @@
             padding: 0;
         }
 
-        /* ---- SIDEBAR DE NAVEGAÇÃO (SEÇÃO 3.A) ---- */
         .cv-sidebar {
             position: fixed;
             top: 0; left: 0; bottom: 0;
             width: var(--sidebar-width);
-            background: var(--ink-700); /* Grafite escuro neutro #2c3136 */
+            background: var(--ink-700);
             border-right: 1px solid rgba(255, 255, 255, 0.08);
             padding: var(--space-6) var(--space-4) var(--space-5);
             z-index: 1060;
@@ -118,7 +152,6 @@
             margin-bottom: var(--space-6);
             padding: 0 var(--space-2);
         }
-        /* Badge de marca em verde-limão com texto quase-preto */
         .cv-sidebar-brand .cv-logo-icon {
             width: 40px; height: 40px;
             background: var(--accent-500);
@@ -146,12 +179,15 @@
             display: flex; align-items: center; gap: var(--space-3);
             padding: var(--space-2) var(--space-3); border-radius: var(--radius-md);
             font-size: 0.875rem; font-weight: 500; color: var(--ink-300);
-            text-decoration: none; transition: all 0.2s ease; margin-bottom: 2px;
+            text-decoration: none;
+            transition: background-color var(--dur-default) var(--ease-standard),
+                        color var(--dur-default) var(--ease-standard),
+                        border-color var(--dur-default) var(--ease-standard);
+            margin-bottom: 2px;
         }
         .cv-nav-item:hover {
             background: rgba(255, 255, 255, 0.06); color: #ffffff;
         }
-        /* Item ativo: fundo rgba(206,220,0,0.12), texto branco, ícone limão, borda 3px limão */
         .cv-nav-item.active {
             background: var(--accent-surface); color: #ffffff;
             font-weight: 600; border-left: 3px solid var(--accent-500);
@@ -165,22 +201,28 @@
             color: var(--accent-500);
         }
 
-        /* CTA de navegação (ex: Solicitar Equipamento) */
         .cv-sidebar-cta {
             display: flex; align-items: center; justify-content: center; gap: var(--space-2);
             padding: 10px 16px; border-radius: var(--radius-md);
             font-size: 0.875rem; font-weight: 600;
             background: var(--accent-500); color: var(--accent-on) !important;
             text-decoration: none; box-shadow: 0 4px 12px var(--accent-glow);
-            transition: all 0.2s ease; margin-bottom: var(--space-4);
+            transition: background-color var(--dur-default) var(--ease-standard),
+                        transform var(--dur-default) var(--ease-standard),
+                        box-shadow var(--dur-default) var(--ease-standard);
+            margin-bottom: var(--space-4);
         }
         .cv-sidebar-cta:hover {
             background: var(--accent-600);
             transform: translateY(-1px); box-shadow: 0 6px 16px var(--accent-glow);
             color: var(--accent-on) !important;
         }
+        .cv-sidebar-cta:active {
+            transform: translateY(0) scale(0.98);
+            box-shadow: 0 2px 6px var(--accent-glow);
+            transition-duration: var(--dur-micro);
+        }
 
-        /* Rodapé de usuário na Sidebar */
         .cv-sidebar-footer {
             margin-top: auto; padding-top: var(--space-4);
             border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -206,14 +248,20 @@
             width: 32px; height: 32px; border-radius: var(--radius-md);
             background: rgba(255, 255, 255, 0.06); color: var(--ink-300);
             display: flex; align-items: center; justify-content: center;
-            text-decoration: none; transition: all 0.2s ease; flex-shrink: 0;
+            text-decoration: none; flex-shrink: 0;
+            transition: background-color var(--dur-default) var(--ease-standard),
+                        color var(--dur-default) var(--ease-standard),
+                        transform var(--dur-default) var(--ease-standard);
         }
         .cv-btn-logout-dark:hover {
             background: var(--status-danger-bg); color: var(--status-danger-text);
             transform: translateY(-1px);
         }
+        .cv-btn-logout-dark:active {
+            transform: translateY(0) scale(0.96);
+            transition-duration: var(--dur-micro);
+        }
 
-        /* ---- MAIN LAYOUT COM CANVAS NEUTRO #f5f6f4 ---- */
         .cv-layout-wrap {
             min-height: 100vh;
             display: flex;
@@ -254,7 +302,6 @@
             .cv-content-body { padding: var(--space-5) var(--space-4); }
         }
 
-        /* ---- CARDS CORPORATIVOS (SEÇÃO 3.C) ---- */
         .card {
             background: var(--surface) !important;
             border: 1px solid var(--border) !important;
@@ -274,20 +321,26 @@
             padding: var(--space-4) var(--space-6) !important;
         }
 
-        /* ---- KPI CARDS (SEÇÃO 3.C) ---- */
         .cv-kpi {
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: var(--radius-card);
             box-shadow: var(--shadow-1);
             padding: var(--space-5) var(--space-6);
-            transition: all 0.2s ease;
+            transition: box-shadow var(--dur-default) var(--ease-standard),
+                        transform var(--dur-default) var(--ease-standard),
+                        border-color var(--dur-default) var(--ease-standard);
             cursor: pointer;
         }
         .cv-kpi:hover {
             box-shadow: var(--shadow-2);
             transform: translateY(-2px);
             border-color: #cbd0c8;
+        }
+        .cv-kpi:active {
+            transform: translateY(0);
+            box-shadow: var(--shadow-1);
+            transition-duration: var(--dur-micro);
         }
         .cv-kpi-label {
             font-size: 0.75rem; font-weight: 700; color: var(--ink-500);
@@ -297,7 +350,6 @@
             font-size: 2.25rem; font-weight: 800; color: var(--ink-900);
             font-family: var(--font-mono); line-height: 1.1;
         }
-        /* Badge circular de 40px com ícone escuro */
         .cv-kpi-badge {
             width: 40px; height: 40px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
@@ -310,7 +362,6 @@
         .cv-kpi-badge.yellow  { background: var(--status-warn-bg); color: var(--status-warn-text); }
         .cv-kpi-badge.neutral { background: var(--status-neutral-bg); color: var(--status-neutral-text); }
 
-        /* ---- TABELAS DE DADOS (SEÇÃO 3.E) ---- */
         .table-enterprise {
             margin-bottom: 0; border-collapse: separate; border-spacing: 0; width: 100%;
         }
@@ -331,12 +382,10 @@
         .table-enterprise tbody tr:last-child td:first-child { border-bottom-left-radius: 8px; }
         .table-enterprise tbody tr:last-child td:last-child { border-bottom-right-radius: 8px; }
 
-        /* Altura de linha uniforme e linha de prioridade crítica (Seções 3.E e 4) */
         .cv-table-uniform tbody tr { height: 52px; }
         .cv-table-uniform tbody td { height: 52px; padding-top: var(--space-2) !important; padding-bottom: var(--space-2) !important; }
         tr.is-urgent td:first-child { border-left: 3px solid var(--status-danger-text) !important; }
 
-        /* ---- BARRA DE PROGRESSO (SEÇÃO 3.E) ---- */
         .cv-progress {
             height: 8px !important; border-radius: 4px;
             background: var(--border); overflow: hidden;
@@ -344,38 +393,44 @@
         .cv-progress .progress-bar {
             border-radius: 4px;
             background: var(--accent-500) !important;
-            transition: width 0.3s ease;
         }
         .cv-progress .progress-bar.is-pending {
             background: #9aa0a6 !important;
         }
 
-        /* ---- BOTÕES CORPORATIVOS (SEÇÃO 3.D) ---- */
         .btn {
             font-family: var(--font-sans); font-size: 0.875rem; font-weight: 600;
             border-radius: var(--radius-md) !important; padding: 10px 20px; gap: 8px;
             display: inline-flex; align-items: center; justify-content: center;
-            transition: all 0.2s ease-in-out; line-height: 1.2;
+            transition: background-color var(--duration-standard) var(--ease-standard),
+                        color var(--duration-standard) var(--ease-standard),
+                        transform var(--duration-micro) var(--ease-standard),
+                        box-shadow var(--duration-standard) var(--ease-standard),
+                        border-color var(--duration-standard) var(--ease-standard);
+            line-height: 1.2;
         }
         .btn-sm { padding: 7px 14px; font-size: 0.8125rem; gap: 6px; }
 
-        /* Botão Primário: fundo limão, texto quase-preto (NUNCA branco!) */
         .btn-primary {
             background: var(--accent-500) !important; color: var(--accent-on) !important;
-            border: none !important; box-shadow: 0 4px 12px var(--accent-glow) !important;
+            border: none !important;
+            transition: transform var(--duration-micro) var(--ease-standard),
+                        box-shadow var(--duration-standard) var(--ease-standard),
+                        background-color var(--duration-standard) var(--ease-standard);
         }
         .btn-primary:hover {
             background: var(--accent-600) !important;
-            transform: translateY(-1px); box-shadow: 0 6px 16px var(--accent-glow) !important;
+            transform: translateY(-1px); box-shadow: 0 6px 16px rgba(206, 220, 0, 0.28) !important;
             color: var(--accent-on) !important;
         }
         .btn-primary:active {
             background: var(--accent-700) !important;
-            transform: translateY(0); box-shadow: 0 2px 6px var(--accent-glow) !important;
+            transform: translateY(0) scale(0.98);
+            box-shadow: 0 2px 6px var(--accent-glow) !important;
             color: var(--accent-on) !important;
+            transition-duration: var(--duration-micro);
         }
 
-        /* Botão Secundário Estrutural: fundo grafite escuro #2c3136, texto branco */
         .btn-secondary {
             background: var(--ink-700) !important; color: #ffffff !important;
             border: none !important; box-shadow: var(--shadow-1) !important;
@@ -384,12 +439,17 @@
             background: #3e444b !important; color: #ffffff !important;
             transform: translateY(-1px); box-shadow: var(--shadow-2) !important;
         }
+        .btn-secondary:active {
+            background: var(--ink-700) !important;
+            transform: translateY(0) scale(0.98);
+            box-shadow: var(--shadow-1) !important;
+            transition-duration: var(--dur-micro);
+        }
 
-        /* ---- GRUPOS DE BOTÕES / ABAS DE FILTRO (SEÇÃO 4.C) ---- */
         .btn-group {
             display: inline-flex !important;
             align-items: center !important;
-            gap: var(--space-2) !important; /* Espaçamento de 8px para evitar que botões fiquem colados */
+            gap: var(--space-2) !important;
             background: transparent !important;
             padding: 0 !important;
         }
@@ -398,7 +458,6 @@
             border-radius: var(--radius-md) !important;
             flex: 0 0 auto !important;
         }
-        /* Em grupos de filtro/visão: botão inativo é contornado/limpo e botão ativo é grafite sólido */
         .btn-group > .btn.btn-secondary:not(.active) {
             background: #ffffff !important;
             color: var(--ink-700) !important;
@@ -412,6 +471,10 @@
             color: var(--ink-900) !important;
             transform: translateY(-1px);
         }
+        .btn-group > .btn.btn-secondary:not(.active):active {
+            transform: translateY(0) scale(0.98);
+            transition-duration: var(--dur-micro);
+        }
         .btn-group > .btn.btn-secondary.active {
             background: var(--ink-700) !important;
             color: #ffffff !important;
@@ -420,7 +483,6 @@
             font-weight: 600;
         }
 
-        /* Botão Terciário / Outline */
         .btn-outline {
             background: #ffffff !important; color: var(--ink-900) !important;
             border: 1.5px solid var(--border) !important;
@@ -429,15 +491,28 @@
             background: var(--canvas) !important; border-color: #cbd0c8 !important;
             color: var(--ink-900) !important;
         }
+        .btn-outline:active {
+            background: var(--canvas) !important;
+            transform: translateY(0) scale(0.98);
+            transition-duration: var(--dur-micro);
+        }
 
-        /* Botões de Ação na Tabela (Seção 3.D) */
         .cv-btn-action {
             height: 32px; padding: 0 14px; font-size: 0.8125rem; font-weight: 600;
             border-radius: var(--radius-md) !important; display: inline-flex; align-items: center;
             justify-content: center; gap: 6px; white-space: nowrap; text-decoration: none;
-            transition: all 0.2s ease-in-out; line-height: 1;
+            transition: background-color var(--dur-default) var(--ease-standard),
+                        color var(--dur-default) var(--ease-standard),
+                        transform var(--dur-default) var(--ease-standard),
+                        box-shadow var(--dur-default) var(--ease-standard),
+                        border-color var(--dur-default) var(--ease-standard);
+            line-height: 1;
         }
         .cv-btn-action:hover { transform: translateY(-1px); }
+        .cv-btn-action:active {
+            transform: translateY(0) scale(0.97);
+            transition-duration: var(--dur-micro);
+        }
 
         .cv-btn-action-primary {
             background: var(--accent-500) !important; color: var(--accent-on) !important;
@@ -462,21 +537,31 @@
             border: 1px solid var(--border) !important;
         }
 
-        /* Micro-interação no botão trigger de Popover */
         .cv-btn-detail {
             display: inline-flex; align-items: center; justify-content: center;
             width: 26px; height: 26px; border-radius: 50%;
             border: 1px solid var(--border); background: #ffffff;
             color: var(--ink-500); font-size: 0.8125rem;
-            transition: all 0.2s ease; cursor: pointer; padding: 0;
+            transition: background-color var(--dur-default) var(--ease-standard),
+                        color var(--dur-default) var(--ease-standard),
+                        transform var(--dur-default) var(--ease-standard),
+                        border-color var(--dur-default) var(--ease-standard),
+                        box-shadow var(--dur-default) var(--ease-standard);
+            cursor: pointer; padding: 0;
             box-shadow: 0 1px 2px rgba(20, 23, 26, 0.04);
         }
         .cv-btn-detail:hover {
             background: var(--canvas); color: var(--ink-900);
-            transform: scale(1.08); border-color: #cbd0c8;
+            transform: translateY(-1px);
+            border-color: #cbd0c8;
+            box-shadow: 0 3px 8px rgba(20, 23, 26, 0.08);
+        }
+        .cv-btn-detail:active {
+            transform: translateY(0) scale(0.94);
+            box-shadow: 0 1px 2px rgba(20, 23, 26, 0.04);
+            transition-duration: var(--dur-micro);
         }
 
-        /* ---- POPOVER CORPORATIVO ENTERPRISE ---- */
         .popover {
             font-family: var(--font-sans); border: 1px solid var(--border) !important;
             border-radius: var(--radius-card) !important; box-shadow: var(--shadow-2) !important;
@@ -491,7 +576,6 @@
         }
         .popover-body { padding: var(--space-3) var(--space-4); font-size: 0.8125rem; color: var(--ink-900); }
 
-        /* ---- BADGES CORPORATIVOS NOTION STYLE ---- */
         .badge-notion {
             display: inline-flex; align-items: center; gap: 4px;
             padding: 3px 10px; border-radius: var(--radius-pill);
@@ -504,14 +588,14 @@
         .badge-notion-red    { background: var(--status-danger-bg);   color: var(--status-danger-text); }
         .badge-notion-purple { background: var(--status-purple-bg);   color: var(--status-purple-text); }
 
-        /* ---- FORMULÁRIOS E INPUTS ---- */
         .form-label { font-size: 0.8125rem; font-weight: 600; color: var(--ink-700); margin-bottom: var(--space-2); }
         .form-control, .form-select {
             background: var(--surface); border: 1.5px solid var(--border);
             border-radius: var(--radius-md) !important; color: var(--ink-900);
             font-family: var(--font-sans); font-size: 0.875rem; padding: 8px 12px; height: 40px;
             box-shadow: 0 1px 2px rgba(20, 23, 26, 0.02) !important;
-            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+            transition: border-color var(--dur-micro) var(--ease-standard),
+                        box-shadow var(--dur-micro) var(--ease-standard);
         }
         .form-control:focus, .form-select:focus {
             border-color: var(--accent-500) !important;
@@ -520,7 +604,6 @@
         .input-group-text { background: var(--canvas); border: 1.5px solid var(--border); color: var(--ink-500); font-size: 0.875rem; }
         .form-text { font-size: 0.8125rem; color: var(--ink-500); margin-top: 4px; }
 
-        /* ---- CABEÇALHO DE PÁGINA (SEÇÃO 3.B) ---- */
         .cv-page-banner {
             display: flex; align-items: center; justify-content: space-between;
             gap: var(--space-4); flex-wrap: wrap; margin-bottom: var(--space-6);
@@ -534,7 +617,6 @@
         }
         .cv-page-subtitle { font-size: 0.875rem; color: var(--ink-500); margin: 4px 0 0 0; }
 
-        /* Realce estilo highlight da marca Ambipar (Seção 3.B) */
         .cv-highlight {
             background: var(--accent-500);
             color: var(--accent-on);
@@ -544,7 +626,6 @@
             font-weight: 800;
         }
 
-        /* ---- EMPTY STATE ---- */
         .cv-empty-state {
             display: flex; flex-direction: column; align-items: center;
             justify-content: center; padding: var(--space-12) var(--space-8);
@@ -554,13 +635,11 @@
         .cv-empty-title { font-size: 1rem; font-weight: 700; color: var(--ink-700); }
         .cv-empty-text { font-size: 0.875rem; color: var(--ink-500); }
 
-        /* ---- BREADCRUMB ---- */
         .cv-breadcrumb { display: flex; align-items: center; gap: var(--space-2); font-size: 0.8125rem; color: var(--ink-300); margin-bottom: var(--space-4); }
         .cv-breadcrumb a { color: var(--ink-500); text-decoration: none; font-weight: 500; }
         .cv-breadcrumb a:hover { color: var(--ink-900); }
         .cv-breadcrumb .current { color: var(--ink-900); font-weight: 600; }
 
-        /* ---- STEPPER / TIMELINE ---- */
         .notion-stepper { display: inline-flex; align-items: center; gap: 6px; }
         .notion-stepper .step-pill {
             display: inline-flex; align-items: center; padding: 2px 8px; border-radius: var(--radius-pill);
@@ -580,15 +659,104 @@
             font-family: var(--font-mono); font-size: 0.8125rem; color: var(--ink-900);
             background: var(--status-neutral-bg); padding: 2px 6px; border-radius: var(--radius-sm);
         }
+
+        /* Modal — entrada e saída simétricas (Seção 6.E e 9.B) */
+        .modal {
+            opacity: 0;
+            transform: scale(0.96) translateY(8px);
+            transition: opacity var(--duration-medium) var(--ease-enter),
+                        transform var(--duration-medium) var(--ease-enter);
+        }
+        .modal.is-open {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+        .modal.is-closing {
+            opacity: 0;
+            transform: scale(0.96) translateY(8px);
+            transition-duration: 200ms;
+            transition-timing-function: var(--ease-exit);
+        }
+
+        .modal.fade .modal-dialog {
+            transform: scale(0.96) translateY(8px);
+            opacity: 0;
+            transition: transform 200ms var(--ease-exit),
+                        opacity 200ms var(--ease-exit) !important;
+        }
+        .modal.show .modal-dialog {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+            transition: transform var(--duration-medium) var(--ease-enter),
+                        opacity var(--duration-medium) var(--ease-enter) !important;
+        }
+        .modal-backdrop.fade {
+            transition: opacity 200ms var(--ease-enter) !important;
+        }
+        .modal-backdrop.fade:not(.show) {
+            transition: opacity 200ms var(--ease-exit) !important;
+        }
+
+        /* Dropdowns — transições simétricas */
+        .dropdown-menu {
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-2);
+            opacity: 0;
+            transform: translateY(-6px) scale(0.98);
+            transform-origin: top right;
+            transition: opacity var(--duration-standard) var(--ease-exit),
+                        transform var(--duration-standard) var(--ease-exit);
+            display: block;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        .dropdown-menu.show {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            visibility: visible;
+            pointer-events: auto;
+            transition: opacity var(--duration-standard) var(--ease-enter),
+                        transform var(--duration-standard) var(--ease-enter);
+        }
+
+        /* Drawers e Offcanvas */
+        .drawer, .offcanvas {
+            transition: transform var(--duration-medium) var(--ease-exit),
+                        visibility var(--duration-medium) var(--ease-exit);
+        }
+        .drawer.is-open, .offcanvas.show {
+            transition: transform var(--duration-medium) var(--ease-enter);
+        }
+
+        /* Expansão de linha de tabela */
+        .table-row-expandable {
+            transition: background-color var(--duration-standard) var(--ease-standard);
+        }
+        .table-row-details {
+            transition: max-height var(--duration-medium) var(--ease-enter),
+                        opacity var(--duration-medium) var(--ease-enter);
+        }
+        .table-row-details.is-closing {
+            transition: max-height 200ms var(--ease-exit),
+                        opacity 200ms var(--ease-exit);
+        }
+
+        /* Respeito a prefers-reduced-motion — Seção 6.H / 9.B, obrigatório */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="cv-layout-wrap">
         {% if current_user.is_authenticated %}
-        <!-- SIDEBAR ESCURA #0f172a (SEÇÃO 7.A) -->
         <aside class="cv-sidebar">
             <a class="cv-sidebar-brand" href="{% if current_user.role == 'coordenador' %}/meus-chamados{% else %}/{% endif %}">
-                <div class="cv-logo-icon"><i class="bi bi-shield-check"></i></div>
+                <div class="cv-logo-icon"><i data-lucide="shield-check"></i></div>
                 <div>
                     <span class="cv-logo-name">Cavere</span>
                     <span class="cv-logo-sub">Ambipar Response</span>
@@ -620,7 +788,6 @@
             </a>
             {% endif %}
 
-            <!-- Perfil do Usuário na Base da Sidebar -->
             <div class="cv-sidebar-footer">
                 <div class="cv-user-avatar">{{ current_user.username[0]|upper }}</div>
                 <div class="cv-user-details">
@@ -633,10 +800,8 @@
         <div class="cv-sidebar-spacer"></div>
         {% endif %}
 
-        <!-- ÁREA DE CONTEÚDO PRINCIPAL -->
         <div class="cv-content-area">
             {% if current_user.is_authenticated %}
-            <!-- Topbar Elegante de Navegação -->
             <header class="cv-topbar">
                 <div class="cv-topbar-breadcrumb">
                     <i class="bi bi-geo-alt text-muted"></i>
@@ -676,11 +841,13 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Inicialização global de popovers Bootstrap
             const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
             popoverTriggerList.map(function (popoverTriggerEl) {
                 return new bootstrap.Popover(popoverTriggerEl, { sanitize: false });
             });
+            if (window.lucide) {
+                lucide.createIcons();
+            }
         });
     </script>
 </body>

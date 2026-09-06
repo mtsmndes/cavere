@@ -13,14 +13,14 @@
     {% endif %}
 {% endfor %}
 
-<!-- Breadcrumb -->
+
 <div class="cv-breadcrumb">
     <a href="/"><i class="bi bi-grid-1x2 me-1"></i>Painel Principal</a>
     <span class="sep">/</span>
     <span class="current">Histórico Geral de Cautelas</span>
 </div>
 
-<!-- Page Header (Seções 7.C e 7.F) -->
+
 <div class="cv-page-banner">
     <div>
         <h1 class="cv-page-title">Histórico Geral de Cautelas</h1>
@@ -33,7 +33,7 @@
     </div>
 </div>
 
-<!-- KPI Cards (Seções 7.C e 7.F) -->
+
 <div class="row g-4" style="margin-bottom:var(--space-6);">
     <div class="col-sm-4">
         <div class="cv-kpi" onclick="filtrarStatusRapido('Todos')" title="Clique para exibir todas as cautelas">
@@ -43,7 +43,7 @@
                     <div class="cv-kpi-value-hero">{{ contadores.Total }}</div>
                 </div>
                 <div class="cv-kpi-badge neutral">
-                    <i class="bi bi-collection"></i>
+                    <i data-lucide="layers"></i>
                 </div>
             </div>
         </div>
@@ -56,7 +56,7 @@
                     <div class="cv-kpi-value-hero" style="color:#1e40af;">{{ contadores['Em Campo'] }}</div>
                 </div>
                 <div class="cv-kpi-badge blue">
-                    <i class="bi bi-broadcast"></i>
+                    <i data-lucide="radio"></i>
                 </div>
             </div>
         </div>
@@ -69,16 +69,14 @@
                     <div class="cv-kpi-value-hero" style="color:#166534;">{{ contadores.Devolvido }}</div>
                 </div>
                 <div class="cv-kpi-badge accent">
-                    <i class="bi bi-check2-circle"></i>
+                    <i data-lucide="check-circle-2"></i>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- PAINEL DE PESQUISA & FILTROS AVANÇADOS (SEÇÃO 7.C)            -->
-<!-- ============================================================ -->
+
 <div class="card" style="margin-bottom:var(--space-5);" id="painelPesquisaCautelas">
     <div class="card-header" style="background:#f8fafc !important; border-bottom:1px solid var(--border-subtle) !important;">
         <div style="display:flex; align-items:center; gap:var(--space-2);">
@@ -89,7 +87,6 @@
     </div>
     <div class="card-body">
         <div class="row g-3">
-            <!-- Termo de Busca Geral -->
             <div class="col-lg-4 col-md-12">
                 <label class="form-label" for="campoBuscaTexto">
                     <i class="bi bi-fonts me-1 text-muted"></i> Busca por Termo
@@ -105,7 +102,6 @@
                 <div class="form-text">Pesquise por qualquer palavra-chave ou código.</div>
             </div>
 
-            <!-- Filtro por Status -->
             <div class="col-lg-2 col-md-4 col-sm-6">
                 <label class="form-label" for="filtroStatusSelect">
                     <i class="bi bi-flag me-1 text-muted"></i> Situação
@@ -117,7 +113,6 @@
                 </select>
             </div>
 
-            <!-- Filtro por Tipo de Equipamento -->
             <div class="col-lg-3 col-md-4 col-sm-6">
                 <label class="form-label" for="filtroTipoSelect">
                     <i class="bi bi-hdd-stack me-1 text-muted"></i> Tipo de Equipamento
@@ -130,7 +125,6 @@
                 </select>
             </div>
 
-            <!-- Filtro por Coordenador Responsável -->
             <div class="col-lg-3 col-md-4 col-sm-12">
                 <label class="form-label" for="filtroCoordSelect">
                     <i class="bi bi-person me-1 text-muted"></i> Coordenador
@@ -144,7 +138,6 @@
             </div>
         </div>
 
-        <!-- Filtros por Período de Data -->
         <div class="row g-3 mt-1 pt-3" style="border-top:1px dashed var(--border-subtle);">
             <div class="col-lg-3 col-md-6">
                 <label class="form-label" for="filtroDataInicio">
@@ -159,7 +152,6 @@
                 <input type="date" class="form-control" id="filtroDataFim" onchange="executarFiltrosCautelas()">
             </div>
 
-            <!-- Ações e Contador -->
             <div class="col-lg-6 col-md-12 d-flex align-items-end justify-content-between flex-wrap gap-2">
                 <div style="font-size:0.875rem; color:var(--text-secondary); display:flex; align-items:center; gap:var(--space-2);">
                     <i class="bi bi-funnel text-primary"></i>
@@ -175,9 +167,7 @@
     </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- TABELA DE RESULTADOS (SEÇÃO 7.D)                             -->
-<!-- ============================================================ -->
+
 <div class="card">
     <div class="card-header">
         <div style="display:flex; align-items:center; gap:var(--space-3);">
@@ -189,7 +179,6 @@
                 <div style="font-size:0.8125rem; color:var(--text-secondary);">Histórico auditável e termos em PDF</div>
             </div>
         </div>
-        <!-- Abas Rápidas de Status -->
         <div class="btn-group btn-group-sm" id="grupoFiltrosStatus">
             <button type="button" class="btn btn-secondary active" id="filtroBtn-Todos" onclick="filtrarStatusRapido('Todos')">
                 Todos <span class="badge-notion badge-notion-gray ms-1" style="font-size:0.7rem;">{{ contadores.Total }}</span>
@@ -227,12 +216,10 @@
                     data-coordenador="{{ c.coordenador }}"
                     data-data="{{ c.data_saida[:10] if c.data_saida else '' }}"
                     data-busca="{{ c.id }} {{ c.id_solicitacao or '' }} {{ c.tipo }} {{ c.modelo }} {{ c.patrimonio_sn }} {{ c.coordenador }} {{ c.rdo }} {{ c.status }} {{ c.data_saida }}">
-                    <!-- ID Cautela -->
                     <td class="ps-4">
                         <code style="font-size:0.8125rem; font-weight:700;">#CAU-{{ c.id }}</code>
                     </td>
 
-                    <!-- Chamado Vinculado -->
                     <td>
                         {% if c.id_solicitacao %}
                         <span class="badge-notion badge-notion-blue">#SOL-{{ c.id_solicitacao }}</span>
@@ -241,50 +228,43 @@
                         {% endif %}
                     </td>
 
-                    <!-- Equipamento & Modelo -->
                     <td>
                         <div style="font-weight:600; font-size:0.875rem;">{{ c.tipo }}</div>
                         <div style="font-size:0.8125rem; color:var(--text-muted);">{{ c.modelo }}</div>
                     </td>
 
-                    <!-- Patrimônio / SN -->
                     <td>
                         <code style="font-size:0.75rem;">{{ c.patrimonio_sn }}</code>
                     </td>
 
-                    <!-- Coordenador -->
                     <td>
                         <div style="display:flex; align-items:center; gap:var(--space-2);">
-                            <div style="width:26px;height:26px;border-radius:50%;background:rgba(0, 200, 83, 0.12);color:var(--color-accent-hover);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;flex-shrink:0;">
+                            <div style="width:26px;height:26px;border-radius:50%;background:rgba(206,220,0,0.18);color:var(--ink-900);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;flex-shrink:0;">
                                 {{ c.coordenador[0]|upper if c.coordenador else '?' }}
                             </div>
                             <span style="font-size:0.875rem; font-weight:500;">{{ c.coordenador }}</span>
                         </div>
                     </td>
 
-                    <!-- RDO -->
                     <td><code>{{ c.rdo }}</code></td>
 
-                    <!-- Data de Saída -->
                     <td>
                         <div style="font-size:0.875rem; font-family:var(--font-mono);">{{ c.data_saida }}</div>
                     </td>
 
-                    <!-- Situação -->
                     <td>
                         {% if c.status == 'Devolvido' %}
                         <div>
-                            <span class="badge-notion badge-notion-green"><i class="bi bi-check2 me-1"></i>Devolvido</span>
+                            <span class="badge-notion badge-notion-green"><i data-lucide="check-circle" class="me-1"></i>Devolvido</span>
                             {% if c.data_devolucao %}
                             <div style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono); margin-top:2px;">{{ c.data_devolucao }}</div>
                             {% endif %}
                         </div>
                         {% else %}
-                        <span class="badge-notion badge-notion-blue"><i class="bi bi-broadcast me-1"></i>Em Campo</span>
+                        <span class="badge-notion badge-notion-blue"><i data-lucide="radio" class="me-1"></i>Em Campo</span>
                         {% endif %}
                     </td>
 
-                    <!-- Termo PDF -->
                     <td class="text-center">
                         {% if c.pdf_nome %}
                         <a href="/cautelas/{{ c.pdf_nome }}" target="_blank" class="cv-btn-action cv-btn-action-secondary" style="height:28px; font-size:0.75rem; padding:0 10px;" title="Visualizar Termo em PDF">
@@ -295,7 +275,6 @@
                         {% endif %}
                     </td>
 
-                    <!-- Ação Operacional -->
                     <td class="text-center pe-4">
                         {% if c.status == 'Em Campo' and c.id_equipamento %}
                         <a href="/devolver/{{ c.id_equipamento }}" class="cv-btn-action cv-btn-action-secondary" style="height:28px; font-size:0.75rem; padding:0 10px;" title="Registrar devolução de ativo">
@@ -344,19 +323,18 @@
         const dataInicio = document.getElementById('filtroDataInicio')?.value || '';
         const dataFim = document.getElementById('filtroDataFim')?.value || '';
 
-        // Sincroniza visualização das abas rápidas
         document.querySelectorAll('#grupoFiltrosStatus button').forEach(b => b.classList.remove('active'));
         const btnTabId = 'filtroBtn-' + statusSel.replace(/\s/g, '');
         const btnTab = document.getElementById(btnTabId);
         if (btnTab) btnTab.classList.add('active');
 
-        // Mostra ou oculta botão rápido de limpar texto
         const btnLimparTexto = document.getElementById('btnLimparBuscaTexto');
         if (btnLimparTexto) {
             btnLimparTexto.style.display = texto ? 'block' : 'none';
         }
 
         let totalExibidas = 0;
+        let visibleIndex = 0;
         const linhas = document.querySelectorAll('.linha-cautela');
 
         linhas.forEach(function(linha) {
@@ -380,25 +358,43 @@
             }
 
             const visivel = coincideTexto && coincideStatus && coincideTipo && coincideCoord && coincideData;
-            linha.style.display = visivel ? '' : 'none';
-            if (visivel) totalExibidas++;
+
+            if (!visivel) {
+                linha.style.display = 'none';
+                linha.style.opacity = '';
+                linha.style.transform = '';
+                linha.style.transition = '';
+            } else {
+                const delay = visibleIndex < 8 ? visibleIndex * 25 : 0;
+                linha.style.display = '';
+                linha.style.opacity = '0';
+                linha.style.transform = 'translateY(4px)';
+                linha.style.transition = 'none';
+                requestAnimationFrame(function() {
+                    linha.style.transition = 'opacity 200ms cubic-bezier(0.4,0,0.2,1) ' + delay + 'ms, transform 200ms cubic-bezier(0.16,1,0.3,1) ' + delay + 'ms';
+                    linha.style.opacity = '1';
+                    linha.style.transform = 'translateY(0)';
+                });
+                totalExibidas++;
+                visibleIndex++;
+            }
         });
 
-        // Atualiza contador de resultados
         const contador = document.getElementById('contadorResultados');
         if (contador) contador.textContent = totalExibidas;
 
-        // Atualiza badge de filtros ativos
         const badgeFiltro = document.getElementById('badgeFiltroAtivo');
         const temFiltroAtivo = texto !== '' || statusSel !== 'Todos' || tipoSel !== 'Todos' || coordSel !== 'Todos' || dataInicio !== '' || dataFim !== '';
         if (badgeFiltro) {
             badgeFiltro.style.display = temFiltroAtivo ? 'inline-flex' : 'none';
         }
 
-        // Mensagem de zero resultados
         const linhaVazia = document.getElementById('linhaNenhumResultado');
         if (linhaVazia) {
             linhaVazia.classList.toggle('d-none', totalExibidas > 0);
+        }
+        if (window.lucide) {
+            lucide.createIcons();
         }
     }
 

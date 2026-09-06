@@ -2,7 +2,6 @@
 {% block content %}
 <div style="max-width:780px; margin:0 auto;">
 
-    <!-- Breadcrumb -->
     <div class="cv-breadcrumb">
         <a href="/meus-chamados"><i class="bi bi-card-checklist me-1"></i>Meus Chamados</a>
         <span class="sep">/</span>
@@ -12,15 +11,14 @@
     <div class="card">
         <div class="card-header">
             <div style="display:flex; align-items:center; gap:var(--space-3);">
-                <div style="width:36px;height:36px;border-radius:var(--radius-md);background:rgba(0, 200, 83, 0.12);display:flex;align-items:center;justify-content:center;color:var(--color-accent-hover);box-shadow:0 2px 6px rgba(0,200,83,0.15);">
+                <div style="width:36px;height:36px;border-radius:var(--radius-md);background:var(--status-success-bg);display:flex;align-items:center;justify-content:center;color:var(--status-success-text);">
                     <i class="bi bi-inbox fs-5"></i>
                 </div>
                 <div>
-                    <div style="font-size:1rem; font-weight:700; color:var(--text-primary);">Abertura de Chamado de Equipamento</div>
-                    <div style="font-size:0.8125rem; color:var(--text-secondary);">Solicitante: <strong>{{ nome_coordenador }}</strong> (#{{ id_coordenador }})</div>
+                    <div style="font-size:1rem; font-weight:700; color:var(--ink-900);">Abertura de Chamado de Equipamento</div>
+                    <div style="font-size:0.8125rem; color:var(--ink-500);">Solicitante: <strong>{{ nome_coordenador }}</strong> (#{{ id_coordenador }})</div>
                 </div>
             </div>
-            <span class="badge-notion badge-notion-green"><i class="bi bi-shield-check me-1"></i>Chamado Seguro</span>
         </div>
 
         <div class="card-body">
@@ -29,22 +27,22 @@
                 <!-- Seção 1: Ativo & Quantidade -->
                 <div style="margin-bottom:var(--space-6);">
                     <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-4); padding-bottom:var(--space-3); border-bottom:1px solid var(--border-subtle);">
-                        <span style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg, #00C853, #00b048);color:#fff;font-size:0.75rem;font-weight:700;flex-shrink:0;box-shadow:0 2px 6px rgba(0,200,83,0.3);">1</span>
-                        <span style="font-size:0.8125rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-secondary);">Ativo & Quantidade</span>
+                        <span style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--ink-700);color:#fff;font-size:0.75rem;font-weight:700;flex-shrink:0;">1</span>
+                        <span style="font-size:0.8125rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-500);">Ativo &amp; Quantidade</span>
                     </div>
                     <div class="row g-3">
                         <div class="col-md-8">
                             <label class="form-label" for="tipo_equipamento">Tipo de Equipamento <span style="color:var(--status-danger-text);">*</span></label>
                             <select class="form-select" name="tipo_equipamento" id="tipo_equipamento" required>
                                 <option value="" disabled selected>Selecione o tipo de equipamento...</option>
-                                <option value="Rádio Comunicador (VHF / UHF / Intrínseco)">📻 Rádio Comunicador (VHF / UHF / Intrínseco)</option>
-                                <option value="Celular / Smartphone Corporativo (Com PTT)">📱 Celular / Smartphone Corporativo (Com PTT)</option>
-                                <option value="Câmera Fotográfica Intrinsecamente Segura">📷 Câmera Fotográfica Intrinsecamente Segura</option>
-                                <option value="Tablet Operacional / Rugged Industrial">📟 Tablet Operacional / Rugged Industrial</option>
-                                <option value="Detector de Gases / Multigás">🧪 Detector de Gases / Multigás</option>
-                                <option value="Notebook / Estação Móvel de Operações">💻 Notebook / Estação Móvel de Operações</option>
-                                <option value="Kit Completo de Comunicação">🧰 Kit Completo de Comunicação</option>
-                                <option value="Outro Equipamento Operacional">⚙️ Outro Equipamento Operacional</option>
+                                <option value="Rádio Comunicador (VHF / UHF / Intrínseco)">Rádio Comunicador (VHF / UHF / Intrínseco)</option>
+                                <option value="Celular / Smartphone Corporativo (Com PTT)">Celular / Smartphone Corporativo (Com PTT)</option>
+                                <option value="Câmera Fotográfica Intrinsecamente Segura">Câmera Fotográfica Intrinsecamente Segura</option>
+                                <option value="Tablet Operacional / Rugged Industrial">Tablet Operacional / Rugged Industrial</option>
+                                <option value="Detector de Gases / Multigás">Detector de Gases / Multigás</option>
+                                <option value="Notebook / Estação Móvel de Operações">Notebook / Estação Móvel de Operações</option>
+                                <option value="Kit Completo de Comunicação">Kit Completo de Comunicação</option>
+                                <option value="Outro Equipamento Operacional">Outro Equipamento Operacional</option>
                             </select>
                         </div>
                         <div class="col-md-4">
@@ -60,8 +58,8 @@
                 <!-- Seção 2: Destinatário & Destino -->
                 <div style="margin-bottom:var(--space-6);">
                     <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-4); padding-bottom:var(--space-3); border-bottom:1px solid var(--border-subtle);">
-                        <span style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg, #00C853, #00b048);color:#fff;font-size:0.75rem;font-weight:700;flex-shrink:0;box-shadow:0 2px 6px rgba(0,200,83,0.3);">2</span>
-                        <span style="font-size:0.8125rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-secondary);">Destinatário & Destino</span>
+                        <span style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--ink-700);color:#fff;font-size:0.75rem;font-weight:700;flex-shrink:0;">2</span>
+                        <span style="font-size:0.8125rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-500);">Destinatário &amp; Destino</span>
                     </div>
                     <div class="row g-3">
                         <div class="col-md-6">
@@ -99,8 +97,8 @@
                 <!-- Seção 3: Planejamento & Detalhes -->
                 <div style="margin-bottom:var(--space-6);">
                     <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-4); padding-bottom:var(--space-3); border-bottom:1px solid var(--border-subtle);">
-                        <span style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg, #00C853, #00b048);color:#fff;font-size:0.75rem;font-weight:700;flex-shrink:0;box-shadow:0 2px 6px rgba(0,200,83,0.3);">3</span>
-                        <span style="font-size:0.8125rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-secondary);">Planejamento & Detalhes</span>
+                        <span style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--ink-700);color:#fff;font-size:0.75rem;font-weight:700;flex-shrink:0;">3</span>
+                        <span style="font-size:0.8125rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-500);">Planejamento &amp; Detalhes</span>
                     </div>
                     <div class="row g-3">
                         <div class="col-md-4">
@@ -127,7 +125,6 @@
                     </div>
                 </div>
 
-                <!-- Botões -->
                 <div style="display:flex; justify-content:space-between; align-items:center; padding-top:var(--space-4); border-top:1px solid var(--border-subtle);">
                     <a href="/meus-chamados" class="btn btn-secondary btn-sm">Cancelar</a>
                     <button type="submit" class="btn btn-primary btn-sm">

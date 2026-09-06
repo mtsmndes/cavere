@@ -2,7 +2,7 @@
 {% block content %}
 <div style="max-width:600px; margin:0 auto;">
 
-    <!-- Breadcrumb -->
+
     <div class="cv-breadcrumb">
         <a href="/"><i class="bi bi-grid-1x2 me-1"></i>Painel Principal</a>
         <span class="sep">/</span>
@@ -12,7 +12,7 @@
     <div class="card">
         <div class="card-header">
             <div style="display:flex; align-items:center; gap:var(--space-3);">
-                <div style="width:36px;height:36px;border-radius:var(--radius-md);background:rgba(0, 200, 83, 0.12);display:flex;align-items:center;justify-content:center;color:var(--color-accent-hover);box-shadow:0 2px 6px rgba(0,200,83,0.15);">
+                <div style="width:36px;height:36px;border-radius:var(--radius-md);background:var(--status-success-bg);display:flex;align-items:center;justify-content:center;color:var(--status-success-text);">
                     <i class="bi bi-person-gear fs-5"></i>
                 </div>
                 <div>
@@ -25,7 +25,7 @@
         <div class="card-body">
             <form action="/cadastrar-usuario" method="POST" id="formNovoUsuario">
 
-                <!-- Perfil de Acesso -->
+
                 <div style="margin-bottom:var(--space-5);">
                     <label class="form-label" for="selectRole">Perfil de Acesso (Papel) <span style="color:var(--status-danger-text);">*</span></label>
                     <select class="form-select" name="role" id="selectRole" onchange="alternarCamposCoordenador()" required>
@@ -34,7 +34,6 @@
                     </select>
                 </div>
 
-                <!-- Bloco de Dados do Coordenador -->
                 <div id="blocoCoordenador" style="background:var(--canvas); border:1px solid var(--border-default); border-radius:var(--radius-md); padding:var(--space-5); margin-bottom:var(--space-5);">
                     <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-4); padding-bottom:var(--space-3); border-bottom:1px solid var(--border-subtle);">
                         <i class="bi bi-person-badge" style="color:var(--status-info-text);"></i>
@@ -44,8 +43,7 @@
 
                     <div style="margin-bottom:var(--space-4);">
                         <label class="form-label" for="campoIdCustom">ID do Coordenador <span style="color:var(--text-muted); font-weight:400;">(Opcional)</span></label>
-                        <input type="number" class="form-control" name="id_custom" id="campoIdCustom"
-                            placeholder="Ex: 10 (Deixe em branco para numeração automática)">
+                        <input type="number" class="form-control" name="id_custom" id="campoIdCustom" placeholder="Ex: 10">
                         <div class="form-text">Escolha um ID específico ou deixe em branco para auto-incremento.</div>
                     </div>
 
@@ -65,7 +63,7 @@
                     </div>
                 </div>
 
-                <!-- Credenciais de Login -->
+
                 <div style="margin-bottom:var(--space-4);">
                     <label class="form-label" for="campoUsername">Nome de Usuário (Login) <span style="color:var(--status-danger-text);">*</span></label>
                     <div class="input-group">
@@ -89,7 +87,6 @@
                     <div class="form-text">Senha criptografada com hash scrypt seguro.</div>
                 </div>
 
-                <!-- Exigir Troca de Senha no Primeiro Acesso -->
                 <div class="form-check form-switch" style="margin-bottom:var(--space-6); background:var(--canvas); padding:var(--space-3) var(--space-4) var(--space-3) 2.5rem; border-radius:var(--radius-md); border:1px solid var(--border-default);">
                     <input class="form-check-input" type="checkbox" id="checkTrocarSenha" name="trocar_senha" value="1" checked style="cursor:pointer;">
                     <label class="form-check-label" for="checkTrocarSenha" style="font-size:0.875rem; font-weight:600; color:var(--text-primary); cursor:pointer;">
@@ -100,7 +97,6 @@
                     </div>
                 </div>
 
-                <!-- Botões -->
                 <div style="display:flex; justify-content:space-between; align-items:center; padding-top:var(--space-4); border-top:1px solid var(--border-subtle);">
                     <a href="/" class="btn btn-secondary btn-sm">Cancelar</a>
                     <button type="submit" class="btn btn-primary btn-sm" id="btnSubmit">

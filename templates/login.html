@@ -10,15 +10,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <style>
         :root {
             --font-sans: 'Inter', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             --font-mono: 'JetBrains Mono', monospace;
 
-            /* ============================================================ */
-            /* PALETA AMBIPAR CORPORATE EDITION (DESIGN SYSTEM OFICIAL)     */
-            /* ============================================================ */
-            /* Cor de Acento (Verde-Limão) */
+
             --accent-500: #CEDC00;
             --accent-600: #B8C400;
             --accent-700: #9DA800;
@@ -28,16 +26,16 @@
             --accent-surface: rgba(206, 220, 0, 0.12);
 
             /* Base Neutra Estrutural */
-            --ink-900: #14171a; /* Texto primário / headings */
-            --ink-700: #2c3136; /* Grafite estrutural neutro */
-            --ink-500: #5b6168; /* Texto secundário / muted */
-            --ink-300: #9aa0a6; /* Desabilitado / ícones sutis */
+            --ink-900: #14171a;
+            --ink-700: #2c3136;
+            --ink-500: #5b6168;
+            --ink-300: #9aa0a6;
 
             /* Superfícies Claras */
-            --canvas: #f5f6f4;        /* Fundo global corporativo */
-            --surface: #ffffff;       /* Card de login */
-            --border: #e4e6e1;        /* Borda padrão */
-            --border-subtle: #edefec; /* Divisores */
+            --canvas: #f5f6f4;
+            --surface: #ffffff;
+            --border: #e4e6e1;
+            --border-subtle: #edefec;
 
             /* Estados e Badges Semânticos */
             --status-success-bg: #e3f5d8;
@@ -61,6 +59,33 @@
 
             /* Elevação */
             --shadow-card: 0 12px 32px -4px rgba(20, 23, 26, 0.08), 0 4px 12px -2px rgba(20, 23, 26, 0.04);
+
+            /* Sistema de Movimento — Seções 6 e 9.B */
+            --duration-micro: 120ms;
+            --duration-standard: 220ms;
+            --duration-medium: 320ms;
+            --duration-long: 450ms;
+
+            --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
+            --ease-exit: cubic-bezier(0.7, 0, 0.84, 0);
+            --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+
+            --dur-micro: var(--duration-micro);
+            --dur-default: var(--duration-standard);
+            --dur-medium: var(--duration-medium);
+            --dur-large: var(--duration-long);
+        }
+
+        i[data-lucide], svg.lucide {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            vertical-align: middle;
+        }
+        .auth-logo-badge i[data-lucide],
+        .auth-logo-badge svg.lucide {
+            width: 24px;
+            height: 24px;
         }
 
         *, *::before, *::after {
@@ -98,7 +123,6 @@
             align-items: center;
         }
 
-        /* Branding Header */
         .auth-brand {
             text-align: center;
             margin-bottom: var(--space-6);
@@ -119,7 +143,8 @@
             font-size: 1.625rem;
             box-shadow: 0 6px 20px var(--accent-glow);
             margin-bottom: var(--space-3);
-            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+            transition: transform 220ms cubic-bezier(0.4, 0, 0.2, 1),
+                        box-shadow 220ms cubic-bezier(0.4, 0, 0.2, 1);
             border: 1px solid rgba(255, 255, 255, 0.4);
         }
 
@@ -140,7 +165,6 @@
             gap: 8px;
         }
 
-        /* Assinatura de Marca Ambipar: Realce de Palavra-chave (Seção 3.B / 6 da Skill) */
         .brand-meta {
             display: inline-flex;
             align-items: center;
@@ -161,7 +185,6 @@
             text-transform: uppercase;
         }
 
-        /* Flash Messages */
         .auth-alerts {
             width: 100%;
             margin-bottom: var(--space-4);
@@ -194,7 +217,6 @@
         }
         .auth-alert .btn-close:hover { opacity: 1; }
 
-        /* Card Corporativo */
         .auth-card {
             width: 100%;
             background: var(--surface);
@@ -228,7 +250,6 @@
             line-height: 1.4;
         }
 
-        /* Controles de Formulário */
         .form-group {
             margin-bottom: var(--space-4);
         }
@@ -248,7 +269,8 @@
             border: 1.5px solid var(--border);
             border-radius: var(--radius-md);
             background: #ffffff;
-            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+            transition: border-color 100ms cubic-bezier(0.4, 0, 0.2, 1),
+                        box-shadow 100ms cubic-bezier(0.4, 0, 0.2, 1);
             overflow: hidden;
             width: 100%;
         }
@@ -267,7 +289,7 @@
             color: var(--ink-500);
             font-size: 1.05rem;
             flex-shrink: 0;
-            transition: color 0.15s ease;
+            transition: color 100ms cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .cv-input-box:focus-within .cv-input-icon {
@@ -306,7 +328,8 @@
             cursor: pointer;
             padding: 0;
             flex-shrink: 0;
-            transition: color 0.15s ease, background-color 0.15s ease;
+            transition: color 220ms cubic-bezier(0.4, 0, 0.2, 1),
+                        background-color 220ms cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .btn-toggle-pw:hover {
@@ -314,12 +337,11 @@
             background-color: var(--canvas);
         }
 
-        /* Botão de Submissão Primário (Seção 3.D da Skill) */
         .btn-submit {
             width: 100%;
             height: 46px;
             background: var(--accent-500);
-            color: var(--accent-on); /* REGRA CRÍTICA: Texto escuro sobre o limão */
+            color: var(--accent-on);
             border: none;
             border-radius: var(--radius-md);
             font-size: 0.9rem;
@@ -330,7 +352,9 @@
             justify-content: center;
             gap: 8px;
             cursor: pointer;
-            transition: background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+            transition: transform var(--duration-micro) var(--ease-standard),
+                        box-shadow var(--duration-standard) var(--ease-standard),
+                        background-color var(--duration-standard) var(--ease-standard);
             margin-top: var(--space-5);
             box-shadow: 0 4px 14px var(--accent-glow);
             letter-spacing: -0.01em;
@@ -340,13 +364,14 @@
             background: var(--accent-600);
             color: var(--accent-on);
             transform: translateY(-1px);
-            box-shadow: 0 6px 18px var(--accent-glow);
+            box-shadow: 0 6px 16px rgba(206, 220, 0, 0.28);
         }
 
         .btn-submit:active {
             background: var(--accent-700);
-            transform: translateY(0);
+            transform: translateY(0) scale(0.98);
             box-shadow: 0 2px 6px var(--accent-glow);
+            transition-duration: var(--duration-micro);
         }
 
         .btn-submit:focus-visible {
@@ -354,7 +379,6 @@
             box-shadow: 0 0 0 3px var(--accent-glow), 0 4px 14px var(--accent-glow);
         }
 
-        /* Rodapé Interno do Card */
         .auth-card-footer {
             padding: var(--space-3) var(--space-6);
             background: var(--canvas);
@@ -393,7 +417,6 @@
             border: 1px solid rgba(44, 90, 140, 0.15);
         }
 
-        /* Rodapé Geral do Sistema */
         .auth-system-footer {
             margin-top: var(--space-5);
             text-align: center;
@@ -444,10 +467,9 @@
             {% endif %}
         {% endwith %}
 
-        <!-- Branding Header Oficial Ambipar -->
         <div class="auth-brand">
             <div class="auth-logo-badge">
-                <i class="bi bi-shield-check"></i>
+                <i data-lucide="shield-check"></i>
             </div>
             <h1 class="auth-title">Cavere</h1>
             <div class="brand-meta">
@@ -457,7 +479,6 @@
             </div>
         </div>
 
-        <!-- Login Card -->
         <div class="auth-card">
             <div class="auth-card-body">
                 <div class="auth-card-heading">
@@ -503,7 +524,6 @@
             </div>
         </div>
 
-        <!-- Rodapé do Sistema -->
         <div class="auth-system-footer">
             <div><strong>Ambipar Response</strong> &bull; Gestão e Controle Patrimonial</div>
             <div class="auth-system-security">
@@ -516,7 +536,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Toggle de visualização da senha
         const toggleBtn = document.getElementById('toggleSenha');
         const inputSenha = document.getElementById('inputSenha');
         const iconeSenha = document.getElementById('iconeSenha');
@@ -538,7 +557,6 @@
             });
         }
 
-        // Feedback imediato no submit
         const formLogin = document.getElementById('formLogin');
         const btnAcessar = document.getElementById('btnAcessar');
         if (formLogin && btnAcessar) {
@@ -549,6 +567,10 @@
                     <span>Validando credenciais...</span>
                 `;
             });
+        }
+
+        if (window.lucide) {
+            lucide.createIcons();
         }
     </script>
 </body>
