@@ -38,6 +38,25 @@ def suprimir_warnings_glib():
 with suprimir_warnings_glib():
     from weasyprint import HTML
 
+# Carrega variáveis de ambiente do arquivo .env caso exista (sem dependência externa)
+def _carregar_env():
+    caminho_env = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
+    if os.path.exists(caminho_env):
+        try:
+            with open(caminho_env, 'r', encoding='utf-8') as f:
+                for linha in f:
+                    linha = linha.strip()
+                    if linha and not linha.startswith('#') and '=' in linha:
+                        k, v = linha.split('=', 1)
+                        k = k.strip()
+                        v = v.strip().strip('"').strip("'")
+                        if k and k not in os.environ:
+                            os.environ[k] = v
+        except Exception:
+            pass
+
+_carregar_env()
+
 app = Flask(__name__)
 
 # Configuração de SECRET_KEY persistente e segura (Session Hijacking & Forgery Prevention)
@@ -83,6 +102,8 @@ def is_safe_redirect_url(target):
 app.config['SECRET_KEY'] = carregar_ou_gerar_secret_key()
 app.config['SESSION_COOKIE_HTTPONLY'] = True  # Impede que scripts maliciosos acessem os cookies de sessão (mitiga XSS)
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Proteção contra ataques CSRF
+if os.environ.get('SESSION_COOKIE_SECURE', '0') == '1':
+    app.config['SESSION_COOKIE_SECURE'] = True  # Envia cookies apenas sob conexão HTTPS criptografada
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Limite estrito de 16MB para payload de requisições contra DoS
 
 # Configuração do Flask-Login
@@ -1463,4 +1484,6 @@ def solicitar_equipamento():
 
 if __name__ == '__main__':
     debug_mode = os.environ.get('FLASK_DEBUG', '0') == '1'
-    app.run(debug=debug_mode, host='127.0.0.1', port=5000)
+    porta = int(os.environ.get('PORT', 5000))
+    host = os.environ.get('HOST', '127.0.0.1')
+    app.run(debug=debug_mode, host=host, port=porta)
