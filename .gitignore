@@ -10,3 +10,4 @@ env/
 scratch/
 marketing-campaign-management/
 .env
+.secret_key

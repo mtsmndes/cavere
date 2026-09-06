@@ -220,18 +220,30 @@
                         {% if s.status in ('Pendente', 'Em Atendimento') %}
                         <button type="button"
                             class="cv-btn-action cv-btn-action-primary w-100"
-                            onclick="abrirModalAtendimento('{{ s.id }}', '{{ s.id_coordenador }}', '{{ s.rdo }}', '{{ s.tipo_equipamento }}', '{{ s.nome_coord }}', '{{ s.qtd_emitida + 1 }}', '{{ s.quantidade_total }}', '{{ s.categoria }}')"
+                            data-id="{{ s.id }}"
+                            data-coord-id="{{ s.id_coordenador }}"
+                            data-rdo="{{ s.rdo }}"
+                            data-tipo="{{ s.tipo_equipamento }}"
+                            data-coord-nome="{{ s.nome_coord }}"
+                            data-item-atual="{{ s.qtd_emitida + 1 }}"
+                            data-total-itens="{{ s.quantidade_total }}"
+                            data-categoria="{{ s.categoria }}"
+                            onclick="abrirModalAtendimentoDoBotao(this)"
                             title="Emitir termo de cautela para o item {{ s.qtd_emitida + 1 }} de {{ s.quantidade_total }}">
                             <i data-lucide="corner-down-right"></i>
                             Atender ({{ s.qtd_emitida + 1 }}/{{ s.quantidade_total }})
                         </button>
                         {% elif s.status == 'Esperando Entrega' %}
-                        <a href="/solicitacao/entregar/{{ s.id }}"
-                            class="cv-btn-action cv-btn-action-primary w-100"
-                            title="Confirmar entrega de todos os itens e finalizar chamado">
-                            <i data-lucide="package"></i>
-                            Entregar
-                        </a>
+                        <form method="POST" action="/solicitacao/entregar/{{ s.id }}" style="display:block; margin:0;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit"
+                                class="cv-btn-action cv-btn-action-primary w-100"
+                                style="cursor:pointer;"
+                                title="Confirmar entrega de todos os itens e finalizar chamado">
+                                <i data-lucide="package"></i>
+                                Entregar
+                            </button>
+                        </form>
                         {% else %}
                         <button type="button"
                             class="cv-btn-action cv-btn-action-done w-100"
@@ -422,9 +434,12 @@
                                 </td>
                                 <td class="text-center pe-4">
                                     {% if eq.status in ('Em Operação', 'Em Operacao') %}
-                                    <a href="/devolver/{{ eq.id }}" class="cv-btn-action cv-btn-action-secondary" style="height:28px; font-size:0.75rem; padding:0 8px;" title="Registrar devolução de equipamento">
-                                        <i data-lucide="corner-up-left" class="text-danger"></i> Devolver
-                                    </a>
+                                    <form method="POST" action="/devolver/{{ eq.id }}" style="display:inline-block; margin:0;">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="cv-btn-action cv-btn-action-secondary" style="height:28px; font-size:0.75rem; padding:0 8px; cursor:pointer;" title="Registrar devolução de equipamento">
+                                            <i data-lucide="corner-up-left" class="text-danger"></i> Devolver
+                                        </button>
+                                    </form>
                                     {% else %}
                                     <span style="font-size:0.8125rem; color:var(--text-muted); display:inline-flex; align-items:center; gap:4px;"><i data-lucide="check" class="text-success me-1"></i> Na Base</span>
                                     {% endif %}
@@ -475,6 +490,19 @@
         }
     });
 
+    function abrirModalAtendimentoDoBotao(btn) {
+        if (!btn) return;
+        const idSol = btn.getAttribute('data-id') || '';
+        const idCoord = btn.getAttribute('data-coord-id') || '';
+        const rdo = btn.getAttribute('data-rdo') || '';
+        const tipoEq = btn.getAttribute('data-tipo') || '';
+        const nomeCoord = btn.getAttribute('data-coord-nome') || '';
+        const itemAtual = btn.getAttribute('data-item-atual') || '1';
+        const totalItens = btn.getAttribute('data-total-itens') || '1';
+        const categoriaEq = btn.getAttribute('data-categoria') || '';
+        abrirModalAtendimento(idSol, idCoord, rdo, tipoEq, nomeCoord, itemAtual, totalItens, categoriaEq);
+    }
+
     function abrirModalAtendimento(idSol, idCoord, rdo, tipoEq, nomeCoord, itemAtual, totalItens, categoriaEq) {
         document.getElementById('campoIdSolicitacaoModal').value = idSol || '';
         categoriaFiltroAtivo = categoriaEq || null;
@@ -501,7 +529,14 @@
         const subtitulo = document.getElementById('subtituloModalCautela');
 
         if (banner && texto) {
-            texto.innerHTML = `<strong>Chamado #SOL-${idSol}</strong> &bull; Item <strong>${itemAtual || 1} de ${totalItens || 1}</strong> (${tipoEq})`;
+            texto.textContent = '';
+            const st1 = document.createElement('strong');
+            st1.textContent = `Chamado #SOL-${idSol}`;
+            const sep = document.createTextNode(' • Item ');
+            const st2 = document.createElement('strong');
+            st2.textContent = `${itemAtual || 1} de ${totalItens || 1}`;
+            const tip = document.createTextNode(` (${tipoEq})`);
+            texto.append(st1, sep, st2, tip);
             banner.classList.remove('d-none');
             banner.classList.add('d-flex');
         }

@@ -9,6 +9,7 @@ import hmac
 from functools import wraps
 from contextlib import contextmanager
 from datetime import datetime, timedelta
+from urllib.parse import urlsplit
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory, flash, abort, session
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -39,9 +40,47 @@ with suprimir_warnings_glib():
 
 app = Flask(__name__)
 
-# Configuração de SECRET_KEY forte para proteção contra sequestro de sessão (Session Hijacking)
-SECRET_KEY_PADRAO = "cavere_sec_2026_8f3c7e2b904d16e5f82c49b1a7d6e3c0f5928a74e1d3b6c5a8f2e9d0c1b4a7e"
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', SECRET_KEY_PADRAO)
+# Configuração de SECRET_KEY persistente e segura (Session Hijacking & Forgery Prevention)
+def carregar_ou_gerar_secret_key():
+    """
+    Obtém SECRET_KEY de variáveis de ambiente ou de um arquivo local protegido (.secret_key).
+    Se inexistente, gera uma chave aleatória criptograficamente forte para impedir
+    que sessões sejam forjadas por chaves padrão conhecidas no repositório.
+    """
+    env_key = os.environ.get('SECRET_KEY')
+    if env_key:
+        return env_key
+    chave_arquivo = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.secret_key')
+    if os.path.exists(chave_arquivo):
+        try:
+            with open(chave_arquivo, 'r', encoding='utf-8') as f:
+                conteudo = f.read().strip()
+                if len(conteudo) >= 32:
+                    return conteudo
+        except Exception:
+            pass
+    nova_chave = secrets.token_hex(32)
+    try:
+        with open(chave_arquivo, 'w', encoding='utf-8') as f:
+            f.write(nova_chave)
+    except Exception:
+        pass
+    return nova_chave
+
+def is_safe_redirect_url(target):
+    """
+    Valida estritamente se o destino de redirecionamento é uma URL relativa interna,
+    evitando vulnerabilidades de Open Redirect (ex: //evil.com, /\\evil.com, javascript:).
+    """
+    if not target or not isinstance(target, str):
+        return False
+    target = target.strip()
+    if target.startswith('\\') or target.startswith('//') or target.startswith('/\\'):
+        return False
+    parsed = urlsplit(target)
+    return parsed.scheme == '' and parsed.netloc == '' and target.startswith('/')
+
+app.config['SECRET_KEY'] = carregar_ou_gerar_secret_key()
 app.config['SESSION_COOKIE_HTTPONLY'] = True  # Impede que scripts maliciosos acessem os cookies de sessão (mitiga XSS)
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Proteção contra ataques CSRF
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Limite estrito de 16MB para payload de requisições contra DoS
@@ -487,7 +526,7 @@ def login():
                 return redirect(url_for('meus_chamados'))
             else:
                 proxima = request.args.get('next')
-                if proxima and proxima.startswith('/') and not proxima.startswith('//'):
+                if proxima and is_safe_redirect_url(proxima):
                     return redirect(proxima)
                 return redirect(url_for('home'))
         else:
@@ -556,10 +595,19 @@ def logout():
 
 # --- GERAÇÃO SEGURA DE TERMOS DE CAUTELA EM PDF (Anti-XSS & Anti-SSRF) ---
 
+def seguro_url_fetcher(url):
+    """
+    Bloqueia qualquer requisição externa de rede ou acesso a arquivos locais
+    durante a compilação do PDF (defesa estrita contra SSRF e LFI).
+    """
+    raise ValueError(f"Acesso a recursos externos bloqueado por segurança: {url}")
+
+
 def gerar_pdf_termo(rdo, sn, tipo, modelo, imei1, imei2, nome_coord, cpf_coord, data_str=None):
     """
     Gera e salva o PDF do Termo de Cautela na pasta Cautelas/
-    Aplica escapamento HTML estrito (html.escape) em todas as variáveis para impedir XSS/SSRF.
+    Aplica escapamento HTML estrito (html.escape) em todas as variáveis para impedir XSS/SSRF
+    e desativa resolução de URLs externas no WeasyPrint.
     """
     if not data_str:
         data_str = datetime.now().strftime("%d/%m/%Y %H:%M")
@@ -628,7 +676,7 @@ def gerar_pdf_termo(rdo, sn, tipo, modelo, imei1, imei2, nome_coord, cpf_coord, 
     nome_arquivo = f"Cautela_{rdo_safe}_{sn_safe}.pdf"
     caminho_arquivo = os.path.join('Cautelas', nome_arquivo)
     with suprimir_warnings_glib():
-        HTML(string=html_content).write_pdf(caminho_arquivo)
+        HTML(string=html_content, url_fetcher=seguro_url_fetcher).write_pdf(caminho_arquivo)
     return nome_arquivo
 
 
@@ -943,7 +991,7 @@ def gerar():
     return redirect(url_for('home'))
 
 
-@app.route('/solicitacao/entregar/<int:id_solicitacao>', methods=['GET', 'POST'])
+@app.route('/solicitacao/entregar/<int:id_solicitacao>', methods=['POST'])
 @login_required
 @admin_required
 def entregar_solicitacao(id_solicitacao):
@@ -1015,7 +1063,7 @@ def salvar_coordenador():
     return redirect(url_for('cadastrar_usuario'))
 
 
-@app.route('/devolver/<int:id_equipamento>')
+@app.route('/devolver/<int:id_equipamento>', methods=['POST'])
 @login_required
 @admin_required
 def devolver(id_equipamento):
@@ -1128,7 +1176,7 @@ def download_cautela(filename):
     if not PADRAO_NOME_CAUTELA.match(nome_seguro) or '..' in filename or '/' in filename or '\\' in filename:
         return abort(403)
 
-    # 2. Prevenção de IDOR: Coordenador só pode baixar termos de cautela pertencentes ao seu usuário
+    # 2. Prevenção estrita de IDOR: Coordenador só pode baixar termos pertencentes ao seu usuário
     if current_user.role == 'coordenador':
         partes = nome_seguro.replace("Cautela_", "").replace(".pdf", "").rsplit("_", 1)
         if len(partes) == 2:
@@ -1144,11 +1192,16 @@ def download_cautela(filename):
             rows = cursor.fetchall()
             conexao.close()
             
-            if rows:
-                ids_permitidos = [r[0] for r in rows]
-                if current_user.id not in ids_permitidos:
-                    flash("Acesso negado: Você não tem autorização para baixar termos emitidos para outros coordenadores.", "danger")
-                    return abort(403)
+            if not rows:
+                flash("Acesso não autorizado: Termo de cautela não encontrado ou não pertence a você.", "danger")
+                return abort(403)
+
+            ids_permitidos = [r[0] for r in rows]
+            if current_user.id not in ids_permitidos:
+                flash("Acesso negado: Você não tem autorização para baixar termos emitidos para outros coordenadores.", "danger")
+                return abort(403)
+        else:
+            return abort(403)
 
     caminho_dir = os.path.abspath('Cautelas')
     caminho_completo = os.path.join(caminho_dir, nome_seguro)
