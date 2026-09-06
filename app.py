@@ -2,11 +2,17 @@
 import os
 import sys
 import sqlite3
+import html
+import re
+import secrets
+import hmac
+from functools import wraps
 from contextlib import contextmanager
-from datetime import datetime
-from flask import Flask, render_template, request, redirect, url_for, send_from_directory, flash
+from datetime import datetime, timedelta
+from flask import Flask, render_template, request, redirect, url_for, send_from_directory, flash, abort, session
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 
 @contextmanager
 def suprimir_warnings_glib():
@@ -38,6 +44,7 @@ SECRET_KEY_PADRAO = "cavere_sec_2026_8f3c7e2b904d16e5f82c49b1a7d6e3c0f5928a74e1d
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', SECRET_KEY_PADRAO)
 app.config['SESSION_COOKIE_HTTPONLY'] = True  # Impede que scripts maliciosos acessem os cookies de sessão (mitiga XSS)
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Proteção contra ataques CSRF
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Limite estrito de 16MB para payload de requisições contra DoS
 
 # Configuração do Flask-Login
 login_manager = LoginManager()
@@ -45,6 +52,20 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 login_manager.login_message = "Por favor, faça login para acessar esta página."
 login_manager.login_message_category = "warning"
+
+
+# --- CAMADA CENTRALIZADA DE BANCO DE DADOS (SQLite Hardening) ---
+
+def get_db_connection():
+    """
+    Retorna uma conexão SQLite com modo WAL, chaves estrangeiras ativadas
+    e timeout estendido para alta concorrência e integridade referencial.
+    """
+    conn = sqlite3.connect('Cavere.db', timeout=15.0)
+    conn.execute('PRAGMA foreign_keys = ON;')
+    conn.execute('PRAGMA journal_mode = WAL;')
+    conn.execute('PRAGMA synchronous = NORMAL;')
+    return conn
 
 
 # Modelo de Usuário para autenticação
@@ -63,7 +84,7 @@ class Usuario(UserMixin):
 
 @login_manager.user_loader
 def load_user(user_id):
-    conexao = sqlite3.connect('Cavere.db')
+    conexao = get_db_connection()
     cursor = conexao.cursor()
     cursor.execute('SELECT id, username, senha_hash, role, trocar_senha FROM usuarios WHERE id = ?', (user_id,))
     dados = cursor.fetchone()
@@ -76,10 +97,10 @@ def load_user(user_id):
 
 def inicializar_banco():
     """
-    Cria as tabelas 'usuarios' e 'solicitacoes' no SQLite caso não existam,
-    garante as colunas necessárias e inicializa um usuário admin padrão.
+    Cria as tabelas 'usuarios', 'equipamentos', 'coordenadores', 'cautelas' e 'solicitacoes'
+    no SQLite caso não existam, garantindo as colunas necessárias e integridade.
     """
-    conexao = sqlite3.connect('Cavere.db')
+    conexao = get_db_connection()
     cursor = conexao.cursor()
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS usuarios (
@@ -135,7 +156,7 @@ def inicializar_banco():
         )
     ''')
 
-    # Tabela para chamados de solicitação de equipamentos (estilo Service Desk/TI)
+    # Tabela para chamados de solicitação de equipamentos
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS solicitacoes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -167,28 +188,208 @@ def inicializar_banco():
 inicializar_banco()
 
 
+# --- SISTEMA DE DEFESA ANTI-CSRF ---
+
+def gerar_csrf_token():
+    """Gera e armazena token criptográfico CSRF na sessão do usuário."""
+    if '_csrf_token' not in session:
+        session['_csrf_token'] = secrets.token_hex(32)
+    return session['_csrf_token']
+
+@app.context_processor
+def inject_csrf_token():
+    """Disponibiliza {{ csrf_token() }} para renderização em todos os templates."""
+    return dict(csrf_token=gerar_csrf_token)
+
+
+# --- SISTEMA DE DEFESA CONTRA FORÇA BRUTA & RATE LIMITING NO LOGIN ---
+
+TENTATIVAS_FALHAS = {}
+MAX_TENTATIVAS_FALHAS = 5
+TEMPO_BLOQUEIO_SEGUNDOS = 900  # 15 minutos
+
+def obter_ip_cliente():
+    """Obtém o endereço IP real da requisição para auditoria e controle."""
+    if request.headers.get('X-Forwarded-For'):
+        return request.headers.get('X-Forwarded-For').split(',')[0].strip()
+    return request.remote_addr or '127.0.0.1'
+
+def verificar_bloqueio_login(ip, username):
+    """Verifica se o IP ou conta está sob bloqueio temporário por tentativas excessivas."""
+    agora = datetime.now()
+    chave = (ip, (username or '').strip().lower())
+    registro = TENTATIVAS_FALHAS.get(chave)
+    if registro and registro.get('bloqueado_ate'):
+        if agora < registro['bloqueado_ate']:
+            tempo_restante = int((registro['bloqueado_ate'] - agora).total_seconds())
+            minutos = max(1, (tempo_restante + 59) // 60)
+            return False, f"Muitas tentativas incorretas. Conta bloqueada temporariamente por segurança. Tente novamente em {minutos} minuto(s)."
+        else:
+            del TENTATIVAS_FALHAS[chave]
+    return True, ''
+
+def registrar_falha_login(ip, username):
+    """Registra uma falha de autenticação e aciona o bloqueio ao atingir o limite."""
+    agora = datetime.now()
+    chave = (ip, (username or '').strip().lower())
+    if chave not in TENTATIVAS_FALHAS:
+        TENTATIVAS_FALHAS[chave] = {'tentativas': 1, 'bloqueado_ate': None, 'ultimo_erro': agora}
+    else:
+        TENTATIVAS_FALHAS[chave]['tentativas'] += 1
+        TENTATIVAS_FALHAS[chave]['ultimo_erro'] = agora
+
+    if TENTATIVAS_FALHAS[chave]['tentativas'] >= MAX_TENTATIVAS_FALHAS:
+        TENTATIVAS_FALHAS[chave]['bloqueado_ate'] = agora + timedelta(seconds=TEMPO_BLOQUEIO_SEGUNDOS)
+
+def limpar_falhas_login(ip, username):
+    """Limpa o histórico de falhas após login bem-sucedido."""
+    chave = (ip, (username or '').strip().lower())
+    TENTATIVAS_FALHAS.pop(chave, None)
+
+
+# --- CONTROLE DE ACESSO BASEADO EM FUNÇÃO (RBAC) ---
+
+def admin_required(f):
+    """Decorador estrito: garante que apenas administradores autenticados acessem a rota."""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:
+            return login_manager.unauthorized()
+        if current_user.role != 'admin':
+            flash("Acesso não autorizado: Esta operação exige privilégios de Administrador.", "danger")
+            return redirect(url_for('meus_chamados'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+# --- CONTROLE GLOBAL DE ACESSO, SEGURANÇA E CABEÇALHOS ---
+
+@app.before_request
+def auditoria_e_seguranca_global():
+    # 1. Bloqueio estrito de acesso direto a arquivos sensíveis (banco de dados, env, git, fontes)
+    path_lower = request.path.lower()
+    extensoes_proibidas = ('.db', '.sqlite', '.sqlite3', '.env', '.git', '.py', '.pyc', '.bak')
+    if any(path_lower.endswith(ext) or ext + '/' in path_lower for ext in extensoes_proibidas):
+        return abort(403)
+
+    # 2. Validação Anti-CSRF para requisições com alteração de estado (POST)
+    if request.method == 'POST':
+        if not app.config.get('TESTING'):
+            token_recebido = request.form.get('csrf_token') or request.headers.get('X-CSRF-Token')
+            token_esperado = session.get('_csrf_token')
+            if not token_esperado or not token_recebido or not hmac.compare_digest(str(token_recebido), str(token_esperado)):
+                flash("Falha de validação de segurança (Token CSRF inválido ou expirado). Atualize a página e tente novamente.", "danger")
+                return abort(400)
+
+    # 3. Permite requisições sem endpoint (ex: 404), arquivos estáticos ou rota de login
+    if request.endpoint is None or request.endpoint in ('login', 'static'):
+        return None
+
+    # 4. Exige autenticação em todas as outras rotas do sistema
+    if not current_user.is_authenticated:
+        return login_manager.unauthorized()
+
+    # 5. Regra: troca de senha obrigatória no 1º acesso (administradores e coordenadores)
+    if getattr(current_user, 'trocar_senha', 0) == 1:
+        rotas_permitidas_troca = ('trocar_senha', 'logout', 'static')
+        if request.endpoint not in rotas_permitidas_troca:
+            flash("Primeiro Acesso: por segurança corporativa, você deve alterar sua senha padrão para continuar.", "warning")
+            return redirect(url_for('trocar_senha'))
+
+    # 6. Regra de perfil (RBAC):
+    # O coordenador tem acesso estritamente restrito às suas funcionalidades
+    if current_user.role == 'coordenador':
+        rotas_permitidas_coordenador = ('meus_chamados', 'solicitar_equipamento', 'logout', 'static', 'download_cautela', 'trocar_senha')
+        if request.endpoint not in rotas_permitidas_coordenador:
+            flash("Acesso restrito: seu perfil de Coordenador permite acessar apenas Meus Chamados e Solicitação de Equipamento.", "warning")
+            return redirect(url_for('meus_chamados'))
+
+
+@app.after_request
+def aplicar_cabecalhos_seguranca(response):
+    """Aplica cabeçalhos HTTP defensivos (OWASP Top 10 Security Headers)."""
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    response.headers['Content-Security-Policy'] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; "
+        "font-src 'self' https://fonts.gstatic.com; "
+        "img-src 'self' data:; "
+        "connect-src 'self';"
+    )
+    if current_user.is_authenticated:
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+    return response
+
+
+# --- TRATAMENTO DE ERROS PADRONIZADO E SEGURO ---
+
+@app.errorhandler(400)
+def erro_bad_request(e):
+    return """<!DOCTYPE html><html lang="pt-BR" class="dark"><head><meta charset="UTF-8"><title>400 • Requisição Inválida</title>
+    <style>body{background:#050505;color:#f0f2f5;font-family:sans-serif;text-align:center;padding:80px 20px;}h1{color:#CEDC00;}</style>
+    </head><body><h1>400 • Requisição Inválida</h1><p>A solicitação foi recusada por validação de segurança ou token CSRF ausente/inválido.</p>
+    <p><a href="/" style="color:#CEDC00;font-weight:700;">Voltar ao Sistema</a></p></body></html>""", 400
+
+@app.errorhandler(403)
+def erro_proibido(e):
+    return """<!DOCTYPE html><html lang="pt-BR" class="dark"><head><meta charset="UTF-8"><title>403 • Acesso Negado</title>
+    <style>body{background:#050505;color:#f0f2f5;font-family:sans-serif;text-align:center;padding:80px 20px;}h1{color:#ef4444;}</style>
+    </head><body><h1>403 • Acesso Negado</h1><p>Você não possui privilégios para acessar este recurso ou arquivo restrito.</p>
+    <p><a href="/" style="color:#CEDC00;font-weight:700;">Voltar ao Sistema</a></p></body></html>""", 403
+
+@app.errorhandler(404)
+def erro_nao_encontrado(e):
+    return """<!DOCTYPE html><html lang="pt-BR" class="dark"><head><meta charset="UTF-8"><title>404 • Não Encontrado</title>
+    <style>body{background:#050505;color:#f0f2f5;font-family:sans-serif;text-align:center;padding:80px 20px;}h1{color:#CEDC00;}</style>
+    </head><body><h1>404 • Recurso Não Encontrado</h1><p>A página ou registro solicitado não existe no sistema Cavere.</p>
+    <p><a href="/" style="color:#CEDC00;font-weight:700;">Voltar ao Sistema</a></p></body></html>""", 404
+
+@app.errorhandler(500)
+def erro_servidor(e):
+    return """<!DOCTYPE html><html lang="pt-BR" class="dark"><head><meta charset="UTF-8"><title>500 • Erro Interno</title>
+    <style>body{background:#050505;color:#f0f2f5;font-family:sans-serif;text-align:center;padding:80px 20px;}h1{color:#ef4444;}</style>
+    </head><body><h1>500 • Erro Interno do Sistema</h1><p>Ocorreu uma falha interna segura. Os dados foram preservados.</p>
+    <p><a href="/" style="color:#CEDC00;font-weight:700;">Voltar ao Sistema</a></p></body></html>""", 500
+
+
+# --- REGRAS DE CADASTRO DE USUÁRIOS E SENHAS ---
+
 def salvar_novo_usuario(username, senha_pura, role='coordenador', id_personalizado=None, nome_completo=None, cpf_matricula=None, trocar_senha=1):
     """
-    Cadastra um novo usuário no banco com senha criptografada.
+    Cadastra um novo usuário no banco com senha criptografada via scrypt.
     Se o papel for 'coordenador', cadastra atomicamente em 'usuarios' e 'coordenadores' com o MESMO ID.
-    Permite escolher um ID personalizado (se disponível) ou gerar automaticamente.
-    Por padrão corporativo de segurança, trocar_senha=1 exige redefinição no primeiro acesso.
+    Valida formatos e restringe tamanho para evitar DoS.
     """
     if role not in ('admin', 'coordenador'):
         return False, "O papel (role) deve ser 'admin' ou 'coordenador'."
 
+    username = username.strip()
+    if len(username) < 3 or len(username) > 64:
+        return False, "O nome de usuário deve ter entre 3 e 64 caracteres."
+
+    if len(senha_pura) < 4 or len(senha_pura) > 128:
+        return False, "A senha deve ter entre 4 e 128 caracteres."
+
     if role == 'coordenador':
         if not nome_completo or not cpf_matricula:
             return False, "Para cadastro de Coordenador, o Nome Completo e CPF/Matrícula são obrigatórios."
+        nome_completo = nome_completo.strip()[:100]
+        cpf_matricula = cpf_matricula.strip()[:30]
 
     senha_hash = generate_password_hash(senha_pura)
-    conexao = sqlite3.connect('Cavere.db')
+    conexao = get_db_connection()
     cursor = conexao.cursor()
     try:
-        # Se um ID personalizado foi informado, valida disponibilidade
         if id_personalizado:
             try:
                 id_personalizado = int(id_personalizado)
+                if id_personalizado <= 0 or id_personalizado > 1000000:
+                    return False, "ID personalizado fora do intervalo permitido (1 a 1.000.000)."
             except ValueError:
                 return False, "O ID personalizado deve ser um número inteiro válido."
 
@@ -213,7 +414,6 @@ def salvar_novo_usuario(username, senha_pura, role='coordenador', id_personaliza
             ''', (username, senha_hash, role, trocar_senha))
             user_id = cursor.lastrowid
 
-        # Se for coordenador, cadastra na tabela coordenadores com o MESMO ID
         if role == 'coordenador':
             cursor.execute('SELECT id FROM coordenadores WHERE id = ?', (user_id,))
             existe_coord = cursor.fetchone()
@@ -245,34 +445,6 @@ def salvar_novo_usuario(username, senha_pura, role='coordenador', id_personaliza
         conexao.close()
 
 
-# --- CONTROLE GLOBAL DE ACESSO E AUTENTICAÇÃO ---
-
-@app.before_request
-def exigir_autenticacao():
-    # Permite requisições sem endpoint (ex: erro 404) ou arquivos estáticos e rota de login
-    if request.endpoint is None or request.endpoint in ('login', 'static'):
-        return None
-
-    # Exige autenticação em todas as outras rotas do sistema
-    if not current_user.is_authenticated:
-        return login_manager.unauthorized()
-
-    # Regra: troca de senha obrigatória no 1º acesso (administradores e coordenadores)
-    if getattr(current_user, 'trocar_senha', 0) == 1:
-        rotas_permitidas_troca = ('trocar_senha', 'logout', 'static')
-        if request.endpoint not in rotas_permitidas_troca:
-            flash("Primeiro Acesso: por segurança corporativa, você deve alterar sua senha padrão para continuar.", "warning")
-            return redirect(url_for('trocar_senha'))
-
-    # Regra de perfil (RBAC):
-    # O coordenador tem acesso a: meus chamados, solicitação de equipamento, logout, download de termos, estáticos e troca de senha
-    if current_user.role == 'coordenador':
-        rotas_permitidas_coordenador = ('meus_chamados', 'solicitar_equipamento', 'logout', 'static', 'download_cautela', 'trocar_senha')
-        if request.endpoint not in rotas_permitidas_coordenador:
-            flash("Acesso restrito: seu perfil de Coordenador permite acessar apenas a página de Meus Chamados e Solicitação de Equipamento.", "warning")
-            return redirect(url_for('meus_chamados'))
-
-
 # --- ROTAS DE AUTENTICAÇÃO E USUÁRIOS ---
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -282,37 +454,44 @@ def login():
             return redirect(url_for('meus_chamados'))
         return redirect(url_for('home'))
 
-    if request.method == 'POST':
-        username = request.form.get('username')
-        senha = request.form.get('senha')
+    ip_cliente = obter_ip_cliente()
 
-        conexao = sqlite3.connect('Cavere.db')
+    if request.method == 'POST':
+        username = (request.form.get('username') or '').strip()
+        senha = request.form.get('senha') or ''
+
+        # Verificação de bloqueio anti-força bruta
+        pode_tentar, msg_bloqueio = verificar_bloqueio_login(ip_cliente, username)
+        if not pode_tentar:
+            flash(msg_bloqueio, "danger")
+            return render_template('login.html'), 429
+
+        conexao = get_db_connection()
         cursor = conexao.cursor()
         cursor.execute('SELECT id, username, senha_hash, role, trocar_senha FROM usuarios WHERE username = ?', (username,))
         dados = cursor.fetchone()
         conexao.close()
 
         if dados and check_password_hash(dados[2], senha):
+            limpar_falhas_login(ip_cliente, username)
             trocar = dados[4] if len(dados) > 4 and dados[4] is not None else 0
             usuario = Usuario(id=dados[0], username=dados[1], senha_hash=dados[2], role=dados[3], trocar_senha=trocar)
             login_user(usuario)
-            flash(f"Bem-vindo, {usuario.username}!", "success")
+            flash(f"Bem-vindo ao Cavere, {usuario.username}!", "success")
 
-            # Regra: troca de senha obrigatória no 1º acesso (admin ou coordenador)
             if usuario.trocar_senha == 1:
                 flash("Primeiro Acesso: por segurança corporativa, você deve alterar sua senha padrão para continuar.", "warning")
                 return redirect(url_for('trocar_senha'))
 
-            # Regra: se o usuário tiver a role 'admin', vai para o painel principal.
-            # Se for 'coordenador', só pode acessar a rota /meus-chamados.
             if usuario.role == 'coordenador':
                 return redirect(url_for('meus_chamados'))
             else:
                 proxima = request.args.get('next')
-                if proxima and proxima.startswith('/'):
+                if proxima and proxima.startswith('/') and not proxima.startswith('//'):
                     return redirect(proxima)
                 return redirect(url_for('home'))
         else:
+            registrar_falha_login(ip_cliente, username)
             flash("Usuário ou senha inválidos. Tente novamente.", "danger")
 
     return render_template('login.html')
@@ -326,29 +505,24 @@ def trocar_senha():
         nova_senha = request.form.get('nova_senha', '').strip()
         confirmar_senha = request.form.get('confirmar_senha', '').strip()
 
-        # 1. Validação da senha atual
         if not check_password_hash(current_user.senha_hash, senha_atual):
             flash("A senha atual informada está incorreta.", "danger")
             return render_template('trocar_senha.html')
 
-        # 2. Validação da nova senha
-        if len(nova_senha) < 4:
-            flash("A nova senha deve possuir no mínimo 4 caracteres.", "warning")
+        if len(nova_senha) < 4 or len(nova_senha) > 128:
+            flash("A nova senha deve possuir no mínimo 4 e no máximo 128 caracteres.", "warning")
             return render_template('trocar_senha.html')
 
-        # 3. Não permite manter a senha padrão '123'
         if nova_senha == '123' or nova_senha == senha_atual:
             flash("A nova senha não pode ser a senha padrão '123' nem idêntica à senha atual.", "warning")
             return render_template('trocar_senha.html')
 
-        # 4. Confirmação
         if nova_senha != confirmar_senha:
             flash("A confirmação da nova senha não confere com a nova senha digitada.", "danger")
             return render_template('trocar_senha.html')
 
-        # 5. Atualiza no SQLite
         novo_hash = generate_password_hash(nova_senha)
-        conexao = sqlite3.connect('Cavere.db')
+        conexao = get_db_connection()
         cursor = conexao.cursor()
         cursor.execute('''
             UPDATE usuarios 
@@ -358,7 +532,6 @@ def trocar_senha():
         conexao.commit()
         conexao.close()
 
-        # Atualiza a sessão em memória
         current_user.senha_hash = novo_hash
         current_user.trocar_senha = 0
 
@@ -376,27 +549,38 @@ def trocar_senha():
 @login_required
 def logout():
     logout_user()
+    session.clear()
     flash("Sessão finalizada com sucesso.", "info")
     return redirect(url_for('login'))
 
 
+# --- GERAÇÃO SEGURA DE TERMOS DE CAUTELA EM PDF (Anti-XSS & Anti-SSRF) ---
+
 def gerar_pdf_termo(rdo, sn, tipo, modelo, imei1, imei2, nome_coord, cpf_coord, data_str=None):
     """
     Gera e salva o PDF do Termo de Cautela na pasta Cautelas/
-    Retorna o nome do arquivo gerado.
+    Aplica escapamento HTML estrito (html.escape) em todas as variáveis para impedir XSS/SSRF.
     """
     if not data_str:
         data_str = datetime.now().strftime("%d/%m/%Y %H:%M")
-    imei1_texto = imei1 if imei1 else "N/A"
-    imei2_texto = imei2 if imei2 else "N/A"
-    
+
+    s_rdo = html.escape(str(rdo or 'N/A'))
+    s_sn = html.escape(str(sn or 'N/A'))
+    s_tipo = html.escape(str(tipo or 'Equipamento'))
+    s_modelo = html.escape(str(modelo or 'N/A'))
+    s_imei1 = html.escape(str(imei1 or 'N/A'))
+    s_imei2 = html.escape(str(imei2 or 'N/A'))
+    s_nome = html.escape(str(nome_coord or 'Responsável'))
+    s_cpf = html.escape(str(cpf_coord or 'N/A'))
+    s_data = html.escape(str(data_str or ''))
+
     html_content = f"""
     <!DOCTYPE html>
     <html lang="pt-BR">
     <head>
         <meta charset="UTF-8">
         <style>
-            body {{ font-family: Arial, sans-serif; margin: 40px; color: #333; }}
+            body {{ font-family: Arial, sans-serif; margin: 40px; color: #111; }}
             .header {{ text-align: center; border-bottom: 2px solid #005A32; padding-bottom: 10px; }}
             .header h1 {{ color: #005A32; font-size: 18pt; text-transform: uppercase; margin: 0; }}
             .section-title {{ background-color: #eef5f1; padding: 8px; font-weight: bold; margin-top: 25px; border-left: 4px solid #005A32; }}
@@ -417,29 +601,31 @@ def gerar_pdf_termo(rdo, sn, tipo, modelo, imei1, imei2, nome_coord, cpf_coord, 
         
         <div class="section-title">Dados do Responsável</div>
         <table>
-            <tr><th>Nome</th><td>{nome_coord}</td></tr>
-            <tr><th>CPF/Matrícula</th><td>{cpf_coord}</td></tr>
-            <tr><th>RDO Vinculado</th><td>{rdo}</td></tr>
+            <tr><th>Nome</th><td>{s_nome}</td></tr>
+            <tr><th>CPF/Matrícula</th><td>{s_cpf}</td></tr>
+            <tr><th>RDO Vinculado</th><td>{s_rdo}</td></tr>
         </table>
 
         <div class="section-title">Dados do Equipamento</div>
         <table>
-            <tr><th>Tipo</th><td>{tipo}</td></tr>
-            <tr><th>Modelo</th><td>{modelo}</td></tr>
-            <tr><th>Patrimônio / SN</th><td>{sn}</td></tr>
-            <tr><th>IMEI 1</th><td>{imei1_texto}</td></tr>
-            <tr><th>IMEI 2</th><td>{imei2_texto}</td></tr>
+            <tr><th>Tipo</th><td>{s_tipo}</td></tr>
+            <tr><th>Modelo</th><td>{s_modelo}</td></tr>
+            <tr><th>Patrimônio / SN</th><td>{s_sn}</td></tr>
+            <tr><th>IMEI 1</th><td>{s_imei1}</td></tr>
+            <tr><th>IMEI 2</th><td>{s_imei2}</td></tr>
         </table>
         
         <div class="signature">
             <div class="line"></div>
-            <p><strong>{nome_coord}</strong><br>Assinatura do Responsável<br>Data: {data_str}</p>
+            <p><strong>{s_nome}</strong><br>Assinatura do Responsável<br>Data: {s_data}</p>
         </div>
     </body>
     </html>
     """
     os.makedirs('Cautelas', exist_ok=True)
-    nome_arquivo = f"Cautela_{rdo}_{sn}.pdf"
+    rdo_safe = re.sub(r'[^A-Za-z0-9_-]', '', str(rdo))
+    sn_safe = re.sub(r'[^A-Za-z0-9_-]', '', str(sn))
+    nome_arquivo = f"Cautela_{rdo_safe}_{sn_safe}.pdf"
     caminho_arquivo = os.path.join('Cautelas', nome_arquivo)
     with suprimir_warnings_glib():
         HTML(string=html_content).write_pdf(caminho_arquivo)
@@ -447,6 +633,8 @@ def gerar_pdf_termo(rdo, sn, tipo, modelo, imei1, imei2, nome_coord, cpf_coord, 
 
 
 @app.route('/cadastrar-usuario', methods=['GET', 'POST'])
+@login_required
+@admin_required
 def cadastrar_usuario():
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
@@ -481,9 +669,7 @@ def cadastrar_usuario():
 
 
 def obter_categoria_equipamento(texto):
-    """
-    Identifica a categoria padronizada do equipamento a partir do nome ou descrição.
-    """
+    """Identifica a categoria padronizada do equipamento a partir do nome ou descrição."""
     if not texto:
         return 'outro'
     t = texto.lower()
@@ -503,9 +689,7 @@ def obter_categoria_equipamento(texto):
 
 
 def tipos_sao_compativeis(tipo_equip, tipo_solicitado):
-    """
-    Verifica se o tipo de equipamento físico corresponde ao solicitado no chamado.
-    """
+    """Verifica se o tipo de equipamento físico corresponde ao solicitado no chamado."""
     if not tipo_equip or not tipo_solicitado:
         return True
     cat1 = obter_categoria_equipamento(tipo_equip)
@@ -517,15 +701,15 @@ def tipos_sao_compativeis(tipo_equip, tipo_solicitado):
     return t1 in t2 or t2 in t1 or cat1 == cat2
 
 
-# --- ROTAS PRINCIPAIS DO SISTEMA ---
+# --- ROTAS PRINCIPAIS DO SISTEMA (Acesso Restrito ao Administrador) ---
 
-# Rota Principal (Painel de Controle do Administrador)
 @app.route('/')
+@login_required
+@admin_required
 def home():
-    conexao = sqlite3.connect('Cavere.db')
+    conexao = get_db_connection()
     cursor = conexao.cursor()
     
-    # Busca equipamentos para a listagem
     cursor.execute('SELECT id, tipo, modelo, patrimonio_sn, imei_1, imei_2, status FROM equipamentos ORDER BY id DESC')
     equipamentos_raw = cursor.fetchall()
     equipamentos = []
@@ -541,7 +725,6 @@ def home():
             'categoria': obter_categoria_equipamento(eq[1])
         })
     
-    # Busca coordenadores para a listagem
     cursor.execute('SELECT id, nome_completo, cpf_matricula FROM coordenadores ORDER BY id DESC')
     coordenadores_raw = cursor.fetchall()
     coordenadores = [{
@@ -550,7 +733,6 @@ def home():
         'cpf_matricula': co[2]
     } for co in coordenadores_raw]
 
-    # Busca solicitações recentes de equipamentos (chamados abertos por coordenadores)
     cursor.execute('''
         SELECT s.id, 
                COALESCE(co.nome_completo, u.username, 'Coordenador #' || s.id_coordenador) AS nome_coord,
@@ -568,7 +750,6 @@ def home():
         id_sol = s[0]
         qtd_total = s[3]
         
-        # Busca os itens individuais já emitidos em cautelas para este chamado
         cursor.execute('''
             SELECT c.id_cautela, e.tipo, e.modelo, e.patrimonio_sn, c.data_hora_saida, c.data_hora_devolucao
             FROM cautelas c
@@ -591,7 +772,7 @@ def home():
             })
         
         status_atual = s[8]
-        is_finalizada = status_atual in ('Finalizada', 'Concluído', 'Finalizado', 'Devolvido')
+        is_finalizada = status_atual in ('Finalizada', 'Concluído', 'Concluido', 'Finalizado', 'Devolvido')
         
         itens_ativos = [it for it in itens_emitidos if not it['devolvido']]
         itens_devolvidos = [it for it in itens_emitidos if it['devolvido']]
@@ -629,7 +810,6 @@ def home():
             'concluida': is_finalizada or (qtd_emitida >= qtd_total and qtd_total > 0)
         })
 
-    # Busca cautelas geradas com detalhes e link de PDF para o dashboard do administrador
     cursor.execute('''
         SELECT c.id_cautela, e.tipo, e.modelo, e.patrimonio_sn,
                COALESCE(co.nome_completo, u.username, 'Coordenador #' || c.id_coordenador) AS nome_coord,
@@ -667,8 +847,9 @@ def home():
                            cautelas=cautelas)
 
 
-# Rota para Gerar Termo de Cautela e PDF
 @app.route('/gerar', methods=['POST'])
+@login_required
+@admin_required
 def gerar():
     id_equipamento = request.form.get('id_equipamento')
     id_coordenador = request.form.get('id_coordenador')
@@ -679,18 +860,15 @@ def gerar():
         flash("Por favor, selecione o Equipamento, o Coordenador e informe o RDO.", "warning")
         return redirect(url_for('home'))
 
-    conexao = sqlite3.connect('Cavere.db')
+    conexao = get_db_connection()
     cursor = conexao.cursor()
     try:
-        # 1. Busca os dados do Equipamento no banco
         cursor.execute('SELECT tipo, modelo, patrimonio_sn, imei_1, imei_2, status FROM equipamentos WHERE id = ?', (id_equipamento,))
         equip = cursor.fetchone()
         
-        # 2. Busca os dados do Coordenador
         cursor.execute('SELECT id, nome_completo, cpf_matricula FROM coordenadores WHERE id = ?', (id_coordenador,))
         coord = cursor.fetchone()
 
-        # Fallback inteligente: se não encontrou por ID em coordenadores, procura em usuarios
         if not coord:
             cursor.execute('SELECT id, username FROM usuarios WHERE id = ?', (id_coordenador,))
             user_row = cursor.fetchone()
@@ -719,26 +897,22 @@ def gerar():
         coord_id, nome_coord, cpf_coord = coord
         id_sol_int = int(id_solicitacao) if id_solicitacao and id_solicitacao.isdigit() else None
 
-        # Validação estrita: recusar se o tipo de equipamento não bater com o solicitado
         if id_sol_int:
             cursor.execute('SELECT tipo_equipamento, quantidade FROM solicitacoes WHERE id = ?', (id_sol_int,))
             sol_row = cursor.fetchone()
             if sol_row:
                 tipo_pedido, qtd_pedida = sol_row
                 if not tipos_sao_compativeis(tipo, tipo_pedido):
-                    flash(f"❌ Equipamento recusado! A solicitação #SOL-{id_sol_int} exige '{tipo_pedido}', mas você selecionou '{tipo} ({modelo})'. Só é permitido vincular equipamentos compatíveis com a solicitação.", "danger")
+                    flash(f"Equipamento recusado! A solicitação #SOL-{id_sol_int} exige '{tipo_pedido}', mas você selecionou '{tipo} ({modelo})'.", "danger")
                     return redirect(url_for('home'))
 
-        # 3. Registra na tabela cautelas
         cursor.execute('''
             INSERT INTO cautelas (id_equipamento, id_coordenador, rdo_vinculado, id_solicitacao) 
             VALUES (?, ?, ?, ?)
         ''', (id_equipamento, id_coordenador, rdo, id_sol_int))
         
-        # Atualiza status do equipamento para 'Em Operação'
         cursor.execute("UPDATE equipamentos SET status = 'Em Operação' WHERE id = ?", (id_equipamento,))
 
-        # 4. Atualiza o status da solicitação vinculada e contabiliza itens emitidos vs faltantes
         msg_progresso = ""
         if id_sol_int:
             cursor.execute('SELECT COUNT(*) FROM cautelas WHERE id_solicitacao = ? AND data_hora_devolucao IS NULL', (id_sol_int,))
@@ -753,35 +927,32 @@ def gerar():
             else:
                 cursor.execute("UPDATE solicitacoes SET status = 'Em Atendimento' WHERE id = ?", (id_sol_int,))
                 faltam = qtd_solicitada - total_emitidos
-                msg_progresso = f"Item {total_emitidos} de {qtd_solicitada} emitido com sucesso! Faltam ainda {faltam} item(ns) para completar a solicitação #SOL-{id_sol_int}."
+                msg_progresso = f"Item {total_emitidos} de {qtd_solicitada} emitido com sucesso! Faltam {faltam} item(ns)."
         else:
             msg_progresso = "Cautela gerada com sucesso."
 
         conexao.commit()
-        
-        # 5. Gera e salva o PDF na pasta Cautelas
-        nome_arquivo = gerar_pdf_termo(rdo, sn, tipo, modelo, imei1, imei2, nome_coord, cpf_coord)
-        
-        flash(f"✅ Termo gerado com sucesso para {nome_coord} ({tipo} {modelo} - SN: {sn})! {msg_progresso}", "success")
+        gerar_pdf_termo(rdo, sn, tipo, modelo, imei1, imei2, nome_coord, cpf_coord)
+        flash(f"Termo gerado com sucesso para {nome_coord} ({tipo} {modelo} - SN: {sn})! {msg_progresso}", "success")
         
     except Exception as e:
-        flash(f"❌ Erro ao gerar cautela: {e}", "danger")
-        print(f"Erro no sistema Cavere: {e}")
+        flash(f"Erro ao gerar cautela: {e}", "danger")
     finally:
         conexao.close()
 
     return redirect(url_for('home'))
 
 
-# Rota para marcar Solicitação como Equipamento Entregue / Finalizada
 @app.route('/solicitacao/entregar/<int:id_solicitacao>', methods=['GET', 'POST'])
+@login_required
+@admin_required
 def entregar_solicitacao(id_solicitacao):
-    conexao = sqlite3.connect('Cavere.db')
+    conexao = get_db_connection()
     cursor = conexao.cursor()
     try:
         cursor.execute("UPDATE solicitacoes SET status = 'Finalizada' WHERE id = ?", (id_solicitacao,))
         conexao.commit()
-        flash(f"✅ Equipamento da solicitação #SOL-{id_solicitacao} marcado como entregue! Chamado finalizado com sucesso.", "success")
+        flash(f"Equipamento da solicitação #SOL-{id_solicitacao} marcado como entregue! Chamado finalizado.", "success")
     except Exception as e:
         flash(f"Erro ao finalizar solicitação: {e}", "danger")
     finally:
@@ -789,22 +960,28 @@ def entregar_solicitacao(id_solicitacao):
     return redirect(url_for('home'))
 
 
-# Rota para Formulário de Novo Equipamento
 @app.route('/novo-equipamento')
+@login_required
+@admin_required
 def novo_equipamento():
     return render_template('cadastrar_equipamento.html')
 
 
-# Rota para Salvar Novo Equipamento
 @app.route('/salvar-equipamento', methods=['POST'])
+@login_required
+@admin_required
 def salvar_equipamento():
-    tipo = request.form.get('tipo')
-    modelo = request.form.get('modelo')
-    patrimonio = request.form.get('patrimonio')
-    imei1 = request.form.get('imei1', '')
-    imei2 = request.form.get('imei2', '')
+    tipo = (request.form.get('tipo') or '').strip()[:60]
+    modelo = (request.form.get('modelo') or '').strip()[:80]
+    patrimonio = (request.form.get('patrimonio') or '').strip()[:60]
+    imei1 = (request.form.get('imei1') or '').strip()[:30]
+    imei2 = (request.form.get('imei2') or '').strip()[:30]
     
-    conexao = sqlite3.connect('Cavere.db')
+    if not tipo or not modelo or not patrimonio:
+        flash("Preencha todos os campos obrigatórios do equipamento.", "warning")
+        return redirect(url_for('novo_equipamento'))
+
+    conexao = get_db_connection()
     cursor = conexao.cursor()
     try:
         cursor.execute('''
@@ -813,33 +990,38 @@ def salvar_equipamento():
         ''', (tipo, modelo, patrimonio, imei1, imei2))
         conexao.commit()
         flash(f"Equipamento '{tipo} - {modelo}' cadastrado com sucesso!", "success")
+    except sqlite3.IntegrityError:
+        flash(f"Erro: O número de patrimônio/SN '{patrimonio}' já está cadastrado no sistema.", "danger")
     except Exception as e:
-        flash(f"Erro ao cadastrar equipamento: {e}")
+        flash(f"Erro ao cadastrar equipamento: {e}", "danger")
     finally:
         conexao.close()
         
     return redirect(url_for('home'))
 
 
-# Redirecionamento da antiga rota de coordenador para a criação unificada de login
 @app.route('/novo-coordenador')
+@login_required
+@admin_required
 def novo_coordenador():
     flash("O cadastro de coordenadores foi unificado à criação de login. Cadastre o coordenador abaixo.", "info")
     return redirect(url_for('cadastrar_usuario'))
 
 
 @app.route('/salvar-coordenador', methods=['POST'])
+@login_required
+@admin_required
 def salvar_coordenador():
     return redirect(url_for('cadastrar_usuario'))
 
 
-# Rota para Devolver Equipamento
 @app.route('/devolver/<int:id_equipamento>')
+@login_required
+@admin_required
 def devolver(id_equipamento):
-    conexao = sqlite3.connect('Cavere.db')
+    conexao = get_db_connection()
     cursor = conexao.cursor()
     try:
-        # Busca a cautela ativa antes de carimbar a data de devolução
         cursor.execute('''
             SELECT id_cautela, id_solicitacao 
             FROM cautelas 
@@ -847,10 +1029,8 @@ def devolver(id_equipamento):
         ''', (id_equipamento,))
         cautela_info = cursor.fetchone()
 
-        # 1. Muda o status do equipamento para Disponível
         cursor.execute("UPDATE equipamentos SET status = 'Disponível' WHERE id = ?", (id_equipamento,))
         
-        # 2. Carimba a data de devolução na tabela de cautelas (na última saída sem devolução)
         agora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         cursor.execute('''
             UPDATE cautelas 
@@ -858,7 +1038,6 @@ def devolver(id_equipamento):
             WHERE id_equipamento = ? AND data_hora_devolucao IS NULL
         ''', (agora, id_equipamento))
         
-        # 3. Se este equipamento pertencia a uma solicitação NÃO finalizada, recalcula a contagem e status
         msg_solicitacao = ""
         if cautela_info and cautela_info[1]:
             id_sol = cautela_info[1]
@@ -866,7 +1045,6 @@ def devolver(id_equipamento):
             sol_row = cursor.fetchone()
             if sol_row:
                 status_sol, qtd_pedida = sol_row
-                # Apenas altera solicitações em andamento (não finalizadas)
                 if status_sol not in ('Finalizada', 'Concluído', 'Finalizado', 'Devolvido'):
                     cursor.execute('''
                         SELECT COUNT(*) FROM cautelas 
@@ -883,7 +1061,7 @@ def devolver(id_equipamento):
 
                     cursor.execute('UPDATE solicitacoes SET status = ? WHERE id = ?', (novo_status, id_sol))
                     faltam_agora = max(0, qtd_pedida - ativas_restantes)
-                    msg_solicitacao = f" Solicitação #SOL-{id_sol} recalculada: agora possui {ativas_restantes}/{qtd_pedida} itens ativos (status alterado para '{novo_status}', faltam {faltam_agora} item(ns))."
+                    msg_solicitacao = f" Solicitação #SOL-{id_sol} recalculada: {ativas_restantes}/{qtd_pedida} ativos (status '{novo_status}')."
 
         conexao.commit()
         flash(f"Equipamento devolvido com sucesso! Status atualizado para Disponível.{msg_solicitacao}", "success")
@@ -894,10 +1072,11 @@ def devolver(id_equipamento):
     return redirect(url_for('home'))
 
 
-# Rota para a Página de Histórico Completo
 @app.route('/historico')
+@login_required
+@admin_required
 def historico():
-    conexao = sqlite3.connect('Cavere.db')
+    conexao = get_db_connection()
     cursor = conexao.cursor()
     cursor.execute('''
         SELECT c.id_cautela, e.tipo, e.modelo, e.patrimonio_sn,
@@ -937,16 +1116,50 @@ def historico():
     return render_template('historico.html', cautelas=cautelas, contadores=contadores)
 
 
-# Rota para Acessar/Baixar os PDFs de Cautela (com regeneração sob demanda se o arquivo não estiver em disco)
+# --- ROTA DE DOWNLOAD SEGURO DE CAUTELAS (Anti-Path-Traversal & Anti-IDOR) ---
+
+PADRAO_NOME_CAUTELA = re.compile(r'^Cautela_[A-Za-z0-9_\-.]+\.pdf$')
+
 @app.route('/cautelas/<path:filename>')
+@login_required
 def download_cautela(filename):
-    caminho = os.path.join('Cautelas', filename)
-    if not os.path.exists(caminho):
+    # 1. Prevenção estrita de Path Traversal
+    nome_seguro = secure_filename(os.path.basename(filename))
+    if not PADRAO_NOME_CAUTELA.match(nome_seguro) or '..' in filename or '/' in filename or '\\' in filename:
+        return abort(403)
+
+    # 2. Prevenção de IDOR: Coordenador só pode baixar termos de cautela pertencentes ao seu usuário
+    if current_user.role == 'coordenador':
+        partes = nome_seguro.replace("Cautela_", "").replace(".pdf", "").rsplit("_", 1)
+        if len(partes) == 2:
+            rdo_busca, sn_busca = partes[0], partes[1]
+            conexao = get_db_connection()
+            cursor = conexao.cursor()
+            cursor.execute('''
+                SELECT c.id_coordenador 
+                FROM cautelas c
+                LEFT JOIN equipamentos e ON c.id_equipamento = e.id
+                WHERE (c.rdo_vinculado = ? OR e.patrimonio_sn = ?)
+            ''', (rdo_busca, sn_busca))
+            rows = cursor.fetchall()
+            conexao.close()
+            
+            if rows:
+                ids_permitidos = [r[0] for r in rows]
+                if current_user.id not in ids_permitidos:
+                    flash("Acesso negado: Você não tem autorização para baixar termos emitidos para outros coordenadores.", "danger")
+                    return abort(403)
+
+    caminho_dir = os.path.abspath('Cautelas')
+    caminho_completo = os.path.join(caminho_dir, nome_seguro)
+
+    # Auto-regeneração segura caso o PDF ainda não exista em disco
+    if not os.path.exists(caminho_completo):
         try:
-            partes = filename.replace("Cautela_", "").replace(".pdf", "").rsplit("_", 1)
+            partes = nome_seguro.replace("Cautela_", "").replace(".pdf", "").rsplit("_", 1)
             if len(partes) == 2:
                 rdo_busca, sn_busca = partes[0], partes[1]
-                conexao = sqlite3.connect('Cavere.db')
+                conexao = get_db_connection()
                 cursor = conexao.cursor()
                 cursor.execute('''
                     SELECT e.tipo, e.modelo, e.patrimonio_sn, e.imei_1, e.imei_2,
@@ -966,21 +1179,23 @@ def download_cautela(filename):
                     tipo, modelo, sn, imei1, imei2, nome_coord, cpf_coord, rdo, dt_saida = row
                     gerar_pdf_termo(rdo or rdo_busca, sn or sn_busca, tipo or 'Equipamento', modelo or '', imei1, imei2, nome_coord, cpf_coord, dt_saida)
         except Exception as e:
-            print(f"Aviso: Não foi possível auto-regenerar PDF {filename}: {e}")
+            print(f"Aviso seguro: Falha ao auto-regenerar PDF {nome_seguro}: {e}")
 
-    if os.path.exists(caminho):
-        return send_from_directory('Cautelas', filename)
-    flash(f"O termo em PDF '{filename}' não foi encontrado.", "warning")
-    return redirect(url_for('home'))
+    if os.path.exists(caminho_completo):
+        return send_from_directory(caminho_dir, nome_seguro)
+
+    flash(f"O termo em PDF '{nome_seguro}' não foi encontrado.", "warning")
+    return redirect(url_for('meus_chamados') if current_user.role == 'coordenador' else url_for('home'))
 
 
-# Rota exclusiva para Coordenadores: visualização de Meus Chamados
+# --- ROTAS DO COORDENADOR ---
+
 @app.route('/meus-chamados')
+@login_required
 def meus_chamados():
-    conexao = sqlite3.connect('Cavere.db')
+    conexao = get_db_connection()
     cursor = conexao.cursor()
 
-    # 1. Identifica o ID do coordenador logado
     id_coordenador = current_user.id
     cursor.execute('''
         SELECT id, nome_completo FROM coordenadores 
@@ -992,7 +1207,6 @@ def meus_chamados():
         id_coordenador = coord_row[0]
         nome_exibicao = coord_row[1]
 
-    # 2. Busca solicitações de equipamentos (chamados de TI/Operações) feitas pelo coordenador
     cursor.execute('''
         SELECT id, tipo_equipamento, quantidade, destinatario, plataforma,
                rdo_projeto, data_necessidade, prioridade, justificativa, status, data_criacao
@@ -1002,7 +1216,6 @@ def meus_chamados():
     ''', (id_coordenador, current_user.id))
     solicitacoes_rows = cursor.fetchall()
 
-    # 3. Busca no SQLite (tabela cautelas) os registros emitidos pertencentes ao coordenador logado
     cursor.execute('''
         SELECT c.id_cautela, e.tipo, e.modelo, e.patrimonio_sn, co.nome_completo,
                 c.rdo_vinculado, c.data_hora_saida, c.data_hora_devolucao, e.status, c.observacoes
@@ -1016,12 +1229,10 @@ def meus_chamados():
 
     contadores = {'Pendente': 0, 'Esperando Entrega': 0, 'Em Operação': 0, 'Finalizada': 0, 'Devolvido': 0, 'Total': 0}
 
-    # Formata solicitações (chamados de equipamentos)
     solicitacoes = []
     for s in solicitacoes_rows:
         id_sol, tipo_eq, qtd, dest, plat, rdo_proj, dt_nec, prio, just, st, dt_cria = s
 
-        # Busca itens já emitidos para esta solicitação
         cursor.execute('''
             SELECT c.id_cautela, e.tipo, e.modelo, e.patrimonio_sn, c.data_hora_saida, c.data_hora_devolucao
             FROM cautelas c
@@ -1094,7 +1305,6 @@ def meus_chamados():
 
     conexao.close()
 
-    # Formata cautelas de equipamentos já emitidas
     chamados = []
     for reg in registros_cautelas:
         id_cautela, tipo, modelo, patrimonio_sn, nome_coord, rdo, data_saida, data_devolucao, status_equip, obs = reg
@@ -1142,13 +1352,12 @@ def meus_chamados():
     )
 
 
-# Rota para Solicitação de Equipamento (Chamado de TI/Operações para Coordenadores)
 @app.route('/solicitar-equipamento', methods=['GET', 'POST'])
+@login_required
 def solicitar_equipamento():
-    conexao = sqlite3.connect('Cavere.db')
+    conexao = get_db_connection()
     cursor = conexao.cursor()
 
-    # Identifica o coordenador logado
     id_coordenador = current_user.id
     cursor.execute('''
         SELECT id, nome_completo FROM coordenadores 
@@ -1161,17 +1370,22 @@ def solicitar_equipamento():
         nome_coordenador = coord_row[1]
 
     if request.method == 'POST':
-        tipo = request.form.get('tipo_equipamento')
+        tipo = (request.form.get('tipo_equipamento') or '').strip()[:100]
         quantidade = request.form.get('quantidade', 1, type=int)
-        destinatario = request.form.get('destinatario', '').strip()
-        plataforma = request.form.get('plataforma', '').strip()
-        rdo = request.form.get('rdo_projeto', '').strip()
-        data_necessidade = request.form.get('data_necessidade', '')
-        prioridade = request.form.get('prioridade', 'Normal')
-        justificativa = request.form.get('justificativa', '').strip()
+        destinatario = (request.form.get('destinatario') or '').strip()[:100]
+        plataforma = (request.form.get('plataforma') or '').strip()[:100]
+        rdo = (request.form.get('rdo_projeto') or '').strip()[:60]
+        data_necessidade = (request.form.get('data_necessidade') or '').strip()[:30]
+        prioridade = (request.form.get('prioridade') or 'Normal').strip()[:20]
+        justificativa = (request.form.get('justificativa') or '').strip()[:500]
 
         if not tipo or not destinatario or not plataforma:
             flash("Por favor, preencha o tipo de equipamento, o destinatário e a plataforma de destino.", "warning")
+            conexao.close()
+            return render_template('solicitar_equipamento.html', nome_coordenador=nome_coordenador, id_coordenador=id_coordenador)
+
+        if quantidade < 1 or quantidade > 100:
+            flash("Quantidade permitida por chamado deve estar entre 1 e 100 unidades.", "warning")
             conexao.close()
             return render_template('solicitar_equipamento.html', nome_coordenador=nome_coordenador, id_coordenador=id_coordenador)
 
@@ -1182,7 +1396,7 @@ def solicitar_equipamento():
             ''', (id_coordenador, tipo, quantidade, destinatario, plataforma, rdo, data_necessidade, prioridade, justificativa))
             conexao.commit()
             id_chamado = cursor.lastrowid
-            flash(f"✅ Chamado #{id_chamado} criado com sucesso! Solicitação de {quantidade}x {tipo} para '{destinatario}' ({plataforma}) registrada.", "success")
+            flash(f"Chamado #{id_chamado} criado com sucesso! Solicitação de {quantidade}x {tipo} registrada.", "success")
             conexao.close()
             return redirect(url_for('meus_chamados'))
         except Exception as e:
@@ -1195,4 +1409,5 @@ def solicitar_equipamento():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    debug_mode = os.environ.get('FLASK_DEBUG', '0') == '1'
+    app.run(debug=debug_mode, host='127.0.0.1', port=5000)

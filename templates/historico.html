@@ -13,98 +13,93 @@
     {% endif %}
 {% endfor %}
 
-
 <div class="cv-breadcrumb">
-    <a href="/"><i class="bi bi-grid-1x2 me-1"></i>Painel Principal</a>
+    <a href="/"><i data-lucide="layout-dashboard" class="me-1"></i>Painel Principal</a>
     <span class="sep">/</span>
     <span class="current">Histórico Geral de Cautelas</span>
 </div>
 
-
 <div class="cv-page-banner">
     <div>
-        <h1 class="cv-page-title">Histórico Geral de Cautelas</h1>
-        <p class="cv-page-subtitle">Registro auditável e rastreamento completo de saídas, termos emitidos e devoluções</p>
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+            <span class="pulse-live"></span>
+            <span style="font-family:var(--font-mono); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted);">
+                AUDIT_TRAIL // EQUIPMENT_CAUTELAS_LOG
+            </span>
+        </div>
+        <h1 class="cv-page-title" style="margin-bottom:4px;">
+            Histórico Geral de <span style="color:var(--lime);">Cautelas</span>
+        </h1>
+        <p class="cv-page-subtitle">
+            Registro auditável e rastreamento completo de saídas, termos emitidos e devoluções
+        </p>
     </div>
     <div style="display:flex; gap:var(--space-2); align-items:center;">
         <a href="/" class="btn btn-secondary btn-sm">
-            <i class="bi bi-arrow-left"></i> Painel Principal
+            <i data-lucide="arrow-left"></i> Painel Principal
         </a>
     </div>
 </div>
 
-
-<div class="row g-4" style="margin-bottom:var(--space-6);">
+<!-- 3 Glance Cards de Auditoria -->
+<div class="row g-3" style="margin-bottom:var(--space-5);">
     <div class="col-sm-4">
-        <div class="cv-kpi" onclick="filtrarStatusRapido('Todos')" title="Clique para exibir todas as cautelas">
-            <div style="display:flex; align-items:center; justify-content:space-between;">
-                <div>
-                    <div class="cv-kpi-label">Total Registrado</div>
-                    <div class="cv-kpi-value-hero">{{ contadores.Total }}</div>
-                </div>
-                <div class="cv-kpi-badge neutral">
-                    <i data-lucide="layers"></i>
-                </div>
+        <div class="cv-glance-card" onclick="filtrarStatusRapido('Todos')" title="Clique para exibir todas as cautelas" role="button" tabindex="0">
+            <div class="cv-glance-header">
+                <span class="cv-glance-label">Total Registrado</span>
             </div>
+            <div class="cv-glance-value">{{ contadores.Total }}</div>
         </div>
     </div>
     <div class="col-sm-4">
-        <div class="cv-kpi" onclick="filtrarStatusRapido('Em Campo')" title="Clique para filtrar apenas ativos em campo">
-            <div style="display:flex; align-items:center; justify-content:space-between;">
-                <div>
-                    <div class="cv-kpi-label">Em Campo (Ativos)</div>
-                    <div class="cv-kpi-value-hero" style="color:#1e40af;">{{ contadores['Em Campo'] }}</div>
-                </div>
-                <div class="cv-kpi-badge blue">
-                    <i data-lucide="radio"></i>
-                </div>
+        <div class="cv-glance-card" onclick="filtrarStatusRapido('Em Campo')" title="Clique para filtrar apenas ativos em campo" role="button" tabindex="0">
+            <div class="cv-glance-header">
+                <span class="cv-glance-label">Em Campo (Ativos)</span>
             </div>
+            <div class="cv-glance-value" style="color:var(--lime-text);">{{ contadores['Em Campo'] }}</div>
         </div>
     </div>
     <div class="col-sm-4">
-        <div class="cv-kpi" onclick="filtrarStatusRapido('Devolvido')" title="Clique para filtrar apenas ativos devolvidos">
-            <div style="display:flex; align-items:center; justify-content:space-between;">
-                <div>
-                    <div class="cv-kpi-label">Devolvidos à Base</div>
-                    <div class="cv-kpi-value-hero" style="color:#166534;">{{ contadores.Devolvido }}</div>
-                </div>
-                <div class="cv-kpi-badge accent">
-                    <i data-lucide="check-circle-2"></i>
-                </div>
+        <div class="cv-glance-card" onclick="filtrarStatusRapido('Devolvido')" title="Clique para filtrar apenas ativos devolvidos" role="button" tabindex="0">
+            <div class="cv-glance-header">
+                <span class="cv-glance-label">Devolvidos à Base</span>
             </div>
+            <div class="cv-glance-value">{{ contadores.Devolvido }}</div>
         </div>
     </div>
 </div>
 
-
-<div class="card" style="margin-bottom:var(--space-5);" id="painelPesquisaCautelas">
-    <div class="card-header" style="background:#f8fafc !important; border-bottom:1px solid var(--border-subtle) !important;">
+<!-- Painel de Pesquisa & Filtros (AETHER Command Box) -->
+<div class="surface-card" style="margin-bottom:var(--space-5);" id="painelPesquisaCautelas">
+    <div class="surface-card-header" style="display:flex; justify-content:space-between; align-items:center;">
         <div style="display:flex; align-items:center; gap:var(--space-2);">
-            <i class="bi bi-search text-primary" style="font-size:1.1rem;"></i>
-            <span style="font-weight:700; font-size:0.9375rem; color:var(--text-primary);">Pesquisar & Filtrar Cautelas</span>
+            <i data-lucide="search" style="width:1.1rem; height:1.1rem; color:var(--lime);"></i>
+            <span style="font-weight:700; font-size:0.875rem; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.04em; color:var(--text-primary);">
+                Filtros de Auditoria &amp; Busca Rápida
+            </span>
         </div>
         <span class="badge-notion badge-notion-gray" id="badgeFiltroAtivo" style="display:none;">Filtros Ativos</span>
     </div>
-    <div class="card-body">
+    <div class="surface-card-body">
         <div class="row g-3">
             <div class="col-lg-4 col-md-12">
                 <label class="form-label" for="campoBuscaTexto">
-                    <i class="bi bi-fonts me-1 text-muted"></i> Busca por Termo
+                    <i data-lucide="type" class="me-1"></i> Busca Geral por Palavra-chave
                 </label>
                 <div class="input-group">
-                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <span class="input-group-text"><i data-lucide="search"></i></span>
                     <input type="text" id="campoBuscaTexto" class="form-control"
                         placeholder="Buscar por RDO, modelo, patrimônio/SN, coordenador..." onkeyup="executarFiltrosCautelas()">
                     <button class="btn btn-outline-secondary" type="button" id="btnLimparBuscaTexto" onclick="limparBuscaTexto()" title="Limpar busca" style="display:none;">
-                        <i class="bi bi-x-lg"></i>
+                        <i data-lucide="x"></i>
                     </button>
                 </div>
-                <div class="form-text">Pesquise por qualquer palavra-chave ou código.</div>
+                <div class="form-text">Pesquise por qualquer termo, código de patrimônio ou nome.</div>
             </div>
 
             <div class="col-lg-2 col-md-4 col-sm-6">
                 <label class="form-label" for="filtroStatusSelect">
-                    <i class="bi bi-flag me-1 text-muted"></i> Situação
+                    <i data-lucide="flag" class="me-1"></i> Situação
                 </label>
                 <select class="form-select" id="filtroStatusSelect" onchange="executarFiltrosCautelas()">
                     <option value="Todos" selected>Todas as Situações</option>
@@ -115,7 +110,7 @@
 
             <div class="col-lg-3 col-md-4 col-sm-6">
                 <label class="form-label" for="filtroTipoSelect">
-                    <i class="bi bi-hdd-stack me-1 text-muted"></i> Tipo de Equipamento
+                    <i data-lucide="layers" class="me-1"></i> Tipo de Equipamento
                 </label>
                 <select class="form-select" id="filtroTipoSelect" onchange="executarFiltrosCautelas()">
                     <option value="Todos" selected>Todos os Tipos</option>
@@ -127,7 +122,7 @@
 
             <div class="col-lg-3 col-md-4 col-sm-12">
                 <label class="form-label" for="filtroCoordSelect">
-                    <i class="bi bi-person me-1 text-muted"></i> Coordenador
+                    <i data-lucide="user" class="me-1"></i> Coordenador
                 </label>
                 <select class="form-select" id="filtroCoordSelect" onchange="executarFiltrosCautelas()">
                     <option value="Todos" selected>Todos os Coordenadores</option>
@@ -138,28 +133,28 @@
             </div>
         </div>
 
-        <div class="row g-3 mt-1 pt-3" style="border-top:1px dashed var(--border-subtle);">
+        <div class="row g-3 mt-1 pt-3" style="border-top:1px dashed var(--border);">
             <div class="col-lg-3 col-md-6">
                 <label class="form-label" for="filtroDataInicio">
-                    <i class="bi bi-calendar-event me-1 text-muted"></i> Data de Saída (A partir de)
+                    <i data-lucide="calendar" class="me-1"></i> Data de Saída (A partir de)
                 </label>
                 <input type="date" class="form-control" id="filtroDataInicio" onchange="executarFiltrosCautelas()">
             </div>
             <div class="col-lg-3 col-md-6">
                 <label class="form-label" for="filtroDataFim">
-                    <i class="bi bi-calendar-check me-1 text-muted"></i> Data de Saída (Até)
+                    <i data-lucide="calendar-check" class="me-1"></i> Data de Saída (Até)
                 </label>
                 <input type="date" class="form-control" id="filtroDataFim" onchange="executarFiltrosCautelas()">
             </div>
 
             <div class="col-lg-6 col-md-12 d-flex align-items-end justify-content-between flex-wrap gap-2">
                 <div style="font-size:0.875rem; color:var(--text-secondary); display:flex; align-items:center; gap:var(--space-2);">
-                    <i class="bi bi-funnel text-primary"></i>
-                    <span>Exibindo <strong id="contadorResultados" style="color:var(--color-accent-hover); font-family:var(--font-mono); font-size:1rem;">{{ cautelas|length }}</strong> de <strong style="font-family:var(--font-mono);">{{ cautelas|length }}</strong> cautela(s)</span>
+                    <i data-lucide="filter" style="color:var(--lime);"></i>
+                    <span>Exibindo <strong id="contadorResultados" style="color:var(--lime); font-family:var(--font-mono); font-size:1rem;">{{ cautelas|length }}</strong> de <strong style="font-family:var(--font-mono); color:var(--text-primary);">{{ cautelas|length }}</strong> cautela(s)</span>
                 </div>
                 <div style="display:flex; gap:var(--space-2);">
                     <button type="button" class="btn btn-secondary btn-sm" onclick="resetarTodosFiltros()" title="Limpar todos os campos de pesquisa">
-                        <i class="bi bi-arrow-counterclockwise"></i> Limpar Filtros
+                        <i data-lucide="rotate-ccw"></i> Limpar Filtros
                     </button>
                 </div>
             </div>
@@ -167,30 +162,33 @@
     </div>
 </div>
 
-
-<div class="card">
-    <div class="card-header">
+<!-- Tabela de Cautelas -->
+<div class="surface-card">
+    <div class="surface-card-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--space-3);">
         <div style="display:flex; align-items:center; gap:var(--space-3);">
-            <div style="width:32px;height:32px;border-radius:var(--radius-md);background:var(--status-success-bg);display:flex;align-items:center;justify-content:center;color:var(--status-success-text);">
-                <i class="bi bi-file-earmark-check"></i>
+            <div style="width:32px; height:32px; background:rgba(206, 220, 0, 0.08); border:1px solid rgba(206, 220, 0, 0.2); border-radius:2px; display:flex; align-items:center; justify-content:center; color:var(--lime);">
+                <i data-lucide="file-check-2"></i>
             </div>
             <div>
-                <div style="font-size:0.9375rem; font-weight:600;">Base Geral de Cautelas Registradas</div>
-                <div style="font-size:0.8125rem; color:var(--text-secondary);">Histórico auditável e termos em PDF</div>
+                <div style="font-size:0.9375rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.04em; color:var(--text-primary);">
+                    Base Geral de Cautelas Registradas
+                </div>
+                <div style="font-size:0.8125rem; color:var(--text-muted);">Histórico auditável e termos em PDF</div>
             </div>
         </div>
         <div class="btn-group btn-group-sm" id="grupoFiltrosStatus">
             <button type="button" class="btn btn-secondary active" id="filtroBtn-Todos" onclick="filtrarStatusRapido('Todos')">
-                Todos <span class="badge-notion badge-notion-gray ms-1" style="font-size:0.7rem;">{{ contadores.Total }}</span>
+                Todos [{{ contadores.Total }}]
             </button>
             <button type="button" class="btn btn-secondary" id="filtroBtn-EmCampo" onclick="filtrarStatusRapido('Em Campo')">
-                <i class="bi bi-broadcast me-1 text-primary"></i>Em Campo
+                Em Campo
             </button>
             <button type="button" class="btn btn-secondary" id="filtroBtn-Devolvido" onclick="filtrarStatusRapido('Devolvido')">
-                <i class="bi bi-check2-circle me-1 text-success"></i>Devolvidos
+                Devolvidos
             </button>
         </div>
     </div>
+
     <div style="overflow-x:auto;">
         {% if cautelas %}
         <table class="table table-hover align-middle table-enterprise cv-table-uniform mb-0" id="tabelaHistorico">
@@ -198,7 +196,7 @@
                 <tr>
                     <th class="ps-4">Cautela</th>
                     <th>Chamado</th>
-                    <th>Equipamento & Modelo</th>
+                    <th>Equipamento &amp; Modelo</th>
                     <th>Patrimônio / SN</th>
                     <th>Coordenador</th>
                     <th>RDO</th>
@@ -217,7 +215,7 @@
                     data-data="{{ c.data_saida[:10] if c.data_saida else '' }}"
                     data-busca="{{ c.id }} {{ c.id_solicitacao or '' }} {{ c.tipo }} {{ c.modelo }} {{ c.patrimonio_sn }} {{ c.coordenador }} {{ c.rdo }} {{ c.status }} {{ c.data_saida }}">
                     <td class="ps-4">
-                        <code style="font-size:0.8125rem; font-weight:700;">#CAU-{{ c.id }}</code>
+                        <code style="font-size:0.8125rem; font-weight:700; color:var(--lime);">#CAU-{{ c.id }}</code>
                     </td>
 
                     <td>
@@ -229,7 +227,7 @@
                     </td>
 
                     <td>
-                        <div style="font-weight:600; font-size:0.875rem;">{{ c.tipo }}</div>
+                        <div style="font-weight:600; font-size:0.875rem; color:var(--text-primary);">{{ c.tipo }}</div>
                         <div style="font-size:0.8125rem; color:var(--text-muted);">{{ c.modelo }}</div>
                     </td>
 
@@ -239,17 +237,17 @@
 
                     <td>
                         <div style="display:flex; align-items:center; gap:var(--space-2);">
-                            <div style="width:26px;height:26px;border-radius:50%;background:rgba(206,220,0,0.18);color:var(--ink-900);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;flex-shrink:0;">
+                            <div style="width:24px; height:24px; border-radius:2px; background:rgba(206,220,0,0.12); border:1px solid rgba(206,220,0,0.3); color:var(--lime); display:flex; align-items:center; justify-content:center; font-size:0.7rem; font-weight:700; font-family:var(--font-mono); flex-shrink:0;">
                                 {{ c.coordenador[0]|upper if c.coordenador else '?' }}
                             </div>
-                            <span style="font-size:0.875rem; font-weight:500;">{{ c.coordenador }}</span>
+                            <span style="font-size:0.875rem; font-weight:500; color:var(--text-primary);">{{ c.coordenador }}</span>
                         </div>
                     </td>
 
                     <td><code>{{ c.rdo }}</code></td>
 
                     <td>
-                        <div style="font-size:0.875rem; font-family:var(--font-mono);">{{ c.data_saida }}</div>
+                        <div style="font-size:0.8125rem; font-family:var(--font-mono); color:var(--text-secondary);">{{ c.data_saida }}</div>
                     </td>
 
                     <td>
@@ -257,7 +255,7 @@
                         <div>
                             <span class="badge-notion badge-notion-green"><i data-lucide="check-circle" class="me-1"></i>Devolvido</span>
                             {% if c.data_devolucao %}
-                            <div style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono); margin-top:2px;">{{ c.data_devolucao }}</div>
+                            <div style="font-size:0.72rem; color:var(--text-muted); font-family:var(--font-mono); margin-top:2px;">{{ c.data_devolucao }}</div>
                             {% endif %}
                         </div>
                         {% else %}
@@ -268,7 +266,7 @@
                     <td class="text-center">
                         {% if c.pdf_nome %}
                         <a href="/cautelas/{{ c.pdf_nome }}" target="_blank" class="cv-btn-action cv-btn-action-secondary" style="height:28px; font-size:0.75rem; padding:0 10px;" title="Visualizar Termo em PDF">
-                            <i class="bi bi-file-earmark-pdf text-danger"></i> PDF
+                            <i data-lucide="file-text" class="text-danger"></i> PDF
                         </a>
                         {% else %}
                         <span style="color:var(--text-muted);">&mdash;</span>
@@ -278,11 +276,11 @@
                     <td class="text-center pe-4">
                         {% if c.status == 'Em Campo' and c.id_equipamento %}
                         <a href="/devolver/{{ c.id_equipamento }}" class="cv-btn-action cv-btn-action-secondary" style="height:28px; font-size:0.75rem; padding:0 10px;" title="Registrar devolução de ativo">
-                            <i class="bi bi-arrow-return-left text-danger"></i> Devolver
+                            <i data-lucide="corner-up-left" class="text-danger"></i> Devolver
                         </a>
                         {% else %}
                         <span style="font-size:0.8125rem; color:var(--text-muted); display:inline-flex; align-items:center; gap:4px;">
-                            <i class="bi bi-check2 text-success"></i> Concluído
+                            <i data-lucide="check" class="text-success"></i> Concluído
                         </span>
                         {% endif %}
                     </td>
@@ -293,11 +291,11 @@
                 <tr id="linhaNenhumResultado" class="d-none">
                     <td colspan="10" class="text-center py-5">
                         <div class="cv-empty-state" style="padding:var(--space-6) 0;">
-                            <div class="cv-empty-icon" style="font-size:2.5rem;"><i class="bi bi-search"></i></div>
+                            <div class="cv-empty-icon" style="font-size:2.5rem;"><i data-lucide="search"></i></div>
                             <div class="cv-empty-title">Nenhuma cautela encontrada</div>
                             <div class="cv-empty-text">Tente alterar os termos da busca ou redefinir os filtros selecionados.</div>
                             <button type="button" class="btn btn-secondary btn-sm mt-2" onclick="resetarTodosFiltros()">
-                                <i class="bi bi-arrow-counterclockwise me-1"></i>Redefinir Filtros
+                                <i data-lucide="rotate-ccw" class="me-1"></i>Redefinir Filtros
                             </button>
                         </div>
                     </td>
@@ -306,7 +304,7 @@
         </table>
         {% else %}
         <div class="cv-empty-state">
-            <div class="cv-empty-icon"><i class="bi bi-clock-history"></i></div>
+            <div class="cv-empty-icon"><i data-lucide="history"></i></div>
             <div class="cv-empty-title">Nenhuma cautela registrada</div>
             <div class="cv-empty-text">O histórico completo de cautelas emitidas aparecerá aqui.</div>
         </div>

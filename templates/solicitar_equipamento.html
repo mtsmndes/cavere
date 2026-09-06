@@ -1,34 +1,39 @@
 {% extends "base.html" %}
 {% block content %}
-<div style="max-width:780px; margin:0 auto;">
+<div style="max-width:800px; margin:0 auto;">
 
     <div class="cv-breadcrumb">
-        <a href="/meus-chamados"><i class="bi bi-card-checklist me-1"></i>Meus Chamados</a>
+        <a href="/meus-chamados"><i data-lucide="clipboard-list" class="me-1"></i>Meus Chamados</a>
         <span class="sep">/</span>
         <span class="current">Nova Solicitação de Equipamento</span>
     </div>
 
-    <div class="card">
-        <div class="card-header">
+    <div class="surface-card">
+        <div class="surface-card-header">
             <div style="display:flex; align-items:center; gap:var(--space-3);">
-                <div style="width:36px;height:36px;border-radius:var(--radius-md);background:var(--status-success-bg);display:flex;align-items:center;justify-content:center;color:var(--status-success-text);">
-                    <i class="bi bi-inbox fs-5"></i>
+                <div style="width:36px; height:36px; border-radius:2px; background:rgba(206, 220, 0, 0.08); border:1px solid rgba(206, 220, 0, 0.25); display:flex; align-items:center; justify-content:center; color:var(--lime);">
+                    <i data-lucide="inbox"></i>
                 </div>
                 <div>
-                    <div style="font-size:1rem; font-weight:700; color:var(--ink-900);">Abertura de Chamado de Equipamento</div>
-                    <div style="font-size:0.8125rem; color:var(--ink-500);">Solicitante: <strong>{{ nome_coordenador }}</strong> (#{{ id_coordenador }})</div>
+                    <div style="font-size:1rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.04em; color:var(--text-primary);">
+                        Abertura de Chamado de Equipamento
+                    </div>
+                    <div style="font-size:0.8125rem; color:var(--text-muted);">
+                        Solicitante: <strong style="color:var(--text-primary);">{{ nome_coordenador }}</strong> (<code style="color:var(--lime);">#{{ id_coordenador }}</code>)
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="card-body">
+        <div class="surface-card-body">
             <form action="/solicitar-equipamento" method="POST" id="formSolicitacao">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
                 <!-- Seção 1: Ativo & Quantidade -->
-                <div style="margin-bottom:var(--space-6);">
-                    <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-4); padding-bottom:var(--space-3); border-bottom:1px solid var(--border-subtle);">
-                        <span style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--ink-700);color:#fff;font-size:0.75rem;font-weight:700;flex-shrink:0;">1</span>
-                        <span style="font-size:0.8125rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-500);">Ativo &amp; Quantidade</span>
+                <div style="margin-bottom:var(--space-5);">
+                    <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-4); padding-bottom:var(--space-2); border-bottom:1px solid var(--border);">
+                        <span style="display:flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:2px; background:rgba(206, 220, 0, 0.15); color:var(--lime); font-size:0.75rem; font-weight:700; font-family:var(--font-mono); flex-shrink:0;">1</span>
+                        <span style="font-size:0.8125rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.05em; color:var(--text-primary);">Ativo &amp; Quantidade</span>
                     </div>
                     <div class="row g-3">
                         <div class="col-md-8">
@@ -56,16 +61,16 @@
                 </div>
 
                 <!-- Seção 2: Destinatário & Destino -->
-                <div style="margin-bottom:var(--space-6);">
-                    <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-4); padding-bottom:var(--space-3); border-bottom:1px solid var(--border-subtle);">
-                        <span style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--ink-700);color:#fff;font-size:0.75rem;font-weight:700;flex-shrink:0;">2</span>
-                        <span style="font-size:0.8125rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-500);">Destinatário &amp; Destino</span>
+                <div style="margin-bottom:var(--space-5);">
+                    <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-4); padding-bottom:var(--space-2); border-bottom:1px solid var(--border);">
+                        <span style="display:flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:2px; background:rgba(206, 220, 0, 0.15); color:var(--lime); font-size:0.75rem; font-weight:700; font-family:var(--font-mono); flex-shrink:0;">2</span>
+                        <span style="font-size:0.8125rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.05em; color:var(--text-primary);">Destinatário &amp; Destino</span>
                     </div>
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label" for="destinatario">Destinatário do Equipamento <span style="color:var(--status-danger-text);">*</span></label>
                             <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                <span class="input-group-text"><i data-lucide="user"></i></span>
                                 <input type="text" class="form-control" name="destinatario" id="destinatario"
                                     placeholder="Ex: Carlos Silva (Téc. Operações)" required>
                             </div>
@@ -74,7 +79,7 @@
                         <div class="col-md-6">
                             <label class="form-label" for="plataforma">Plataforma ou Base de Destino <span style="color:var(--status-danger-text);">*</span></label>
                             <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                                <span class="input-group-text"><i data-lucide="map-pin"></i></span>
                                 <input type="text" class="form-control" name="plataforma" id="plataforma"
                                     list="sugestoesPlataformas" placeholder="Ex: Plataforma P-71" required>
                             </div>
@@ -95,10 +100,10 @@
                 </div>
 
                 <!-- Seção 3: Planejamento & Detalhes -->
-                <div style="margin-bottom:var(--space-6);">
-                    <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-4); padding-bottom:var(--space-3); border-bottom:1px solid var(--border-subtle);">
-                        <span style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--ink-700);color:#fff;font-size:0.75rem;font-weight:700;flex-shrink:0;">3</span>
-                        <span style="font-size:0.8125rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-500);">Planejamento &amp; Detalhes</span>
+                <div style="margin-bottom:var(--space-5);">
+                    <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-4); padding-bottom:var(--space-2); border-bottom:1px solid var(--border);">
+                        <span style="display:flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:2px; background:rgba(206, 220, 0, 0.15); color:var(--lime); font-size:0.75rem; font-weight:700; font-family:var(--font-mono); flex-shrink:0;">3</span>
+                        <span style="font-size:0.8125rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.05em; color:var(--text-primary);">Planejamento &amp; Detalhes</span>
                     </div>
                     <div class="row g-3">
                         <div class="col-md-4">
@@ -125,10 +130,10 @@
                     </div>
                 </div>
 
-                <div style="display:flex; justify-content:space-between; align-items:center; padding-top:var(--space-4); border-top:1px solid var(--border-subtle);">
+                <div style="display:flex; justify-content:space-between; align-items:center; padding-top:var(--space-4); border-top:1px solid var(--border);">
                     <a href="/meus-chamados" class="btn btn-secondary btn-sm">Cancelar</a>
                     <button type="submit" class="btn btn-primary btn-sm">
-                        <i class="bi bi-send"></i> Enviar Solicitação
+                        <i data-lucide="send"></i> Enviar Solicitação
                     </button>
                 </div>
             </form>

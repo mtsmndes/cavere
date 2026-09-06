@@ -1,108 +1,86 @@
 {% extends "base.html" %}
 {% block content %}
-<style>
-    /* ---- meus_chamados page-specific styles ---- */
-    .chamado-row td:first-child { border-left: 3px solid transparent; padding-left: calc(var(--space-4) - 3px) !important; }
-    .chamado-row[data-status="Pendente"] td:first-child { border-left-color: var(--status-warn-text); }
-    .chamado-row[data-status="Esperando Entrega"] td:first-child { border-left-color: var(--status-purple-text); }
-    .chamado-row[data-status="Finalizada"] td:first-child { border-left-color: var(--status-success-text); }
-</style>
 
-
+<!-- Hero / Banner do Coordenador -->
 <div class="cv-page-banner">
     <div>
-        <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-1);">
-            <span class="badge-notion badge-notion-blue">Coordenador</span>
-            <span style="font-size:0.8125rem; color:var(--text-muted); font-family:var(--font-mono);">ID #{{ id_coordenador }}</span>
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+            <span class="pulse-live"></span>
+            <span style="font-family:var(--font-mono); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted);">
+                COORDINATOR_PORTAL // FIELD_DISPATCH
+            </span>
+            <span class="badge-notion badge-notion-blue" style="font-size:0.7rem;">ID #{{ id_coordenador }}</span>
         </div>
-        <h1 class="cv-page-title">Meus Chamados & Cautelas</h1>
+        <h1 class="cv-page-title" style="margin-bottom:4px;">
+            Meus Chamados &amp; <span style="color:var(--lime);">Cautelas</span>
+        </h1>
         <p class="cv-page-subtitle">
-            Acompanhamento de solicitações e ativos de <strong>{{ nome_coordenador }}</strong>
+            Acompanhamento em tempo real de requisições e ativos de <strong>{{ nome_coordenador }}</strong>
         </p>
     </div>
-    <div style="display:flex; align-items:center; gap:var(--space-3); flex-wrap:wrap;">
+    <div style="display:flex; align-items:center; gap:var(--space-2); flex-wrap:wrap;">
         <div class="btn-group btn-group-sm">
             <button class="btn btn-secondary active" id="btnVisaoTabela" onclick="trocarVisao('tabela')">
-                <i class="bi bi-table"></i> Tabela
+                <i data-lucide="table"></i> Tabela
             </button>
             <button class="btn btn-secondary" id="btnVisaoTimeline" onclick="trocarVisao('timeline')">
-                <i class="bi bi-clock-history"></i> Linha do Tempo
+                <i data-lucide="history"></i> Linha do Tempo
             </button>
         </div>
         <a href="/solicitar-equipamento" class="btn btn-primary btn-sm">
-            <i class="bi bi-plus-lg"></i> Solicitar Equipamento
+            <i data-lucide="plus"></i> Solicitar Equipamento
         </a>
     </div>
 </div>
 
-
-<div class="row g-4" style="margin-bottom:var(--space-6);">
+<!-- 4 Glance Cards (AETHER Command Style) -->
+<div class="row g-3" style="margin-bottom:var(--space-5);">
     <div class="col-sm-6 col-lg-3">
-        <div class="cv-kpi" onclick="filtrarPorStatus('Todos', this)">
-            <div style="display:flex; align-items:center; justify-content:space-between;">
-                <div>
-                    <div class="cv-kpi-label">Total Registrado</div>
-                    <div class="cv-kpi-value-hero">{{ contadores.get('Total', 0) }}</div>
-                </div>
-                <div class="cv-kpi-badge neutral">
-                    <i data-lucide="layers"></i>
-                </div>
+        <div class="cv-glance-card" onclick="filtrarPorStatus('Todos', this)" role="button" tabindex="0">
+            <div class="cv-glance-header">
+                <span class="cv-glance-label">Total Registrado</span>
             </div>
+            <div class="cv-glance-value">{{ contadores.get('Total', 0) }}</div>
         </div>
     </div>
     <div class="col-sm-6 col-lg-3">
-        <div class="cv-kpi" onclick="filtrarPorStatus('Pendente', this)">
-            <div style="display:flex; align-items:center; justify-content:space-between;">
-                <div>
-                    <div class="cv-kpi-label">Pendentes</div>
-                    <div class="cv-kpi-value-hero" style="color:#854d0e;">{{ contadores.get('Pendente', 0) }}</div>
-                </div>
-                <div class="cv-kpi-badge yellow">
-                    <i data-lucide="hourglass"></i>
-                </div>
+        <div class="cv-glance-card" onclick="filtrarPorStatus('Pendente', this)" role="button" tabindex="0">
+            <div class="cv-glance-header">
+                <span class="cv-glance-label">Pendentes</span>
             </div>
+            <div class="cv-glance-value" style="color:#b45309;">{{ contadores.get('Pendente', 0) }}</div>
         </div>
     </div>
     <div class="col-sm-6 col-lg-3">
-        <div class="cv-kpi" onclick="filtrarPorStatus('Em Operacao', this)">
-            <div style="display:flex; align-items:center; justify-content:space-between;">
-                <div>
-                    <div class="cv-kpi-label">Em Operação</div>
-                    <div class="cv-kpi-value-hero" style="color:#1e40af;">{{ contadores.get('Em Operação', 0) }}</div>
-                </div>
-                <div class="cv-kpi-badge blue">
-                    <i data-lucide="radio"></i>
-                </div>
+        <div class="cv-glance-card" onclick="filtrarPorStatus('Em Operacao', this)" role="button" tabindex="0">
+            <div class="cv-glance-header">
+                <span class="cv-glance-label">Em Operação</span>
             </div>
+            <div class="cv-glance-value" style="color:var(--lime-text);">{{ contadores.get('Em Operação', 0) }}</div>
         </div>
     </div>
     <div class="col-sm-6 col-lg-3">
-        <div class="cv-kpi" onclick="filtrarPorStatus('Devolvido', this)">
-            <div style="display:flex; align-items:center; justify-content:space-between;">
-                <div>
-                    <div class="cv-kpi-label">Concluídos</div>
-                    <div class="cv-kpi-value-hero" style="color:#166534;">{{ contadores.get('Devolvido', 0) + contadores.get('Finalizada', 0) }}</div>
-                </div>
-                <div class="cv-kpi-badge accent">
-                    <i data-lucide="check-circle-2"></i>
-                </div>
+        <div class="cv-glance-card" onclick="filtrarPorStatus('Devolvido', this)" role="button" tabindex="0">
+            <div class="cv-glance-header">
+                <span class="cv-glance-label">Concluídos</span>
             </div>
+            <div class="cv-glance-value">{{ contadores.get('Devolvido', 0) + contadores.get('Finalizada', 0) }}</div>
         </div>
     </div>
 </div>
 
-
-<div class="card" style="margin-bottom:var(--space-4); padding:var(--space-3) var(--space-4) !important; overflow:visible;">
-    <div style="display:flex; gap:var(--space-3); align-items:center; flex-wrap:wrap; padding:0;">
+<!-- Barra de Busca & Filtros Rápidos -->
+<div class="surface-card" style="margin-bottom:var(--space-4); padding:var(--space-3) var(--space-4);">
+    <div style="display:flex; gap:var(--space-3); align-items:center; flex-wrap:wrap;">
         <div style="flex:1; min-width:220px;">
             <div class="input-group input-group-sm">
-                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <span class="input-group-text"><i data-lucide="search"></i></span>
                 <input type="text" id="filtroTexto" class="form-control"
                        placeholder="Buscar por chamado, equipamento, RDO, status..." onkeyup="aplicarFiltros()">
             </div>
         </div>
         <div style="display:flex; align-items:center; gap:var(--space-2); flex-wrap:wrap;">
-            <span style="font-size:0.8125rem; color:var(--text-secondary); white-space:nowrap;">Filtrar Status:</span>
+            <span style="font-size:0.8125rem; color:var(--text-muted); font-family:var(--font-mono); text-transform:uppercase;">Status:</span>
             <div class="btn-group btn-group-sm">
                 <button type="button" class="btn btn-secondary active" id="filtroBtn-Todos" onclick="filtrarPorStatus('Todos', this)">Todos</button>
                 <button type="button" class="btn btn-secondary" id="filtroBtn-Pendente" onclick="filtrarPorStatus('Pendente', this)">Pendente</button>
@@ -110,27 +88,30 @@
                 <button type="button" class="btn btn-secondary" id="filtroBtn-Finalizada" onclick="filtrarPorStatus('Finalizada', this)">Finalizados</button>
             </div>
             <button type="button" class="btn btn-secondary btn-sm" id="btnToggleFinalizadosCoord" onclick="toggleFinalizadosCoord()" title="Recolher / Ocultar chamados já finalizados">
-                <i class="bi bi-eye-slash" id="iconeToggleFinalizadosCoord"></i>
+                <i data-lucide="eye-off" id="iconeToggleFinalizadosCoord"></i>
                 <span id="textoToggleFinalizadosCoord">Fechar Finalizados</span>
             </button>
         </div>
     </div>
 </div>
 
-<!-- Chamados de Solicitação de Equipamento -->
-<div class="card" style="margin-bottom:var(--space-5);">
-    <div class="card-header">
+<!-- Chamados de Solicitação de Equipamento (Feed Table) -->
+<div class="surface-card" style="margin-bottom:var(--space-5);">
+    <div class="surface-card-header" style="display:flex; justify-content:space-between; align-items:center;">
         <div style="display:flex; align-items:center; gap:var(--space-3);">
-            <div style="width:32px;height:32px;border-radius:var(--radius-md);background:var(--status-warn-bg);display:flex;align-items:center;justify-content:center;color:var(--status-warn-text);">
-                <i class="bi bi-inbox"></i>
+            <div style="width:32px; height:32px; background:rgba(206, 220, 0, 0.08); border:1px solid rgba(206, 220, 0, 0.2); border-radius:2px; display:flex; align-items:center; justify-content:center; color:var(--lime);">
+                <i data-lucide="inbox"></i>
             </div>
             <div>
-                <div style="font-size:0.9375rem; font-weight:600;">Chamados de Solicitação de Equipamento</div>
-                <div style="font-size:0.8125rem; color:var(--text-secondary);">Acompanhamento de requisições enviadas</div>
+                <div style="font-size:0.9375rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.04em; color:var(--text-primary);">
+                    Chamados de Solicitação de Equipamento
+                </div>
+                <div style="font-size:0.8125rem; color:var(--text-muted);">Acompanhamento de requisições operacionais enviadas</div>
             </div>
         </div>
         <span class="badge-notion badge-notion-gray">{{ solicitacoes|length }} chamado(s)</span>
     </div>
+
     <div style="overflow-x:auto;">
         {% if solicitacoes %}
         <table class="table table-hover align-middle table-enterprise cv-table-uniform mb-0" id="tabelaSolicitacoes">
@@ -152,22 +133,24 @@
                     data-finalizada="{{ '1' if s.status in ('Finalizada', 'Concluído', 'Concluido', 'Finalizado', 'Devolvido') else '0' }}"
                     data-busca="{{ s.id }} {{ s.tipo }} {{ s.quantidade }} {{ s.destinatario }} {{ s.plataforma }} {{ s.rdo }} {{ s.status }}">
                     <td class="ps-4">
-                        <div style="display:flex; align-items:center; gap:var(--space-1);">
-                            <span style="font-size:0.8125rem; font-weight:600; font-family:var(--font-mono); color:var(--text-primary);">#SOL-{{ s.id }}</span>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <span style="font-size:0.8125rem; font-weight:700; font-family:var(--font-mono); color:var(--lime);">#SOL-{{ s.id }}</span>
                             {% if s.prioridade == 'Urgente' %}
-                            <span class="badge-notion badge-notion-red" style="font-size:0.65rem; padding:1px 6px;">Urgente</span>
+                            <span class="badge-notion badge-notion-red" style="font-size:0.65rem; padding:1px 5px;">URGENTE</span>
                             {% endif %}
                         </div>
-                        <div style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">{{ s.data_criacao[:10] if s.data_criacao else '' }}</div>
+                        <div style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono); margin-top:2px;">
+                            {{ s.data_criacao[:10] if s.data_criacao else '' }}
+                        </div>
                     </td>
 
                     <td>
                         <div style="display:flex; align-items:center; gap:var(--space-2);">
                             <span class="badge-notion badge-notion-green" style="font-size:0.75rem; font-weight:700;">{{ s.quantidade }}x</span>
-                            <span style="font-weight:600; font-size:0.875rem;">{{ s.tipo }}</span>
+                            <span style="font-weight:600; font-size:0.875rem; color:var(--text-primary);">{{ s.tipo }}</span>
                         </div>
                         {% if s.rdo and s.rdo != 'N/A' %}
-                        <div style="font-size:0.75rem; color:var(--text-muted);">RDO: <code>{{ s.rdo }}</code></div>
+                        <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">RDO: <code>{{ s.rdo }}</code></div>
                         {% endif %}
                     </td>
 
@@ -195,18 +178,18 @@
                                 data-bs-content="{% if s.itens_emitidos %}{% for it in s.itens_emitidos %}<div class='py-1 border-bottom d-flex justify-content-between gap-3'><span>{{ it.modelo or it.tipo }}</span><code class='text-muted'>{{ it.patrimonio_sn }}</code></div>{% endfor %}{% endif %}{% if s.itens_devolvidos %}{% for it in s.itens_devolvidos %}<div class='py-1 border-bottom d-flex justify-content-between gap-3 text-muted'><span class='text-decoration-line-through'>{{ it.modelo or it.tipo }}</span><span class='badge-notion badge-notion-gray' style='font-size:0.65rem;'>Devolvido</span></div>{% endfor %}{% endif %}"
                                 title="Ver detalhes dos equipamentos emitidos"
                                 tabindex="0">
-                                <i class="bi bi-info-circle"></i>
+                                <i data-lucide="info"></i>
                             </button>
                             {% endif %}
                         </div>
                     </td>
 
                     <td>
-                        <div style="font-size:0.875rem;"><i class="bi bi-person text-muted me-1"></i>{{ s.destinatario }}</div>
+                        <div style="font-size:0.875rem; color:var(--text-primary);"><i data-lucide="user" class="text-muted me-1" style="width:14px;height:14px;"></i>{{ s.destinatario }}</div>
                     </td>
 
                     <td>
-                        <div style="font-size:0.875rem;"><i class="bi bi-geo-alt text-muted me-1"></i><strong>{{ s.plataforma }}</strong></div>
+                        <div style="font-size:0.875rem; color:var(--text-primary);"><i data-lucide="map-pin" class="text-muted me-1" style="width:14px;height:14px;"></i><strong>{{ s.plataforma }}</strong></div>
                         {% if s.data_necessidade and s.data_necessidade != 'Imediato' %}
                         <div style="font-size:0.75rem; color:var(--text-muted);">Necessidade: {{ s.data_necessidade }}</div>
                         {% endif %}
@@ -228,7 +211,7 @@
                         {% if s.status == 'Pendente' %}
                         <span class="badge-notion badge-notion-orange"><i data-lucide="hourglass" class="me-1"></i>Pendente</span>
                         {% elif s.status == 'Esperando Entrega' %}
-                        <span class="badge-notion badge-notion-purple"><i class="bi bi-box-seam me-1"></i>Esperando Entrega</span>
+                        <span class="badge-notion badge-notion-purple"><i data-lucide="package" class="me-1"></i>Esperando Entrega</span>
                         {% elif s.status in ('Em Operação', 'Em Operacao') %}
                         <span class="badge-notion badge-notion-blue"><i data-lucide="radio" class="me-1"></i>Em Operação</span>
                         {% else %}
@@ -243,7 +226,7 @@
                             style="height:30px; font-size:0.75rem; padding:0 10px;"
                             onclick="fecharChamadoCoordIndividual(this)"
                             title="Ocultar este chamado finalizado">
-                            <i class="bi bi-eye-slash"></i> Fechar
+                            <i data-lucide="eye-off"></i> Fechar
                         </button>
                         {% else %}
                         <span style="font-size:0.75rem; color:var(--text-muted);">&mdash;</span>
@@ -255,38 +238,41 @@
         </table>
         {% else %}
         <div class="cv-empty-state">
-            <div class="cv-empty-icon"><i class="bi bi-inbox"></i></div>
+            <div class="cv-empty-icon"><i data-lucide="inbox"></i></div>
             <div class="cv-empty-title">Nenhum chamado de solicitação</div>
             <div class="cv-empty-text">Abra uma solicitação de equipamento para começar.</div>
             <a href="/solicitar-equipamento" class="btn btn-primary btn-sm">
-                <i class="bi bi-plus-lg"></i> Abrir Solicitação
+                <i data-lucide="plus"></i> Abrir Solicitação
             </a>
         </div>
         {% endif %}
     </div>
 </div>
 
-<!-- Cautelas Emitidas e Termos de Responsabilidade -->
-<div id="containerTabela" class="card" style="margin-bottom:var(--space-4);">
-    <div class="card-header">
+<!-- Cautelas Emitidas & Termos de Responsabilidade -->
+<div id="containerTabela" class="surface-card" style="margin-bottom:var(--space-4);">
+    <div class="surface-card-header" style="display:flex; justify-content:space-between; align-items:center;">
         <div style="display:flex; align-items:center; gap:var(--space-3);">
-            <div style="width:32px;height:32px;border-radius:var(--radius-md);background:var(--status-info-bg);display:flex;align-items:center;justify-content:center;color:var(--status-info-text);">
-                <i class="bi bi-file-earmark-text"></i>
+            <div style="width:32px; height:32px; background:rgba(206, 220, 0, 0.08); border:1px solid rgba(206, 220, 0, 0.2); border-radius:2px; display:flex; align-items:center; justify-content:center; color:var(--lime);">
+                <i data-lucide="file-text"></i>
             </div>
             <div>
-                <div style="font-size:0.9375rem; font-weight:600;">Cautelas Emitidas & Termos de Responsabilidade</div>
-                <div style="font-size:0.8125rem; color:var(--text-secondary);">Histórico individual de termos assinados</div>
+                <div style="font-size:0.9375rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.04em; color:var(--text-primary);">
+                    Cautelas Emitidas &amp; Termos de Responsabilidade
+                </div>
+                <div style="font-size:0.8125rem; color:var(--text-muted);">Histórico individual de termos assinados</div>
             </div>
         </div>
         <span class="badge-notion badge-notion-gray">{{ chamados|length }} cautela(s)</span>
     </div>
+
     <div style="overflow-x:auto;">
         {% if chamados %}
         <table class="table table-hover align-middle table-enterprise cv-table-uniform mb-0" id="tabelaCautelas">
             <thead>
                 <tr>
                     <th class="ps-4">ID</th>
-                    <th>Equipamento & Patrimônio</th>
+                    <th>Equipamento &amp; Patrimônio</th>
                     <th>RDO</th>
                     <th class="text-center">Progresso</th>
                     <th>Data de Saída</th>
@@ -298,13 +284,13 @@
                 {% for c in chamados %}
                 <tr class="item-chamado" data-status="{{ c.status }}"
                     data-busca="{{ c.id }} {{ c.tipo }} {{ c.modelo }} {{ c.patrimonio_sn }} {{ c.rdo }} {{ c.status }}">
-                    <td class="ps-4"><code style="font-size:0.8rem; font-weight:600;">#CAU-{{ c.id }}</code></td>
+                    <td class="ps-4"><code style="font-size:0.8rem; font-weight:700; color:var(--lime);">#CAU-{{ c.id }}</code></td>
                     <td>
-                        <div style="font-weight:600; font-size:0.875rem;">{{ c.tipo }}</div>
+                        <div style="font-weight:600; font-size:0.875rem; color:var(--text-primary);">{{ c.tipo }}</div>
                         <div style="font-size:0.8125rem; color:var(--text-muted);">{{ c.modelo }}</div>
                         <code style="font-size:0.75rem;">{{ c.patrimonio_sn }}</code>
                     </td>
-                    <td><code style="font-size:0.8rem;">{{ c.rdo }}</code></td>
+                    <td><code>{{ c.rdo }}</code></td>
                     <td class="text-center">
                         <div class="notion-stepper">
                             <span class="step-pill {% if c.timeline_step >= 1 %}active{% endif %}">1. Saída</span>
@@ -315,27 +301,27 @@
                         </div>
                     </td>
                     <td>
-                        <div style="font-size:0.875rem;">{{ c.data_saida }}</div>
+                        <div style="font-size:0.8125rem; font-family:var(--font-mono); color:var(--text-secondary);">{{ c.data_saida }}</div>
                         {% if c.data_devolucao %}
-                        <div style="font-size:0.75rem; color:var(--text-muted);">Devolução: {{ c.data_devolucao }}</div>
+                        <div style="font-size:0.72rem; color:var(--text-muted); font-family:var(--font-mono); margin-top:2px;">Devolução: {{ c.data_devolucao }}</div>
                         {% endif %}
                     </td>
                     <td>
                         {% if c.status == 'Pendente' %}
-                        <span class="badge-notion badge-notion-orange"><i class="bi bi-hourglass-split me-1"></i>Pendente</span>
+                        <span class="badge-notion badge-notion-orange"><i data-lucide="hourglass" class="me-1"></i>Pendente</span>
                         {% elif c.status in ('Em Operação', 'Em Operacao') %}
-                        <span class="badge-notion badge-notion-blue"><i class="bi bi-broadcast me-1"></i>Em Campo</span>
+                        <span class="badge-notion badge-notion-blue"><i data-lucide="radio" class="me-1"></i>Em Campo</span>
                         {% else %}
-                        <span class="badge-notion badge-notion-green"><i class="bi bi-check-circle me-1"></i>Devolvido</span>
+                        <span class="badge-notion badge-notion-green"><i data-lucide="check-circle" class="me-1"></i>Devolvido</span>
                         {% endif %}
                     </td>
                     <td class="text-center pe-4">
                         {% if c.pdf_nome %}
                         <a href="/cautelas/{{ c.pdf_nome }}" target="_blank" class="cv-btn-action cv-btn-action-secondary" style="height:28px; font-size:0.75rem; padding:0 8px;" title="Visualizar Termo em PDF">
-                            <i class="bi bi-file-earmark-pdf text-danger"></i> PDF
+                            <i data-lucide="file-text" class="text-danger"></i> PDF
                         </a>
                         {% else %}
-                        <span style="color:var(--text-muted);">-</span>
+                        <span style="color:var(--text-muted);">&mdash;</span>
                         {% endif %}
                     </td>
                 </tr>
@@ -344,7 +330,7 @@
         </table>
         {% else %}
         <div class="cv-empty-state">
-            <div class="cv-empty-icon"><i class="bi bi-file-earmark-text"></i></div>
+            <div class="cv-empty-icon"><i data-lucide="file-text"></i></div>
             <div class="cv-empty-title">Nenhuma cautela individual emitida</div>
             <div class="cv-empty-text">Os termos emitidos para seu usuário aparecerão aqui.</div>
         </div>
@@ -352,33 +338,33 @@
     </div>
 </div>
 
-<!-- Linha do Tempo dos Equipamentos -->
-<div id="containerTimeline" class="card" style="display:none; margin-bottom:var(--space-4);">
-    <div class="card-header">
-        <div style="font-size:0.9375rem; font-weight:600; display:flex; align-items:center; gap:var(--space-2);">
-            <i class="bi bi-clock-history" style="color:var(--ink-500);"></i>
+<!-- Linha do Tempo dos Equipamentos (AETHER Dark Feed) -->
+<div id="containerTimeline" class="surface-card" style="display:none; margin-bottom:var(--space-4);">
+    <div class="surface-card-header">
+        <div style="font-size:0.9375rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.04em; color:var(--text-primary); display:flex; align-items:center; gap:var(--space-2);">
+            <i data-lucide="history" style="color:var(--lime);"></i>
             Linha do Tempo dos Equipamentos
         </div>
     </div>
-    <div class="card-body">
+    <div class="surface-card-body">
         {% if solicitacoes or chamados %}
         <div class="notion-timeline">
             {% for s in solicitacoes %}
             <div class="notion-timeline-item item-chamado-tl" data-status="{{ s.status }}"
                 data-busca="{{ s.id }} {{ s.tipo }} {{ s.quantidade }} {{ s.destinatario }} {{ s.plataforma }} {{ s.rdo }} {{ s.status }}">
                 <div class="notion-timeline-dot {{ s.status }}"></div>
-                <div class="card" style="margin-bottom:var(--space-3);">
-                    <div style="padding:var(--space-4) var(--space-5);">
+                <div class="surface-card" style="margin-bottom:var(--space-3); border-color:var(--border);">
+                    <div style="padding:var(--space-3) var(--space-4);">
                         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--space-2); margin-bottom:var(--space-2);">
                             <div>
                                 <span class="badge-notion {% if s.status == 'Pendente' %}badge-notion-orange{% elif s.status in ('Em Operação', 'Em Operacao') %}badge-notion-blue{% else %}badge-notion-green{% endif %} me-2">{{ s.status }}</span>
-                                <strong>#SOL-{{ s.id }}: {{ s.quantidade }}x {{ s.tipo }}</strong>
+                                <strong style="color:var(--text-primary); font-family:var(--font-mono);">#SOL-{{ s.id }}: {{ s.quantidade }}x {{ s.tipo }}</strong>
                             </div>
-                            <span class="badge-notion badge-notion-gray"><i class="bi bi-geo-alt me-1"></i>{{ s.plataforma }}</span>
+                            <span class="badge-notion badge-notion-gray"><i data-lucide="map-pin" class="me-1"></i>{{ s.plataforma }}</span>
                         </div>
-                        <div style="font-size:0.8125rem; color:var(--text-secondary);">
-                            <span><strong>Destinatário:</strong> {{ s.destinatario }}</span> &bull;
-                            <span><strong>Data:</strong> {{ s.data_criacao }}</span>
+                        <div style="font-size:0.8125rem; color:var(--text-muted); font-family:var(--font-mono);">
+                            <span>Destinatário: <strong style="color:var(--text-primary);">{{ s.destinatario }}</strong></span> &bull;
+                            <span>Data: {{ s.data_criacao }}</span>
                         </div>
                     </div>
                 </div>
@@ -389,21 +375,21 @@
             <div class="notion-timeline-item item-chamado-tl" data-status="{{ c.status }}"
                 data-busca="{{ c.id }} {{ c.tipo }} {{ c.modelo }} {{ c.patrimonio_sn }} {{ c.rdo }} {{ c.status }}">
                 <div class="notion-timeline-dot {{ c.status }}"></div>
-                <div class="card" style="margin-bottom:var(--space-3);">
-                    <div style="padding:var(--space-4) var(--space-5);">
+                <div class="surface-card" style="margin-bottom:var(--space-3); border-color:var(--border);">
+                    <div style="padding:var(--space-3) var(--space-4);">
                         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--space-2); margin-bottom:var(--space-2);">
                             <div>
                                 <span class="badge-notion {% if c.status == 'Pendente' %}badge-notion-orange{% elif c.status in ('Em Operação', 'Em Operacao') %}badge-notion-blue{% else %}badge-notion-green{% endif %} me-2">{{ c.status }}</span>
-                                <strong>{{ c.tipo }} - {{ c.modelo }}</strong>
-                                <span style="color:var(--text-muted); font-size:0.875rem;"> (SN: {{ c.patrimonio_sn }})</span>
+                                <strong style="color:var(--text-primary);">{{ c.tipo }} - {{ c.modelo }}</strong>
+                                <span style="color:var(--text-muted); font-size:0.8125rem; font-family:var(--font-mono);"> (SN: {{ c.patrimonio_sn }})</span>
                             </div>
                             <span class="badge-notion badge-notion-gray">RDO: {{ c.rdo }}</span>
                         </div>
-                        <div style="font-size:0.8125rem; color:var(--text-secondary); display:flex; justify-content:space-between; flex-wrap:wrap; gap:var(--space-2); align-items:center;">
-                            <span><strong>Saída:</strong> {{ c.data_saida }} &bull; <strong>Devolução:</strong> {{ c.data_devolucao or 'Em campo' }}</span>
+                        <div style="font-size:0.8125rem; color:var(--text-muted); display:flex; justify-content:space-between; flex-wrap:wrap; gap:var(--space-2); align-items:center; font-family:var(--font-mono);">
+                            <span>Saída: {{ c.data_saida }} &bull; Devolução: {{ c.data_devolucao or 'Em campo' }}</span>
                             {% if c.pdf_nome %}
                             <a href="/cautelas/{{ c.pdf_nome }}" target="_blank" class="cv-btn-action cv-btn-action-secondary" style="height:26px; font-size:0.75rem; padding:0 8px;">
-                                <i class="bi bi-file-earmark-pdf text-danger"></i> PDF
+                                <i data-lucide="file-text" class="text-danger"></i> PDF
                             </a>
                             {% endif %}
                         </div>
@@ -414,7 +400,7 @@
         </div>
         {% else %}
         <div class="cv-empty-state">
-            <div class="cv-empty-icon"><i class="bi bi-clock-history"></i></div>
+            <div class="cv-empty-icon"><i data-lucide="history"></i></div>
             <div class="cv-empty-title">Nenhum evento registrado</div>
             <div class="cv-empty-text">A linha do tempo exibirá a evolução dos seus chamados.</div>
         </div>
@@ -470,13 +456,16 @@
             if (finalizadosFechadosCoord) {
                 btn.classList.add('btn-primary');
                 btn.classList.remove('btn-secondary');
-                icone.className = 'bi bi-eye';
+                icone.setAttribute('data-lucide', 'eye');
                 texto.textContent = 'Mostrar Finalizados';
             } else {
                 btn.classList.remove('btn-primary');
                 btn.classList.add('btn-secondary');
-                icone.className = 'bi bi-eye-slash';
+                icone.setAttribute('data-lucide', 'eye-off');
                 texto.textContent = 'Fechar Finalizados';
+            }
+            if (window.lucide) {
+                lucide.createIcons();
             }
         }
     }

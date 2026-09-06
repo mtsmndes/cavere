@@ -1,129 +1,119 @@
 {% extends "base.html" %}
 {% block content %}
 
-
+<!-- Hero / Command Banner -->
 <div class="cv-page-banner">
     <div>
-        <h1 class="cv-page-title">Painel de <span class="cv-highlight">Operações</span></h1>
-        <p class="cv-page-subtitle">Visão integrada de chamados operacionais e controle de ativos</p>
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+            <span class="pulse-live"></span>
+            <span style="font-family:var(--font-mono); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted);">
+                CENTRAL_DISPATCH // OPERATIONAL_CONTROL
+            </span>
+        </div>
+        <h1 class="cv-page-title" style="margin-bottom:4px;">
+            Painel de <span style="color:var(--lime-text);">Operações</span>
+        </h1>
+        <p class="cv-page-subtitle">
+            Visão integrada de chamados operacionais, controle de ativos e termo de cautela
+        </p>
     </div>
-    <div style="display:flex; gap:var(--space-3); flex-wrap:wrap; align-items:center;">
+    <div style="display:flex; gap:var(--space-2); flex-wrap:wrap; align-items:center;">
         <button type="button" class="btn btn-outline btn-sm" onclick="abrirModalCautelaAvulsa()" title="Emitir termo de cautela avulso (sem chamado vinculado)">
-            <i class="bi bi-file-earmark-plus"></i> Cautela Avulsa
+            Cautela Avulsa
         </button>
         <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modalInventarioAtivos" title="Ver lista de equipamentos cadastrados na base">
-            <i class="bi bi-hdd-stack"></i> Base de Ativos ({{ equipamentos|length }})
+            <i data-lucide="server"></i> Base de Ativos [{{ equipamentos|length }}]
         </button>
         <a href="/cadastrar-usuario" class="btn btn-primary btn-sm" title="Cadastrar novo usuário ou perfil de coordenador">
-            <i class="bi bi-person-plus"></i> Novo Usuário
+            <i data-lucide="user-plus"></i> Novo Usuário
         </a>
     </div>
 </div>
 
-
-<div class="row g-4" style="margin-bottom:var(--space-6);">
+<!-- 4 Glance Cards (AETHER Command Style) -->
+<div class="row g-3" style="margin-bottom:var(--space-5);">
     <div class="col-sm-6 col-lg-3">
-        <div class="cv-kpi" onclick="filtrarChamadosAdmin('abertos')" title="Clique para filtrar apenas chamados em aberto">
-            <div style="display:flex; align-items:center; justify-content:space-between;">
-                <div>
-                    <div class="cv-kpi-label">Chamados em Aberto</div>
-                    {% set abertos = solicitacoes|rejectattr('status', 'in', ['Finalizada', 'Concluído', 'Concluido', 'Finalizado', 'Devolvido'])|list|length %}
-                    <div class="cv-kpi-value-hero">{{ abertos }}</div>
-                </div>
-                <div class="cv-kpi-badge yellow">
-                    <i data-lucide="hourglass"></i>
-                </div>
+        <div class="cv-glance-card" onclick="filtrarChamadosAdmin('abertos')" title="Clique para filtrar apenas chamados em aberto" role="button" tabindex="0">
+            <div class="cv-glance-header">
+                <span class="cv-glance-label">Chamados em Aberto</span>
             </div>
+            {% set abertos = solicitacoes|rejectattr('status', 'in', ['Finalizada', 'Concluído', 'Concluido', 'Finalizado', 'Devolvido'])|list|length %}
+            <div class="cv-glance-value">{{ abertos }}</div>
         </div>
     </div>
     <div class="col-sm-6 col-lg-3">
-        <div class="cv-kpi" data-bs-toggle="modal" data-bs-target="#modalInventarioAtivos" title="Clique para ver equipamentos na base">
-            <div style="display:flex; align-items:center; justify-content:space-between;">
-                <div>
-                    <div class="cv-kpi-label">Ativos na Base</div>
-                    {% set na_base = equipamentos|selectattr('status', 'in', ['Disponível', 'Disponivel'])|list|length %}
-                    <div class="cv-kpi-value-hero">{{ na_base }}</div>
-                </div>
-                <div class="cv-kpi-badge accent">
-                    <i data-lucide="shield-check"></i>
-                </div>
+        <div class="cv-glance-card" data-bs-toggle="modal" data-bs-target="#modalInventarioAtivos" title="Clique para ver equipamentos na base" role="button" tabindex="0">
+            <div class="cv-glance-header">
+                <span class="cv-glance-label">Ativos na Base</span>
             </div>
+            {% set na_base = equipamentos|selectattr('status', 'in', ['Disponível', 'Disponivel'])|list|length %}
+            <div class="cv-glance-value">{{ na_base }}</div>
         </div>
     </div>
     <div class="col-sm-6 col-lg-3">
-        <div class="cv-kpi" data-bs-toggle="modal" data-bs-target="#modalInventarioAtivos" title="Clique para ver equipamentos em operação">
-            <div style="display:flex; align-items:center; justify-content:space-between;">
-                <div>
-                    <div class="cv-kpi-label">Ativos em Campo</div>
-                    {% set em_campo = equipamentos|selectattr('status', 'in', ['Em Operação', 'Em Operacao'])|list|length %}
-                    <div class="cv-kpi-value-hero">{{ em_campo }}</div>
-                </div>
-                <div class="cv-kpi-badge blue">
-                    <i data-lucide="radio"></i>
-                </div>
+        <div class="cv-glance-card" data-bs-toggle="modal" data-bs-target="#modalInventarioAtivos" title="Clique para ver equipamentos em operação" role="button" tabindex="0">
+            <div class="cv-glance-header">
+                <span class="cv-glance-label">Ativos em Campo</span>
             </div>
+            {% set em_campo = equipamentos|selectattr('status', 'in', ['Em Operação', 'Em Operacao'])|list|length %}
+            <div class="cv-glance-value">{{ em_campo }}</div>
         </div>
     </div>
     <div class="col-sm-6 col-lg-3">
-        <div class="cv-kpi" onclick="window.location.href='/historico'" title="Clique para abrir o Histórico Geral de Cautelas">
-            <div style="display:flex; align-items:center; justify-content:space-between;">
-                <div>
-                    <div class="cv-kpi-label">Termos Emitidos</div>
-                    <div class="cv-kpi-value-hero">{{ cautelas|length }}</div>
-                </div>
-                <div class="cv-kpi-badge neutral">
-                    <i data-lucide="file-check-2"></i>
-                </div>
+        <div class="cv-glance-card" onclick="window.location.href='/historico'" title="Clique para abrir o Histórico Geral de Cautelas" role="button" tabindex="0">
+            <div class="cv-glance-header">
+                <span class="cv-glance-label">Termos Emitidos</span>
             </div>
+            <div class="cv-glance-value">{{ cautelas|length }}</div>
         </div>
     </div>
 </div>
 
-
-<div class="card" style="margin-bottom:var(--space-6);" id="secaoSolicitacoes">
-    <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--space-3);">
-        <div style="display:flex; align-items:center; gap:var(--space-3);">
-            <div style="width:36px;height:36px;border-radius:var(--radius-md);background:var(--status-warn-bg);display:flex;align-items:center;justify-content:center;color:var(--status-warn-text);">
-                <i class="bi bi-inbox fs-5"></i>
+<!-- Fila de Solicitações Operacionais (Feed Card) -->
+<div class="surface-card" style="margin-bottom:var(--space-5);" id="secaoSolicitacoes">
+    <div class="surface-card-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--space-3); padding:18px 20px;">
+        <div>
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
+                <span style="font-size:0.875rem; font-weight:700; color:var(--text-primary); text-transform:uppercase; letter-spacing:0.05em; font-family:var(--font-mono); line-height:1.2;">
+                    Fila de Solicitações Operacionais
+                </span>
+                <span class="badge-notion badge-notion-gray" style="font-size:0.75rem; padding:2px 8px; font-weight:600;">{{ solicitacoes|length }}</span>
             </div>
-            <div>
-                <div style="font-size:1rem; font-weight:700; color:var(--ink-900);">Fila de Solicitações Operacionais</div>
-                <div style="font-size:0.8125rem; color:var(--ink-500);">Chamados de equipamentos abertos pelos coordenadores de campo</div>
-            </div>
+            <div style="font-size:0.8125rem; color:var(--text-muted); line-height:1.4;">Chamados de equipamentos abertos pelos coordenadores de campo</div>
         </div>
 
         <div style="display:flex; align-items:center; gap:var(--space-2); flex-wrap:wrap;">
             <div class="btn-group btn-group-sm" role="group" id="grupoFiltroSolicitacoes">
                 <button type="button" class="btn btn-secondary active" id="filtroSol-todos" onclick="filtrarChamadosAdmin('todos')">
-                    Todos <span class="badge-notion badge-notion-gray ms-1" style="font-size:0.7rem;">{{ solicitacoes|length }}</span>
+                    Todos [{{ solicitacoes|length }}]
                 </button>
                 <button type="button" class="btn btn-secondary" id="filtroSol-abertos" onclick="filtrarChamadosAdmin('abertos')">
-                    <i class="bi bi-hourglass-split me-1" style="color:var(--status-warn-text);"></i>Em Aberto
+                    Em Aberto
                 </button>
                 <button type="button" class="btn btn-secondary" id="filtroSol-finalizados" onclick="filtrarChamadosAdmin('finalizados')">
-                    <i class="bi bi-check-circle me-1" style="color:var(--status-success-text);"></i>Finalizados
+                    Finalizados
                 </button>
             </div>
 
             <div class="dropdown">
                 <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="dropdownAcoesFila" data-bs-toggle="dropdown" aria-expanded="false" title="Opções e ações da fila">
-                    <i class="bi bi-three-dots-vertical"></i> Ações
+                    <i data-lucide="more-vertical"></i> Ações
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="dropdownAcoesFila" style="font-size:0.875rem; border-radius:var(--radius-md); border-color:var(--border);">
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="dropdownAcoesFila" style="font-size:0.8125rem;">
                     <li>
                         <a class="dropdown-item" href="javascript:void(0)" onclick="toggleFinalizadosAdmin()" id="itemMenuToggleFinalizados">
-                            <i class="bi bi-eye-slash me-2 text-muted"></i><span id="textoItemToggleFinalizados">Ocultar Finalizados</span>
+                            <i data-lucide="eye-off" class="me-2 text-muted" style="width:14px;height:14px;"></i><span id="textoItemToggleFinalizados">Ocultar Finalizados</span>
                         </a>
                     </li>
                     <li>
                         <a class="dropdown-item" href="javascript:void(0)" onclick="reabrirTodosFinalizados()">
-                            <i class="bi bi-eye me-2 text-muted"></i>Reexibir Todos os Chamados
+                            <i data-lucide="eye" class="me-2 text-muted" style="width:14px;height:14px;"></i>Reexibir Todos os Chamados
                         </a>
                     </li>
                     <li><hr class="dropdown-divider"></li>
                     <li>
                         <a class="dropdown-item" href="/historico">
-                            <i class="bi bi-clock-history me-2 text-muted"></i>Ir para Histórico Geral de Cautelas
+                            <i data-lucide="history" class="me-2 text-muted" style="width:14px;height:14px;"></i>Ir para Histórico Geral de Cautelas
                         </a>
                     </li>
                 </ul>
@@ -131,7 +121,7 @@
         </div>
     </div>
 
-        <div style="overflow-x:auto;">
+    <div style="overflow-x:auto;">
         {% if solicitacoes %}
         <table class="table table-hover align-middle table-enterprise cv-table-uniform mb-0">
             <thead>
@@ -140,7 +130,7 @@
                     <th>Coordenador</th>
                     <th>Equipamento Solicitado</th>
                     <th>Atendimento</th>
-                    <th>Destinatário & Destino</th>
+                    <th>Destinatário &amp; Destino</th>
                     <th>RDO</th>
                     <th>Status</th>
                     <th class="text-center pe-4" style="min-width:145px;">Ação</th>
@@ -153,28 +143,30 @@
                     data-finalizada="{{ '1' if s.status in ('Finalizada', 'Concluído', 'Concluido', 'Finalizado', 'Devolvido') else '0' }}">
                     
                     <td class="ps-4">
-                        <div style="display:flex; align-items:center; gap:var(--space-1);">
-                            <span style="font-weight:600; color:var(--ink-900); font-family:var(--font-mono); font-size:0.8125rem;">#SOL-{{ s.id }}</span>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <span style="font-weight:700; color:var(--lime-text); font-family:var(--font-mono); font-size:0.8125rem;">#SOL-{{ s.id }}</span>
                             {% if s.prioridade == 'Urgente' %}
-                            <span class="badge-notion badge-notion-red" style="font-size:0.65rem; padding:1px 6px;" title="Prioridade Urgente">Urgente</span>
+                            <span class="badge-notion badge-notion-red" style="font-size:0.65rem; padding:1px 5px;" title="Prioridade Urgente">URGENTE</span>
                             {% endif %}
                         </div>
-                        <div style="font-size:0.75rem; color:var(--ink-500); font-family:var(--font-mono);">{{ s.data_criacao[:10] if s.data_criacao else '' }}</div>
+                        <div style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono); margin-top:2px;">
+                            {{ s.data_criacao[:10] if s.data_criacao else '' }}
+                        </div>
                     </td>
 
                     <td>
                         <div style="display:flex; align-items:center; gap:var(--space-2);">
-                            <div style="width:28px;height:28px;border-radius:50%;background:rgba(206, 220, 0, 0.18);color:var(--ink-900);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0;">
+                            <div style="width:26px; height:26px; border-radius:2px; background:rgba(206, 220, 0, 0.15); border:1px solid rgba(206, 220, 0, 0.45); color:var(--lime-text); display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:700; font-family:var(--font-mono); flex-shrink:0;">
                                 {{ s.nome_coord[0]|upper if s.nome_coord else '?' }}
                             </div>
-                            <span style="font-weight:500; font-size:0.875rem; color:var(--ink-900);">{{ s.nome_coord }}</span>
+                            <span style="font-weight:500; font-size:0.875rem; color:var(--text-primary);">{{ s.nome_coord }}</span>
                         </div>
                     </td>
 
                     <td>
                         <div style="display:flex; align-items:center; gap:var(--space-2);">
                             <span class="badge-notion badge-notion-green" style="font-size:0.75rem; font-weight:700;">{{ s.quantidade_total }}x</span>
-                            <span style="font-weight:600; font-size:0.875rem; color:var(--ink-900);">{{ s.tipo_equipamento }}</span>
+                            <span style="font-weight:600; font-size:0.875rem; color:var(--text-primary);">{{ s.tipo_equipamento }}</span>
                         </div>
                     </td>
 
@@ -186,7 +178,7 @@
                                     data-width="{{ (s.qtd_emitida / s.quantidade_total * 100)|round|int if s.quantidade_total > 0 else 0 }}">
                                 </div>
                             </div>
-                            <span style="font-size:0.75rem; font-weight:600; color:var(--ink-500); font-family:var(--font-mono); white-space:nowrap;">
+                            <span style="font-size:0.75rem; font-weight:600; color:var(--text-secondary); font-family:var(--font-mono); white-space:nowrap;">
                                 {{ s.qtd_emitida }}/{{ s.quantidade_total }}
                             </span>
                             {% if s.itens_emitidos or s.itens_devolvidos %}
@@ -199,15 +191,15 @@
                                 data-bs-content="{% if s.itens_emitidos %}{% for it in s.itens_emitidos %}<div class='py-1 border-bottom d-flex justify-content-between gap-3'><span>{{ it.modelo or it.tipo }}</span><code class='text-muted'>{{ it.patrimonio_sn }}</code></div>{% endfor %}{% endif %}{% if s.itens_devolvidos %}{% for it in s.itens_devolvidos %}<div class='py-1 border-bottom d-flex justify-content-between gap-3 text-muted'><span class='text-decoration-line-through'>{{ it.modelo or it.tipo }}</span><span class='badge-notion badge-notion-gray' style='font-size:0.65rem;'>Devolvido</span></div>{% endfor %}{% endif %}"
                                 title="Ver detalhes dos equipamentos emitidos"
                                 tabindex="0">
-                                <i class="bi bi-info-circle"></i>
+                                <i data-lucide="info"></i>
                             </button>
                             {% endif %}
                         </div>
                     </td>
 
                     <td>
-                        <div style="font-size:0.875rem; color:var(--ink-900);"><i class="bi bi-person text-muted me-1"></i>{{ s.destinatario }}</div>
-                        <div style="font-size:0.8125rem; color:var(--ink-500);"><i class="bi bi-geo-alt me-1"></i>{{ s.plataforma }}</div>
+                        <div style="font-size:0.875rem; color:var(--text-primary);"><i data-lucide="user" class="text-muted me-1" style="width:14px;height:14px;"></i>{{ s.destinatario }}</div>
+                        <div style="font-size:0.8125rem; color:var(--text-muted);"><i data-lucide="map-pin" class="me-1" style="width:14px;height:14px;"></i>{{ s.plataforma }}</div>
                     </td>
 
                     <td><code>{{ s.rdo }}</code></td>
@@ -216,9 +208,9 @@
                         {% if s.status == 'Pendente' %}
                         <span class="badge-notion badge-notion-orange"><i data-lucide="hourglass" class="me-1"></i>Pendente</span>
                         {% elif s.status == 'Em Atendimento' %}
-                        <span class="badge-notion badge-notion-blue"><i class="bi bi-arrow-repeat me-1"></i>Em Atendimento</span>
+                        <span class="badge-notion badge-notion-blue"><i data-lucide="refresh-cw" class="me-1"></i>Em Atendimento</span>
                         {% elif s.status == 'Esperando Entrega' %}
-                        <span class="badge-notion badge-notion-purple"><i class="bi bi-box-seam me-1"></i>Esperando Entrega</span>
+                        <span class="badge-notion badge-notion-purple"><i data-lucide="package" class="me-1"></i>Esperando Entrega</span>
                         {% elif s.status in ('Finalizada', 'Concluído', 'Concluido', 'Finalizado', 'Devolvido') %}
                         <span class="badge-notion badge-notion-green"><i data-lucide="check-circle" class="me-1"></i>Finalizada</span>
                         {% else %}
@@ -232,14 +224,14 @@
                             class="cv-btn-action cv-btn-action-primary w-100"
                             onclick="abrirModalAtendimento('{{ s.id }}', '{{ s.id_coordenador }}', '{{ s.rdo }}', '{{ s.tipo_equipamento }}', '{{ s.nome_coord }}', '{{ s.qtd_emitida + 1 }}', '{{ s.quantidade_total }}', '{{ s.categoria }}')"
                             title="Emitir termo de cautela para o item {{ s.qtd_emitida + 1 }} de {{ s.quantidade_total }}">
-                            <i class="bi bi-arrow-down-right"></i>
+                            <i data-lucide="corner-down-right"></i>
                             Atender ({{ s.qtd_emitida + 1 }}/{{ s.quantidade_total }})
                         </button>
                         {% elif s.status == 'Esperando Entrega' %}
                         <a href="/solicitacao/entregar/{{ s.id }}"
                             class="cv-btn-action cv-btn-action-primary w-100"
                             title="Confirmar entrega de todos os itens e finalizar chamado">
-                            <i class="bi bi-box-seam"></i>
+                            <i data-lucide="package"></i>
                             Entregar
                         </a>
                         {% else %}
@@ -247,7 +239,7 @@
                             class="cv-btn-action cv-btn-action-done w-100"
                             onclick="fecharLinhaIndividual(this)"
                             title="Ocultar este chamado finalizado da visão de trabalho">
-                            <i class="bi bi-eye-slash"></i>
+                            <i data-lucide="eye-off"></i>
                             Ocultar
                         </button>
                         {% endif %}
@@ -258,18 +250,18 @@
         </table>
 
         <!-- Banner de Chamados Finalizados Ocultos -->
-        <div id="avisoFinalizadosOcultos" class="d-none" style="padding:var(--space-3) var(--space-4); background:var(--canvas); border-top:1px solid var(--border-subtle); display:flex; align-items:center; justify-content:space-between; font-size:0.8125rem; color:var(--ink-500);">
+        <div id="avisoFinalizadosOcultos" class="d-none" style="padding:var(--space-3) var(--space-4); background:var(--background-card); border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; font-size:0.8125rem; color:var(--text-muted);">
             <div style="display:flex; align-items:center; gap:var(--space-2);">
-                <i class="bi bi-check2-circle text-success fs-6"></i>
+                <i data-lucide="check-circle" class="text-success me-1" style="width:16px;height:16px;"></i>
                 <span><strong id="contadorFinalizadosOcultos">0</strong> chamado(s) finalizado(s) estão ocultos nesta visão.</span>
             </div>
-            <button type="button" class="btn btn-link btn-sm p-0" onclick="reabrirTodosFinalizados()" style="font-size:0.8125rem; text-decoration:none; font-weight:600; color:var(--ink-900); cursor:pointer;">
-                <i class="bi bi-eye me-1"></i>Reexibir todos
+            <button type="button" class="btn btn-link btn-sm p-0" onclick="reabrirTodosFinalizados()" style="font-size:0.8125rem; text-decoration:none; font-weight:600; color:var(--lime); cursor:pointer;">
+                <i data-lucide="eye" class="me-1" style="width:14px;height:14px;"></i>Reexibir todos
             </button>
         </div>
         {% else %}
         <div class="cv-empty-state">
-            <div class="cv-empty-icon"><i class="bi bi-inbox"></i></div>
+            <div class="cv-empty-icon"><i data-lucide="inbox"></i></div>
             <div class="cv-empty-title">Nenhuma solicitação no momento</div>
             <div class="cv-empty-text">As solicitações abertas pelos coordenadores de operações aparecerão aqui.</div>
         </div>
@@ -277,46 +269,45 @@
     </div>
 </div>
 
-<!-- Link Contextual Discreto para o Histórico de Cautelas (Substitui tabela duplicada na Home) -->
-<div style="display:flex; align-items:center; justify-content:space-between; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-card); padding:var(--space-4) var(--space-6); box-shadow:var(--shadow-1);">
-    <div style="display:flex; align-items:center; gap:var(--space-3);">
-        <div style="width:32px;height:32px;border-radius:var(--radius-md);background:rgba(206, 220, 0, 0.18);display:flex;align-items:center;justify-content:center;color:var(--ink-900);">
-            <i data-lucide="file-check-2"></i>
+<!-- Card Contextual de Histórico de Cautelas -->
+<div class="surface-card" style="display:flex; align-items:center; justify-content:space-between; padding:var(--space-4) var(--space-5);">
+    <div>
+        <div style="font-size:0.9375rem; font-weight:700; color:var(--text-primary); font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.04em;">
+            Histórico Geral de Cautelas &amp; Auditoria
         </div>
-        <div>
-            <div style="font-size:0.9375rem; font-weight:600; color:var(--ink-900);">Histórico Geral de Cautelas & Auditoria</div>
-            <div style="font-size:0.8125rem; color:var(--ink-500);">Consulte todos os {{ cautelas|length }} termos emitidos, realize buscas avançadas e acesse os PDFs.</div>
+        <div style="font-size:0.8125rem; color:var(--text-muted); margin-top:2px;">
+            Consulte todos os {{ cautelas|length }} termos emitidos, realize buscas avançadas e acesse os PDFs assinados.
         </div>
     </div>
     <a href="/historico" class="btn btn-secondary btn-sm">
-        <i class="bi bi-clock-history"></i> Acessar Histórico Completo
+        <i data-lucide="history"></i> Acessar Histórico Completo
     </a>
 </div>
 
-
+<!-- Modal Emitir Cautela -->
 <div class="modal fade" id="modalEmitirCautela" tabindex="-1" aria-labelledby="modalEmitirCautelaLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width:540px;">
-        <div class="modal-content" style="border-radius:var(--radius-modal); border:1px solid var(--border); box-shadow:var(--shadow-3);">
-            <div class="modal-header" style="background:var(--surface); border-bottom:1px solid var(--border-subtle); padding:var(--space-4) var(--space-6);">
-                <div style="display:flex; align-items:center; gap:var(--space-3);">
-                    <div style="width:36px;height:36px;border-radius:var(--radius-md);background:var(--accent-500);display:flex;align-items:center;justify-content:center;color:var(--accent-on);box-shadow:0 4px 12px var(--accent-glow);">
-                        <i class="bi bi-file-earmark-pdf fs-5"></i>
-                    </div>
-                    <div>
-                        <h5 class="modal-title" id="modalEmitirCautelaLabel" style="font-size:1rem; font-weight:700; color:var(--ink-900);">Emitir Termo de Cautela</h5>
-                        <div id="subtituloModalCautela" style="font-size:0.8125rem; color:var(--ink-500);">Vinculação de ativo e geração de PDF</div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h5 class="modal-title" id="modalEmitirCautelaLabel" style="font-size:1rem; font-weight:700; color:var(--text-primary); font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.04em;">
+                        Emitir Termo de Cautela
+                    </h5>
+                    <div id="subtituloModalCautela" style="font-size:0.8125rem; color:var(--text-muted); margin-top:2px;">
+                        Vinculação de ativo e geração de PDF
                     </div>
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
             </div>
 
             <form action="/gerar" method="POST" id="formCautelaModal">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="id_solicitacao" id="campoIdSolicitacaoModal" value="">
 
-                <div class="modal-body" style="padding:var(--space-6);">
-                    <div id="bannerAtendimentoModal" class="alert alert-info py-2 px-3 small d-none mb-3 align-items-center justify-content-between" style="border-radius:var(--radius-md);">
+                <div class="modal-body" style="padding:var(--space-5);">
+                    <div id="bannerAtendimentoModal" class="alert alert-info py-2 px-3 small d-none mb-3 align-items-center justify-content-between" style="border-radius:2px; font-family:var(--font-mono);">
                         <div style="display:flex; align-items:center; gap:var(--space-2);">
-                            <i class="bi bi-link-45deg fs-5"></i>
+                            <i data-lucide="link" class="fs-5"></i>
                             <div id="textoBannerAtendimentoModal">Atendendo Chamado</div>
                         </div>
                         <button type="button" class="btn btn-secondary btn-sm py-0 px-2" onclick="limparAtendimentoModal()">Desvincular</button>
@@ -333,7 +324,7 @@
                             {% for eq in equipamentos %}
                             <option value="{{ eq.id }}" data-categoria="{{ eq.categoria }}" data-tipo="{{ eq.tipo }}"
                                 data-modelo="{{ eq.modelo }}" data-sn="{{ eq.patrimonio_sn }}"
-                                data-status="{{ eq.status }}" {% if eq.status not in ('Disponível', 'Disponivel') %}disabled style="color:var(--ink-300);"{% endif %}>
+                                data-status="{{ eq.status }}" {% if eq.status not in ('Disponível', 'Disponivel') %}disabled style="color:var(--text-muted);"{% endif %}>
                                 #{{ eq.id }} - {{ eq.tipo }} ({{ eq.modelo }} | SN: {{ eq.patrimonio_sn }}) &bull; [{{ eq.status }}]
                             </option>
                             {% endfor %}
@@ -362,17 +353,17 @@
                             Número do RDO / Projeto <span style="color:var(--status-danger-text);">*</span>
                         </label>
                         <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-file-text"></i></span>
+                            <span class="input-group-text"><i data-lucide="file-text"></i></span>
                             <input type="text" class="form-control" name="rdo" id="campoRdoModal" placeholder="Ex: RDO-2026-0905" required>
                         </div>
                     </div>
                 </div>
 
-                <div class="modal-footer" style="background:var(--canvas); border-top:1px solid var(--border-subtle); padding:var(--space-4) var(--space-6); display:flex; justify-content:space-between;">
+                <div class="modal-footer" style="padding:var(--space-4) var(--space-5); display:flex; justify-content:space-between;">
                     <button type="button" class="btn btn-outline btn-sm" data-bs-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-primary btn-sm" id="btnSubmitModalCautela">
-                        <i class="bi bi-check2-circle"></i>
-                        Confirmar Saída & Gerar PDF
+                        <i data-lucide="check-circle"></i>
+                        Confirmar Saída &amp; Gerar PDF
                     </button>
                 </div>
             </form>
@@ -380,18 +371,17 @@
     </div>
 </div>
 
-
+<!-- Modal Inventário de Ativos -->
 <div class="modal fade" id="modalInventarioAtivos" tabindex="-1" aria-labelledby="modalInventarioLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content" style="border-radius:var(--radius-modal); border:1px solid var(--border); box-shadow:var(--shadow-3);">
-            <div class="modal-header" style="background:var(--surface); border-bottom:1px solid var(--border-subtle); padding:var(--space-4) var(--space-6);">
-                <div style="display:flex; align-items:center; gap:var(--space-3);">
-                    <div style="width:36px;height:36px;border-radius:var(--radius-md);background:var(--status-info-bg);display:flex;align-items:center;justify-content:center;color:var(--status-info-text);">
-                        <i class="bi bi-hdd-stack fs-5"></i>
-                    </div>
-                    <div>
-                        <h5 class="modal-title" id="modalInventarioLabel" style="font-size:1rem; font-weight:700; color:var(--ink-900);">Inventário da Base de Equipamentos</h5>
-                        <div style="font-size:0.8125rem; color:var(--ink-500);">Consulta rápida de disponibilidade e devolução de ativos</div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h5 class="modal-title" id="modalInventarioLabel" style="font-size:1rem; font-weight:700; color:var(--text-primary); font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.04em;">
+                        Inventário da Base de Equipamentos
+                    </h5>
+                    <div style="font-size:0.8125rem; color:var(--text-muted); margin-top:2px;">
+                        Consulta rápida de disponibilidade e devolução de ativos
                     </div>
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
@@ -399,7 +389,7 @@
 
             <div class="modal-body" style="padding:var(--space-4);">
                 <div class="input-group input-group-sm mb-3">
-                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <span class="input-group-text"><i data-lucide="search"></i></span>
                     <input type="text" id="buscaModalInventario" class="form-control" placeholder="Filtrar ativo por tipo, modelo ou patrimônio/SN..." onkeyup="filtrarTabelaInventarioModal()">
                 </div>
 
@@ -419,15 +409,15 @@
                             <tr class="linha-inventario-modal" data-busca="{{ eq.id }} {{ eq.tipo }} {{ eq.modelo }} {{ eq.patrimonio_sn }} {{ eq.status }}">
                                 <td class="ps-4"><code style="font-size:0.8rem;">#{{ eq.id }}</code></td>
                                 <td>
-                                    <div style="font-weight:600; font-size:0.875rem; color:var(--ink-900);">{{ eq.tipo }}</div>
-                                    <div style="font-size:0.8125rem; color:var(--ink-500);">{{ eq.modelo }}</div>
+                                    <div style="font-weight:600; font-size:0.875rem; color:var(--text-primary);">{{ eq.tipo }}</div>
+                                    <div style="font-size:0.8125rem; color:var(--text-muted);">{{ eq.modelo }}</div>
                                 </td>
                                 <td><code style="font-size:0.8rem;">{{ eq.patrimonio_sn }}</code></td>
                                 <td>
                                     {% if eq.status in ('Disponível', 'Disponivel') %}
-                                    <span class="badge-notion badge-notion-green"><i class="bi bi-check2 me-1"></i>Disponível</span>
+                                    <span class="badge-notion badge-notion-green"><i data-lucide="check" class="me-1"></i>Disponível</span>
                                     {% elif eq.status in ('Em Operação', 'Em Operacao') %}
-                                    <span class="badge-notion badge-notion-blue"><i class="bi bi-broadcast me-1"></i>Em Operação</span>
+                                    <span class="badge-notion badge-notion-blue"><i data-lucide="radio" class="me-1"></i>Em Operação</span>
                                     {% else %}
                                     <span class="badge-notion badge-notion-gray">{{ eq.status }}</span>
                                     {% endif %}
@@ -435,10 +425,10 @@
                                 <td class="text-center pe-4">
                                     {% if eq.status in ('Em Operação', 'Em Operacao') %}
                                     <a href="/devolver/{{ eq.id }}" class="cv-btn-action cv-btn-action-secondary" style="height:28px; font-size:0.75rem; padding:0 8px;" title="Registrar devolução de equipamento">
-                                        <i class="bi bi-arrow-return-left text-danger"></i> Devolver
+                                        <i data-lucide="corner-up-left" class="text-danger"></i> Devolver
                                     </a>
                                     {% else %}
-                                    <span style="font-size:0.8125rem; color:var(--ink-500); display:inline-flex; align-items:center; gap:4px;"><i class="bi bi-check2 text-success"></i> Na Base</span>
+                                    <span style="font-size:0.8125rem; color:var(--text-muted); display:inline-flex; align-items:center; gap:4px;"><i data-lucide="check" class="text-success me-1"></i> Na Base</span>
                                     {% endif %}
                                 </td>
                             </tr>
@@ -448,11 +438,13 @@
                 </div>
             </div>
 
-            <div class="modal-footer" style="background:var(--canvas); border-top:1px solid var(--border-subtle); padding:var(--space-3) var(--space-6); display:flex; justify-content:space-between;">
-                <span style="font-size:0.8125rem; color:var(--ink-500);">Total de <strong>{{ equipamentos|length }}</strong> equipamentos cadastrados.</span>
+            <div class="modal-footer" style="padding:var(--space-3) var(--space-4); display:flex; justify-content:space-between;">
+                <span style="font-size:0.8125rem; color:var(--text-muted); font-family:var(--font-mono);">
+                    Total de <strong>{{ equipamentos|length }}</strong> equipamentos cadastrados.
+                </span>
                 <div style="display:flex; gap:var(--space-2);">
                     <a href="/novo-equipamento" class="btn btn-primary btn-sm">
-                        <i class="bi bi-plus-lg"></i> Novo Equipamento
+                        <i data-lucide="plus"></i> Novo Equipamento
                     </a>
                     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Fechar</button>
                 </div>
@@ -460,7 +452,6 @@
         </div>
     </div>
 </div>
-
 
 <script>
     let categoriaFiltroAtivo = null;
@@ -591,18 +582,18 @@
             avisoFiltro.classList.remove('d-none');
             if (totalCompativeis === 0) {
                 avisoFiltro.className = 'alert alert-danger py-2 px-3 small mb-3';
-                avisoFiltro.innerHTML = `<i class="bi bi-x-circle me-1"></i> <strong>Nenhum equipamento</strong> do tipo '${tipoTexto}' cadastrado no estoque.`;
+                avisoFiltro.innerHTML = `<i data-lucide="x-circle" class="me-1"></i> <strong>Nenhum equipamento</strong> do tipo '${tipoTexto}' cadastrado no estoque.`;
             } else if (totalDisponiveis === 0) {
                 avisoFiltro.className = 'alert alert-warning py-2 px-3 small mb-3';
-                avisoFiltro.innerHTML = `<i class="bi bi-exclamation-triangle me-1"></i> ${totalCompativeis} equipamento(s) compatível(is), mas <strong>nenhum disponível</strong> no momento (todos em operação).`;
+                avisoFiltro.innerHTML = `<i data-lucide="alert-triangle" class="me-1"></i> ${totalCompativeis} equipamento(s) compatível(is), mas <strong>nenhum disponível</strong> no momento (todos em operação).`;
             } else {
                 avisoFiltro.className = 'alert alert-success py-2 px-3 small mb-3';
-                avisoFiltro.innerHTML = `<i class="bi bi-shield-check me-1"></i> <strong>Filtro Ativo:</strong> ${totalDisponiveis} item(ns) disponível(is) para '${tipoTexto}'.`;
+                avisoFiltro.innerHTML = `<i data-lucide="shield-check" class="me-1"></i> <strong>Filtro Ativo:</strong> ${totalDisponiveis} item(ns) disponível(is) para '${tipoTexto}'.`;
             }
+            if (window.lucide) lucide.createIcons();
         }
     }
 
-    // Validação estrita do formulário do modal
     document.getElementById('formCautelaModal').addEventListener('submit', function(e) {
         const selectEq = document.getElementById('campoIdEquipamentoModal');
         const idSol = document.getElementById('campoIdSolicitacaoModal').value;
@@ -662,7 +653,6 @@
             } else if (filtroChamadosAtivo === 'finalizados') {
                 deveExibir = isFinalizada;
             } else {
-                // 'todos'
                 if (finalizadosFechadosAdmin && isFinalizada) {
                     deveExibir = false;
                 } else if (individualmenteFechada) {

@@ -6,4 +6,6 @@ __pycache__/
 venv/
 .venv/
 env/
-.antigravity/
+.antigravity/
+scratch/
+marketing-campaign-management/

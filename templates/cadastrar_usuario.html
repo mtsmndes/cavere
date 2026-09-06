@@ -1,32 +1,35 @@
 {% extends "base.html" %}
 {% block content %}
-<div style="max-width:600px; margin:0 auto;">
-
+<div style="max-width:620px; margin:0 auto;">
 
     <div class="cv-breadcrumb">
-        <a href="/"><i class="bi bi-grid-1x2 me-1"></i>Painel Principal</a>
+        <a href="/"><i data-lucide="layout-dashboard" class="me-1"></i>Painel Principal</a>
         <span class="sep">/</span>
         <span class="current">Novo Usuário / Coordenador</span>
     </div>
 
-    <div class="card">
-        <div class="card-header">
+    <div class="surface-card">
+        <div class="surface-card-header">
             <div style="display:flex; align-items:center; gap:var(--space-3);">
-                <div style="width:36px;height:36px;border-radius:var(--radius-md);background:var(--status-success-bg);display:flex;align-items:center;justify-content:center;color:var(--status-success-text);">
-                    <i class="bi bi-person-gear fs-5"></i>
+                <div style="width:36px; height:36px; border-radius:2px; background:rgba(206, 220, 0, 0.08); border:1px solid rgba(206, 220, 0, 0.25); display:flex; align-items:center; justify-content:center; color:var(--lime);">
+                    <i data-lucide="user-cog"></i>
                 </div>
                 <div>
-                    <div style="font-size:1rem; font-weight:700; color:var(--text-primary);">Criar Acesso & Perfil de Usuário</div>
-                    <div style="font-size:0.8125rem; color:var(--text-secondary);">Cria login e perfil de coordenador automaticamente</div>
+                    <div style="font-size:1rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.04em; color:var(--text-primary);">
+                        Criar Acesso &amp; Perfil de Usuário
+                    </div>
+                    <div style="font-size:0.8125rem; color:var(--text-muted);">
+                        Provisionamento de credencial operacional e vinculação de perfil
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="card-body">
+        <div class="surface-card-body">
             <form action="/cadastrar-usuario" method="POST" id="formNovoUsuario">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-
-                <div style="margin-bottom:var(--space-5);">
+                <div style="margin-bottom:var(--space-4);">
                     <label class="form-label" for="selectRole">Perfil de Acesso (Papel) <span style="color:var(--status-danger-text);">*</span></label>
                     <select class="form-select" name="role" id="selectRole" onchange="alternarCamposCoordenador()" required>
                         <option value="coordenador" selected>Coordenador (Acesso a Meus Chamados e Solicitações)</option>
@@ -34,20 +37,22 @@
                     </select>
                 </div>
 
-                <div id="blocoCoordenador" style="background:var(--canvas); border:1px solid var(--border-default); border-radius:var(--radius-md); padding:var(--space-5); margin-bottom:var(--space-5);">
-                    <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-4); padding-bottom:var(--space-3); border-bottom:1px solid var(--border-subtle);">
-                        <i class="bi bi-person-badge" style="color:var(--status-info-text);"></i>
-                        <span style="font-size:0.875rem; font-weight:600; color:var(--text-primary);">Dados do Coordenador no Sistema</span>
-                        <span class="badge-notion badge-notion-blue" style="font-size:0.7rem; margin-left:auto;">Vínculo Automático</span>
+                <div id="blocoCoordenador" style="background:var(--background); border:1px solid var(--border); border-radius:2px; padding:var(--space-4); margin-bottom:var(--space-4);">
+                    <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-3); padding-bottom:var(--space-2); border-bottom:1px solid var(--border);">
+                        <i data-lucide="user-check" style="color:var(--lime);"></i>
+                        <span style="font-size:0.8125rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; color:var(--text-primary);">
+                            Dados do Coordenador no Sistema
+                        </span>
+                        <span class="badge-notion badge-notion-blue" style="font-size:0.68rem; margin-left:auto;">Vínculo Automático</span>
                     </div>
 
-                    <div style="margin-bottom:var(--space-4);">
+                    <div style="margin-bottom:var(--space-3);">
                         <label class="form-label" for="campoIdCustom">ID do Coordenador <span style="color:var(--text-muted); font-weight:400;">(Opcional)</span></label>
                         <input type="number" class="form-control" name="id_custom" id="campoIdCustom" placeholder="Ex: 10">
                         <div class="form-text">Escolha um ID específico ou deixe em branco para auto-incremento.</div>
                     </div>
 
-                    <div style="margin-bottom:var(--space-4);">
+                    <div style="margin-bottom:var(--space-3);">
                         <label class="form-label" for="campoNomeCompleto">Nome Completo do Coordenador <span style="color:var(--status-danger-text);">*</span></label>
                         <input type="text" class="form-control" name="nome_completo" id="campoNomeCompleto"
                             placeholder="Ex: Carlos Silva Mendes" onkeyup="sugerirLogin()">
@@ -56,52 +61,51 @@
                     <div>
                         <label class="form-label" for="campoCpf">CPF ou Matrícula <span style="color:var(--status-danger-text);">*</span></label>
                         <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-card-text"></i></span>
+                            <span class="input-group-text"><i data-lucide="credit-card"></i></span>
                             <input type="text" class="form-control" name="cpf" id="campoCpf"
                                 placeholder="Ex: 123.456.789-00 ou M12345">
                         </div>
                     </div>
                 </div>
 
-
                 <div style="margin-bottom:var(--space-4);">
                     <label class="form-label" for="campoUsername">Nome de Usuário (Login) <span style="color:var(--status-danger-text);">*</span></label>
                     <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-at"></i></span>
+                        <span class="input-group-text"><i data-lucide="at-sign"></i></span>
                         <input type="text" class="form-control" name="username" id="campoUsername"
                             placeholder="Ex: carlos.silva" required autocomplete="off">
                     </div>
                     <div class="form-text">Identificador corporativo utilizado para entrar no sistema Cavere.</div>
                 </div>
 
-                <div style="margin-bottom:var(--space-6);">
+                <div style="margin-bottom:var(--space-4);">
                     <label class="form-label" for="campoSenha">Senha de Acesso <span style="color:var(--status-danger-text);">*</span></label>
                     <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                        <span class="input-group-text"><i data-lucide="lock"></i></span>
                         <input type="password" class="form-control" name="senha" id="campoSenha"
                             placeholder="Digite uma senha segura" required>
                         <button type="button" class="input-group-text" id="toggleSenha" style="cursor:pointer;" title="Mostrar ou ocultar senha">
-                            <i class="bi bi-eye" id="iconeSenha"></i>
+                            <i data-lucide="eye" id="iconeSenha"></i>
                         </button>
                     </div>
                     <div class="form-text">Senha criptografada com hash scrypt seguro.</div>
                 </div>
 
-                <div class="form-check form-switch" style="margin-bottom:var(--space-6); background:var(--canvas); padding:var(--space-3) var(--space-4) var(--space-3) 2.5rem; border-radius:var(--radius-md); border:1px solid var(--border-default);">
+                <div class="form-check form-switch" style="margin-bottom:var(--space-5); background:var(--background); padding:var(--space-3) var(--space-4) var(--space-3) 2.5rem; border-radius:2px; border:1px solid var(--border);">
                     <input class="form-check-input" type="checkbox" id="checkTrocarSenha" name="trocar_senha" value="1" checked style="cursor:pointer;">
-                    <label class="form-check-label" for="checkTrocarSenha" style="font-size:0.875rem; font-weight:600; color:var(--text-primary); cursor:pointer;">
+                    <label class="form-check-label" for="checkTrocarSenha" style="font-size:0.8125rem; font-weight:600; font-family:var(--font-mono); color:var(--text-primary); cursor:pointer;">
                         Exigir redefinição de senha no primeiro acesso
                     </label>
-                    <div class="form-text" style="font-size:0.775rem; color:var(--text-secondary); margin-top:2px;">
+                    <div class="form-text" style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">
                         Recomendado: o usuário deverá cadastrar uma nova senha pessoal obrigatória logo no primeiro login.
                     </div>
                 </div>
 
-                <div style="display:flex; justify-content:space-between; align-items:center; padding-top:var(--space-4); border-top:1px solid var(--border-subtle);">
+                <div style="display:flex; justify-content:space-between; align-items:center; padding-top:var(--space-4); border-top:1px solid var(--border);">
                     <a href="/" class="btn btn-secondary btn-sm">Cancelar</a>
                     <button type="submit" class="btn btn-primary btn-sm" id="btnSubmit">
-                        <i class="bi bi-person-check"></i>
-                        <span id="textoBtnSubmit">Salvar Usuário & Coordenador</span>
+                        <i data-lucide="user-check"></i>
+                        <span id="textoBtnSubmit">Salvar Usuário &amp; Coordenador</span>
                     </button>
                 </div>
             </form>
@@ -145,11 +149,16 @@
 
     document.getElementById('toggleSenha').addEventListener('click', function() {
         const input = document.getElementById('campoSenha');
-        const icon = document.getElementById('iconeSenha');
+        const btn = document.getElementById('toggleSenha');
         if (input.type === 'password') {
-            input.type = 'text'; icon.classList.replace('bi-eye', 'bi-eye-slash');
+            input.type = 'text';
+            btn.innerHTML = '<i data-lucide="eye-off" id="iconeSenha"></i>';
         } else {
-            input.type = 'password'; icon.classList.replace('bi-eye-slash', 'bi-eye');
+            input.type = 'password';
+            btn.innerHTML = '<i data-lucide="eye" id="iconeSenha"></i>';
+        }
+        if (window.lucide) {
+            lucide.createIcons();
         }
     });
 
