@@ -98,16 +98,11 @@
 <!-- Chamados de Solicitação de Equipamento (Feed Table) -->
 <div class="surface-card" style="margin-bottom:var(--space-5);">
     <div class="surface-card-header" style="display:flex; justify-content:space-between; align-items:center;">
-        <div style="display:flex; align-items:center; gap:var(--space-3);">
-            <div style="width:32px; height:32px; background:rgba(206, 220, 0, 0.08); border:1px solid rgba(206, 220, 0, 0.2); border-radius:2px; display:flex; align-items:center; justify-content:center; color:var(--lime);">
-                <i data-lucide="inbox"></i>
+        <div>
+            <div style="font-size:0.9375rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.04em; color:var(--text-primary);">
+                Chamados de Solicitação de Equipamento
             </div>
-            <div>
-                <div style="font-size:0.9375rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.04em; color:var(--text-primary);">
-                    Chamados de Solicitação de Equipamento
-                </div>
-                <div style="font-size:0.8125rem; color:var(--text-muted);">Acompanhamento de requisições operacionais enviadas</div>
-            </div>
+            <div style="font-size:0.8125rem; color:var(--text-muted); margin-top:2px;">Acompanhamento de requisições operacionais enviadas</div>
         </div>
         <span class="badge-notion badge-notion-gray">{{ solicitacoes|length }} chamado(s)</span>
     </div>
@@ -155,17 +150,18 @@
                     </td>
 
                     <td style="min-width:180px;">
-                        <div style="display:flex; align-items:center; gap:var(--space-2);">
+                        <div style="display:flex; align-items:center; gap:8px;">
                             <div class="progress cv-progress flex-grow-1" style="min-width:70px;">
                                 <div class="progress-bar {% if s.status == 'Finalizada' %}{% else %}is-pending{% endif %}"
                                     role="progressbar"
                                     data-progress="{{ (s.qtd_emitida / s.quantidade * 100)|round|int if s.quantidade > 0 else 0 }}"
+                                    style="width: {{ (s.qtd_emitida / s.quantidade * 100)|round|int if s.quantidade > 0 else 0 }}%;"
                                     aria-valuenow="{{ (s.qtd_emitida / s.quantidade * 100)|round|int if s.quantidade > 0 else 0 }}"
                                     aria-valuemin="0"
                                     aria-valuemax="100">
                                 </div>
                             </div>
-                            <span style="font-size:0.75rem; font-weight:600; color:var(--text-secondary); font-family:var(--font-mono); white-space:nowrap;">
+                            <span style="font-size:0.75rem; font-weight:600; color:var(--text-secondary); font-family:var(--font-mono); white-space:nowrap; min-width:26px; text-align:right;">
                                 {{ s.qtd_emitida }}/{{ s.quantidade }}
                             </span>
                             {% if s.itens_emitidos or s.itens_devolvidos %}
@@ -177,6 +173,7 @@
                                 data-bs-title="Ativos Vinculados (#SOL-{{ s.id }})"
                                 data-bs-content="{% if s.itens_emitidos %}{% for it in s.itens_emitidos %}<div class='py-1 border-bottom d-flex justify-content-between gap-3'><span>{{ it.modelo or it.tipo }}</span><code class='text-muted'>{{ it.patrimonio_sn }}</code></div>{% endfor %}{% endif %}{% if s.itens_devolvidos %}{% for it in s.itens_devolvidos %}<div class='py-1 border-bottom d-flex justify-content-between gap-3 text-muted'><span class='text-decoration-line-through'>{{ it.modelo or it.tipo }}</span><span class='badge-notion badge-notion-gray' style='font-size:0.65rem;'>Devolvido</span></div>{% endfor %}{% endif %}"
                                 title="Ver detalhes dos equipamentos emitidos"
+                                aria-label="Ver detalhes dos equipamentos vinculados"
                                 tabindex="0">
                                 <i data-lucide="info"></i>
                             </button>
@@ -252,16 +249,11 @@
 <!-- Cautelas Emitidas & Termos de Responsabilidade -->
 <div id="containerTabela" class="surface-card" style="margin-bottom:var(--space-4);">
     <div class="surface-card-header" style="display:flex; justify-content:space-between; align-items:center;">
-        <div style="display:flex; align-items:center; gap:var(--space-3);">
-            <div style="width:32px; height:32px; background:rgba(206, 220, 0, 0.08); border:1px solid rgba(206, 220, 0, 0.2); border-radius:2px; display:flex; align-items:center; justify-content:center; color:var(--lime);">
-                <i data-lucide="file-text"></i>
+        <div>
+            <div style="font-size:0.9375rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.04em; color:var(--text-primary);">
+                Cautelas Emitidas &amp; Termos de Responsabilidade
             </div>
-            <div>
-                <div style="font-size:0.9375rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.04em; color:var(--text-primary);">
-                    Cautelas Emitidas &amp; Termos de Responsabilidade
-                </div>
-                <div style="font-size:0.8125rem; color:var(--text-muted);">Histórico individual de termos assinados</div>
-            </div>
+            <div style="font-size:0.8125rem; color:var(--text-muted); margin-top:2px;">Histórico individual de termos assinados</div>
         </div>
         <span class="badge-notion badge-notion-gray">{{ chamados|length }} cautela(s)</span>
     </div>

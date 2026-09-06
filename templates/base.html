@@ -36,7 +36,7 @@
             --lime: #CEDC00;
             --lime-hover: #d8e800;
             --lime-active: #b5c200;
-            --lime-text: #4d5400;
+            --lime-text: #CEDC00;
             --lime-glow: rgba(206, 220, 0, 0.25);
             --lime-glow-sm: 0 0 10px rgba(206, 220, 0, 0.25);
             --accent: #CEDC00;
@@ -523,12 +523,14 @@
         .btn-primary {
             background: var(--lime) !important;
             color: #050505 !important;
-            border: 1px solid #b5c200 !important;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+            border: 1px solid var(--lime) !important;
+            font-weight: 600 !important;
+            box-shadow: 0 0 14px rgba(206, 220, 0, 0.25) !important;
         }
         .btn-primary:hover {
             background: var(--lime-hover) !important;
-            box-shadow: 0 4px 14px rgba(206, 220, 0, 0.35) !important;
+            border-color: var(--lime-hover) !important;
+            box-shadow: 0 0 20px rgba(206, 220, 0, 0.45) !important;
             transform: translateY(-1px);
             color: #050505 !important;
         }
@@ -666,6 +668,91 @@
         }
         .table-enterprise tbody tr:hover td {
             background: #f8fafc !important;
+        }
+
+        /* Modern Progress Bar in Data Feed */
+        .cv-progress {
+            height: 6px !important;
+            background-color: #e2e8f0 !important;
+            border-radius: 999px !important;
+            overflow: hidden !important;
+            margin-bottom: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+        .cv-progress .progress-bar {
+            background-color: #0284c7 !important;
+            border-radius: 999px !important;
+            transition: width var(--duration-medium) var(--ease-enter) !important;
+        }
+        .cv-progress .progress-bar.is-pending {
+            background-color: #f59e0b !important;
+        }
+
+        /* Detail/Info Micro Button */
+        .cv-btn-detail {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 22px !important;
+            height: 22px !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            border: 1px solid var(--border) !important;
+            background: #ffffff !important;
+            color: var(--text-muted) !important;
+            border-radius: var(--radius-md) !important;
+            cursor: pointer;
+            flex-shrink: 0;
+            line-height: 1 !important;
+            vertical-align: middle;
+            transition: all var(--duration-micro) var(--ease-standard) !important;
+            outline: none !important;
+        }
+        .cv-btn-detail:hover {
+            background: #f8fafc !important;
+            border-color: var(--border-strong) !important;
+            color: var(--text-primary) !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+            transform: scale(1.05);
+        }
+        .cv-btn-detail:active {
+            transform: scale(0.95);
+        }
+        .cv-btn-detail:focus-visible {
+            border-color: var(--lime) !important;
+            box-shadow: 0 0 0 2px var(--lime-glow) !important;
+        }
+        .cv-btn-detail i[data-lucide],
+        .cv-btn-detail svg.lucide {
+            width: 12px !important;
+            height: 12px !important;
+            stroke-width: 2.2px !important;
+            display: block;
+        }
+
+        /* Clean Popover Styling */
+        .popover {
+            border: 1px solid var(--border-strong) !important;
+            border-radius: var(--radius-md) !important;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+            font-family: var(--font-sans) !important;
+        }
+        .popover-header {
+            background: #f8fafc !important;
+            border-bottom: 1px solid var(--border) !important;
+            font-family: var(--font-mono) !important;
+            font-size: 0.75rem !important;
+            font-weight: 700 !important;
+            color: var(--text-primary) !important;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 8px 12px !important;
+        }
+        .popover-body {
+            font-size: 0.8125rem !important;
+            color: var(--text-secondary) !important;
+            padding: 10px 12px !important;
         }
 
         /* Technical Monospace Status Tags */

@@ -11,7 +11,7 @@
             </span>
         </div>
         <h1 class="cv-page-title" style="margin-bottom:4px;">
-            Painel de <span style="color:var(--lime-text);">Operações</span>
+            Painel de <span style="color:var(--lime);">Operações</span>
         </h1>
         <p class="cv-page-subtitle">
             Visão integrada de chamados operacionais, controle de ativos e termo de cautela
@@ -144,7 +144,7 @@
                     
                     <td class="ps-4">
                         <div style="display:flex; align-items:center; gap:6px;">
-                            <span style="font-weight:700; color:var(--lime-text); font-family:var(--font-mono); font-size:0.8125rem;">#SOL-{{ s.id }}</span>
+                            <span style="font-weight:700; color:var(--lime); font-family:var(--font-mono); font-size:0.8125rem;">#SOL-{{ s.id }}</span>
                             {% if s.prioridade == 'Urgente' %}
                             <span class="badge-notion badge-notion-red" style="font-size:0.65rem; padding:1px 5px;" title="Prioridade Urgente">URGENTE</span>
                             {% endif %}
@@ -156,7 +156,7 @@
 
                     <td>
                         <div style="display:flex; align-items:center; gap:var(--space-2);">
-                            <div style="width:26px; height:26px; border-radius:2px; background:rgba(206, 220, 0, 0.15); border:1px solid rgba(206, 220, 0, 0.45); color:var(--lime-text); display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:700; font-family:var(--font-mono); flex-shrink:0;">
+                            <div style="width:26px; height:26px; border-radius:2px; background:rgba(206, 220, 0, 0.15); border:1px solid rgba(206, 220, 0, 0.45); color:var(--lime); display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:700; font-family:var(--font-mono); flex-shrink:0;">
                                 {{ s.nome_coord[0]|upper if s.nome_coord else '?' }}
                             </div>
                             <span style="font-weight:500; font-size:0.875rem; color:var(--text-primary);">{{ s.nome_coord }}</span>
@@ -171,14 +171,15 @@
                     </td>
 
                     <td style="min-width:180px;">
-                        <div style="display:flex; align-items:center; gap:var(--space-2);">
+                        <div style="display:flex; align-items:center; gap:8px;">
                             <div class="progress cv-progress flex-grow-1" style="min-width:70px;">
                                 <div class="progress-bar {% if not s.concluida %}is-pending{% endif %}"
                                     role="progressbar"
-                                    data-width="{{ (s.qtd_emitida / s.quantidade_total * 100)|round|int if s.quantidade_total > 0 else 0 }}">
+                                    data-width="{{ (s.qtd_emitida / s.quantidade_total * 100)|round|int if s.quantidade_total > 0 else 0 }}"
+                                    style="width: {{ (s.qtd_emitida / s.quantidade_total * 100)|round|int if s.quantidade_total > 0 else 0 }}%;">
                                 </div>
                             </div>
-                            <span style="font-size:0.75rem; font-weight:600; color:var(--text-secondary); font-family:var(--font-mono); white-space:nowrap;">
+                            <span style="font-size:0.75rem; font-weight:600; color:var(--text-secondary); font-family:var(--font-mono); white-space:nowrap; min-width:26px; text-align:right;">
                                 {{ s.qtd_emitida }}/{{ s.quantidade_total }}
                             </span>
                             {% if s.itens_emitidos or s.itens_devolvidos %}
@@ -190,6 +191,7 @@
                                 data-bs-title="Ativos Vinculados (#SOL-{{ s.id }})"
                                 data-bs-content="{% if s.itens_emitidos %}{% for it in s.itens_emitidos %}<div class='py-1 border-bottom d-flex justify-content-between gap-3'><span>{{ it.modelo or it.tipo }}</span><code class='text-muted'>{{ it.patrimonio_sn }}</code></div>{% endfor %}{% endif %}{% if s.itens_devolvidos %}{% for it in s.itens_devolvidos %}<div class='py-1 border-bottom d-flex justify-content-between gap-3 text-muted'><span class='text-decoration-line-through'>{{ it.modelo or it.tipo }}</span><span class='badge-notion badge-notion-gray' style='font-size:0.65rem;'>Devolvido</span></div>{% endfor %}{% endif %}"
                                 title="Ver detalhes dos equipamentos emitidos"
+                                aria-label="Ver detalhes dos equipamentos vinculados"
                                 tabindex="0">
                                 <i data-lucide="info"></i>
                             </button>

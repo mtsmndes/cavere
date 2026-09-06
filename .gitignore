@@ -9,3 +9,4 @@ env/
 .antigravity/
 scratch/
 marketing-campaign-management/
+.env

@@ -84,7 +84,7 @@
         <div class="row g-3">
             <div class="col-lg-4 col-md-12">
                 <label class="form-label" for="campoBuscaTexto">
-                    <i data-lucide="type" class="me-1"></i> Busca Geral por Palavra-chave
+                    Busca Geral por Palavra-chave
                 </label>
                 <div class="input-group">
                     <span class="input-group-text"><i data-lucide="search"></i></span>
@@ -99,7 +99,7 @@
 
             <div class="col-lg-2 col-md-4 col-sm-6">
                 <label class="form-label" for="filtroStatusSelect">
-                    <i data-lucide="flag" class="me-1"></i> Situação
+                    Situação
                 </label>
                 <select class="form-select" id="filtroStatusSelect" onchange="executarFiltrosCautelas()">
                     <option value="Todos" selected>Todas as Situações</option>
@@ -110,7 +110,7 @@
 
             <div class="col-lg-3 col-md-4 col-sm-6">
                 <label class="form-label" for="filtroTipoSelect">
-                    <i data-lucide="layers" class="me-1"></i> Tipo de Equipamento
+                    Tipo de Equipamento
                 </label>
                 <select class="form-select" id="filtroTipoSelect" onchange="executarFiltrosCautelas()">
                     <option value="Todos" selected>Todos os Tipos</option>
@@ -122,7 +122,7 @@
 
             <div class="col-lg-3 col-md-4 col-sm-12">
                 <label class="form-label" for="filtroCoordSelect">
-                    <i data-lucide="user" class="me-1"></i> Coordenador
+                    Coordenador
                 </label>
                 <select class="form-select" id="filtroCoordSelect" onchange="executarFiltrosCautelas()">
                     <option value="Todos" selected>Todos os Coordenadores</option>
@@ -136,13 +136,13 @@
         <div class="row g-3 mt-1 pt-3" style="border-top:1px dashed var(--border);">
             <div class="col-lg-3 col-md-6">
                 <label class="form-label" for="filtroDataInicio">
-                    <i data-lucide="calendar" class="me-1"></i> Data de Saída (A partir de)
+                    Data de Saída (A partir de)
                 </label>
                 <input type="date" class="form-control" id="filtroDataInicio" onchange="executarFiltrosCautelas()">
             </div>
             <div class="col-lg-3 col-md-6">
                 <label class="form-label" for="filtroDataFim">
-                    <i data-lucide="calendar-check" class="me-1"></i> Data de Saída (Até)
+                    Data de Saída (Até)
                 </label>
                 <input type="date" class="form-control" id="filtroDataFim" onchange="executarFiltrosCautelas()">
             </div>
@@ -165,16 +165,11 @@
 <!-- Tabela de Cautelas -->
 <div class="surface-card">
     <div class="surface-card-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--space-3);">
-        <div style="display:flex; align-items:center; gap:var(--space-3);">
-            <div style="width:32px; height:32px; background:rgba(206, 220, 0, 0.08); border:1px solid rgba(206, 220, 0, 0.2); border-radius:2px; display:flex; align-items:center; justify-content:center; color:var(--lime);">
-                <i data-lucide="file-check-2"></i>
+        <div>
+            <div style="font-size:0.9375rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.04em; color:var(--text-primary);">
+                Base Geral de Cautelas Registradas
             </div>
-            <div>
-                <div style="font-size:0.9375rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.04em; color:var(--text-primary);">
-                    Base Geral de Cautelas Registradas
-                </div>
-                <div style="font-size:0.8125rem; color:var(--text-muted);">Histórico auditável e termos em PDF</div>
-            </div>
+            <div style="font-size:0.8125rem; color:var(--text-muted); margin-top:2px;">Histórico auditável e termos em PDF</div>
         </div>
         <div class="btn-group btn-group-sm" id="grupoFiltrosStatus">
             <button type="button" class="btn btn-secondary active" id="filtroBtn-Todos" onclick="filtrarStatusRapido('Todos')">
