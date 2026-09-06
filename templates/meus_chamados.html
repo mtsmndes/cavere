@@ -4,13 +4,6 @@
 <!-- Hero / Banner do Coordenador -->
 <div class="cv-page-banner">
     <div>
-        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-            <span class="pulse-live"></span>
-            <span style="font-family:var(--font-mono); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted);">
-                COORDINATOR_PORTAL // FIELD_DISPATCH
-            </span>
-            <span class="badge-notion badge-notion-blue" style="font-size:0.7rem;">ID #{{ id_coordenador }}</span>
-        </div>
         <h1 class="cv-page-title" style="margin-bottom:4px;">
             Meus Chamados &amp; <span style="color:var(--lime);">Cautelas</span>
         </h1>
@@ -155,7 +148,6 @@
                                 <div class="progress-bar {% if s.status == 'Finalizada' %}{% else %}is-pending{% endif %}"
                                     role="progressbar"
                                     data-progress="{{ (s.qtd_emitida / s.quantidade * 100)|round|int if s.quantidade > 0 else 0 }}"
-                                    style="width: {{ (s.qtd_emitida / s.quantidade * 100)|round|int if s.quantidade > 0 else 0 }}%;"
                                     aria-valuenow="{{ (s.qtd_emitida / s.quantidade * 100)|round|int if s.quantidade > 0 else 0 }}"
                                     aria-valuemin="0"
                                     aria-valuemax="100">

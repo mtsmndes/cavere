@@ -4,12 +4,6 @@
 <!-- Hero / Command Banner -->
 <div class="cv-page-banner">
     <div>
-        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-            <span class="pulse-live"></span>
-            <span style="font-family:var(--font-mono); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted);">
-                CENTRAL_DISPATCH // OPERATIONAL_CONTROL
-            </span>
-        </div>
         <h1 class="cv-page-title" style="margin-bottom:4px;">
             Painel de <span style="color:var(--lime);">Operações</span>
         </h1>
@@ -176,7 +170,9 @@
                                 <div class="progress-bar {% if not s.concluida %}is-pending{% endif %}"
                                     role="progressbar"
                                     data-width="{{ (s.qtd_emitida / s.quantidade_total * 100)|round|int if s.quantidade_total > 0 else 0 }}"
-                                    style="width: {{ (s.qtd_emitida / s.quantidade_total * 100)|round|int if s.quantidade_total > 0 else 0 }}%;">
+                                    aria-valuenow="{{ (s.qtd_emitida / s.quantidade_total * 100)|round|int if s.quantidade_total > 0 else 0 }}"
+                                    aria-valuemin="0"
+                                    aria-valuemax="100">
                                 </div>
                             </div>
                             <span style="font-size:0.75rem; font-weight:600; color:var(--text-secondary); font-family:var(--font-mono); white-space:nowrap; min-width:26px; text-align:right;">
