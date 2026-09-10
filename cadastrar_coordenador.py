@@ -19,13 +19,42 @@ def adicionar_coordenador():
         return
 
     try:
-        cpf_matricula = input("CPF ou Matricula (ex: 123.456.789-00 ou M12345): ").strip()
+        cpf_matricula = input("Matricula Geral ou CPF (apenas numeros, ex: 104523 ou 12345678900): ").strip()
     except (EOFError, KeyboardInterrupt):
         cpf_matricula = ""
 
     if not cpf_matricula:
-        print("Operacao cancelada. CPF/Matricula obrigatorio.")
+        print("Operacao cancelada. Matricula/CPF obrigatorio.")
         return
+
+    if re.search(r'[a-zA-Z]', cpf_matricula):
+        print("\n[ERRO] A Matricula Geral nao contem letras! Digite exclusivamente digitos numericos.")
+        return
+
+    setores_validos = [
+        "Operações",
+        "TI (Tecnologia da Informação)",
+        "QSMS",
+        "Planejamento",
+        "Compras",
+        "Financeiro",
+        "Almoxarifado"
+    ]
+    print("\nSetores disponíveis:")
+    for idx, s in enumerate(setores_validos, start=1):
+        print(f"  [{idx}] {s}")
+
+    try:
+        escolha_setor = input("\nEscolha o número ou digite o nome do Setor [Padrão: 1 - Operações]: ").strip()
+    except (EOFError, KeyboardInterrupt):
+        escolha_setor = ""
+
+    if escolha_setor.isdigit() and 1 <= int(escolha_setor) <= len(setores_validos):
+        setor = setores_validos[int(escolha_setor) - 1]
+    elif any(escolha_setor.lower() == s.lower() for s in setores_validos):
+        setor = next(s for s in setores_validos if escolha_setor.lower() == s.lower())
+    else:
+        setor = "Operações"
 
     # Sugestão de nome de usuário para login
     primeiro_nome = nome.split()[0].lower()
@@ -55,9 +84,15 @@ def adicionar_coordenador():
         CREATE TABLE IF NOT EXISTS coordenadores (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             nome_completo TEXT NOT NULL,
-            cpf_matricula TEXT UNIQUE NOT NULL
+            cpf_matricula TEXT UNIQUE NOT NULL,
+            setor TEXT DEFAULT 'Operações'
         )
     ''')
+
+    cursor.execute("PRAGMA table_info(coordenadores)")
+    cols_coord = [c[1] for c in cursor.fetchall()]
+    if 'setor' not in cols_coord:
+        cursor.execute("ALTER TABLE coordenadores ADD COLUMN setor TEXT DEFAULT 'Operações'")
 
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS usuarios (
@@ -86,12 +121,12 @@ def adicionar_coordenador():
 
         # Insere em coordenadores com o mesmo ID
         cursor.execute('''
-            INSERT INTO coordenadores (id, nome_completo, cpf_matricula)
-            VALUES (?, ?, ?)
-        ''', (novo_id, nome, cpf_matricula))
+            INSERT INTO coordenadores (id, nome_completo, cpf_matricula, setor)
+            VALUES (?, ?, ?, ?)
+        ''', (novo_id, nome, cpf_matricula, setor))
         
         conexao.commit()
-        print(f"\n[SUCESSO] Coordenador(a) '{nome}' cadastrado(a) com sucesso!")
+        print(f"\n[SUCESSO] Coordenador(a) / Solicitante '{nome}' ({setor}) cadastrado(a) com sucesso!")
         print(f"[LOGIN] Usuario: '{username}' | Senha temporaria: '{senha_plana}'")
         print("[INFO] No primeiro acesso, o sistema exigira a troca obrigatoria de senha.")
         

@@ -1076,7 +1076,7 @@
                     <i data-lucide="plus"></i>
                     <span>Solicitar Equipamento</span>
                 </a>
-                <span class="cv-sidebar-section-title">Operações</span>
+                <span class="cv-sidebar-section-title">Chamados &amp; Ativos</span>
                 <a href="/meus-chamados" class="cv-nav-item {% if request.path == '/meus-chamados' %}active{% endif %}">
                     <i data-lucide="clipboard-list"></i>
                     <span>Meus Chamados</span>
@@ -1088,7 +1088,7 @@
                 <div class="cv-user-badge">{{ current_user.username[0]|upper }}</div>
                 <div class="cv-user-details">
                     <span class="cv-user-name">{{ current_user.username }}</span>
-                    <span class="cv-user-role">{% if current_user.role == 'admin' %}Admin{% else %}Coordenador{% endif %}</span>
+                    <span class="cv-user-role">{% if current_user.role == 'admin' %}Admin{% else %}Solicitante{% endif %}</span>
                 </div>
                 <a class="cv-btn-logout" href="/logout" title="Encerrar sessão">
                     <i data-lucide="log-out"></i>

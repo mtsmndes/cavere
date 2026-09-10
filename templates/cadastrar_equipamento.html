@@ -27,18 +27,27 @@
                 <div style="margin-bottom:var(--space-4);">
                     <label class="form-label" for="tipo">Tipo de Equipamento <span style="color:var(--status-danger-text);">*</span></label>
                     <select class="form-select" name="tipo" id="tipo" required onchange="verificarTipo()">
-                        <option value="Camera">Câmera Fotográfica</option>
-                        <option value="Celular">Celular / Smartphone</option>
-                        <option value="Radio">Rádio Comunicador</option>
-                        <option value="Tablet">Tablet Operacional</option>
-                        <option value="Detector">Detector Multigás</option>
+                        <option value="" disabled selected>Selecione o tipo de equipamento...</option>
+                        <option value="Celular">Celular</option>
+                        <option value="Câmera">Câmera</option>
+                        <option value="Notebook">Notebook</option>
+                        <option value="Monitor">Monitor</option>
+                        <option value="Teclado">Teclado</option>
+                        <option value="Mouse">Mouse</option>
+                        <option value="Headset">Headset</option>
+                        <option value="Tablet">Tablet</option>
+                        <option value="Rádio Comunicador">Rádio Comunicador</option>
+                        <option value="Detector de Gás">Detector de Gás</option>
+                        <option value="Nobreak / Estabilizador">Nobreak / Estabilizador</option>
+                        <option value="Periféricos / Acessórios">Periféricos / Acessórios</option>
+                        <option value="Outro">Outro</option>
                     </select>
                 </div>
 
                 <div style="margin-bottom:var(--space-4);">
                     <label class="form-label" for="modelo">Modelo do Equipamento <span style="color:var(--status-danger-text);">*</span></label>
                     <input type="text" class="form-control" name="modelo" id="modelo"
-                        placeholder="Ex: Motorola DP4800 ou Garmin Rino 755t" required>
+                        placeholder="Ex: Samsung Galaxy A54, Kodak Pixpro FZ55, Dell Latitude, etc." required>
                 </div>
 
                 <div style="margin-bottom:var(--space-4);">

@@ -11,7 +11,8 @@
     <div class="surface-card">
         <div class="surface-card-header">
             <div>
-                <div style="font-size:1rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.04em; color:var(--text-primary);">
+                <div
+                    style="font-size:1rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.04em; color:var(--text-primary);">
                     Criar Acesso &amp; Perfil de Usuário
                 </div>
                 <div style="font-size:0.8125rem; color:var(--text-muted); margin-top:2px;">
@@ -25,45 +26,81 @@
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
                 <div style="margin-bottom:var(--space-4);">
-                    <label class="form-label" for="selectRole">Perfil de Acesso (Papel) <span style="color:var(--status-danger-text);">*</span></label>
-                    <select class="form-select" name="role" id="selectRole" onchange="alternarCamposCoordenador()" required>
-                        <option value="coordenador" selected>Coordenador (Acesso a Meus Chamados e Solicitações)</option>
+                    <label class="form-label" for="selectRole">Perfil de Acesso (Papel) <span
+                            style="color:var(--status-danger-text);">*</span></label>
+                    <select class="form-select" name="role" id="selectRole" onchange="alternarCamposCoordenador()"
+                        required>
+                        <option value="coordenador" selected>Coordenador (Acesso a Meus Chamados e Solicitações)
+                        </option>
                         <option value="admin">Administrador (Acesso Geral ao Painel e Gestão)</option>
                     </select>
                 </div>
 
-                <div id="blocoCoordenador" style="background:var(--background); border:1px solid var(--border); border-radius:2px; padding:var(--space-4); margin-bottom:var(--space-4);">
-                    <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-3); padding-bottom:var(--space-2); border-bottom:1px solid var(--border);">
-                        <span style="font-size:0.8125rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; color:var(--text-primary);">
+                <div id="blocoCoordenador"
+                    style="background:var(--background); border:1px solid var(--border); border-radius:2px; padding:var(--space-4); margin-bottom:var(--space-4);">
+                    <div
+                        style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-3); padding-bottom:var(--space-2); border-bottom:1px solid var(--border);">
+                        <span
+                            style="font-size:0.8125rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; color:var(--text-primary);">
                             Dados do Coordenador no Sistema
                         </span>
-                        <span class="badge-notion badge-notion-blue" style="font-size:0.68rem; margin-left:auto;">Vínculo Automático</span>
+                        <span class="badge-notion badge-notion-blue"
+                            style="font-size:0.68rem; margin-left:auto;">Vínculo Automático</span>
                     </div>
 
                     <div style="margin-bottom:var(--space-3);">
-                        <label class="form-label" for="campoIdCustom">ID do Coordenador <span style="color:var(--text-muted); font-weight:400;">(Opcional)</span></label>
-                        <input type="number" class="form-control" name="id_custom" id="campoIdCustom" placeholder="Ex: 10">
+                        <label class="form-label" for="campoIdCustom">ID do Coordenador <span
+                                style="color:var(--text-muted); font-weight:400;">(Opcional)</span></label>
+                        <input type="number" class="form-control" name="id_custom" id="campoIdCustom"
+                            placeholder="Ex: 10">
                         <div class="form-text">Escolha um ID específico ou deixe em branco para auto-incremento.</div>
                     </div>
 
                     <div style="margin-bottom:var(--space-3);">
-                        <label class="form-label" for="campoNomeCompleto">Nome Completo do Coordenador <span style="color:var(--status-danger-text);">*</span></label>
+                        <label class="form-label" for="campoNomeCompleto">Nome Completo do Coordenador <span
+                                style="color:var(--status-danger-text);">*</span></label>
                         <input type="text" class="form-control" name="nome_completo" id="campoNomeCompleto"
                             placeholder="Ex: Carlos Silva Mendes" onkeyup="sugerirLogin()">
                     </div>
 
-                    <div>
-                        <label class="form-label" for="campoCpf">CPF ou Matrícula <span style="color:var(--status-danger-text);">*</span></label>
+                    <div style="margin-bottom:var(--space-3);">
+                        <label class="form-label" for="campoCpf">Matrícula Geral ou CPF <span
+                                style="color:var(--status-danger-text);">*</span></label>
                         <div class="input-group">
-                            <span class="input-group-text"><i data-lucide="credit-card"></i></span>
+                            <span class="input-group-text"><i data-lucide="hash"></i></span>
                             <input type="text" class="form-control" name="cpf" id="campoCpf"
-                                placeholder="Ex: 123.456.789-00 ou M12345">
+                                inputmode="numeric"
+                                pattern="[0-9.-]*"
+                                oninput="this.value = this.value.replace(/[^0-9.-]/g, '')"
+                                placeholder="Ex: 104523 ou 12345678900 (apenas números)">
                         </div>
+                        <div class="form-text" style="color:var(--text-muted); font-size:0.75rem;">
+                            A Matrícula Geral corporativa é composta exclusivamente por números (sem letras).
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="form-label" for="campoSetor">Setor / Departamento <span
+                                style="color:var(--status-danger-text);">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i data-lucide="briefcase"></i></span>
+                            <select class="form-select" name="setor" id="campoSetor">
+                                <option value="TI (Tecnologia da Informação)">TI (Tecnologia da Informação)</option>
+                                <option value="Operações" selected>Operações</option>
+                                <option value="QSMS">QSMS</option>
+                                <option value="Planejamento">Planejamento</option>
+                                <option value="Compras">Compras</option>
+                                <option value="Financeiro">Financeiro</option>
+                                <option value="Almoxarifado">Almoxarifado</option>
+                            </select>
+                        </div>
+                        <div class="form-text">Setor funcional ou departamento do colaborador solicitante.</div>
                     </div>
                 </div>
 
                 <div style="margin-bottom:var(--space-4);">
-                    <label class="form-label" for="campoUsername">Nome de Usuário (Login) <span style="color:var(--status-danger-text);">*</span></label>
+                    <label class="form-label" for="campoUsername">Nome de Usuário (Login) <span
+                            style="color:var(--status-danger-text);">*</span></label>
                     <div class="input-group">
                         <span class="input-group-text"><i data-lucide="at-sign"></i></span>
                         <input type="text" class="form-control" name="username" id="campoUsername"
@@ -73,29 +110,36 @@
                 </div>
 
                 <div style="margin-bottom:var(--space-4);">
-                    <label class="form-label" for="campoSenha">Senha de Acesso <span style="color:var(--status-danger-text);">*</span></label>
+                    <label class="form-label" for="campoSenha">Senha de Acesso <span
+                            style="color:var(--status-danger-text);">*</span></label>
                     <div class="input-group">
                         <span class="input-group-text"><i data-lucide="lock"></i></span>
                         <input type="password" class="form-control" name="senha" id="campoSenha"
                             placeholder="Digite uma senha segura" required>
-                        <button type="button" class="input-group-text" id="toggleSenha" style="cursor:pointer;" title="Mostrar ou ocultar senha">
+                        <button type="button" class="input-group-text" id="toggleSenha" style="cursor:pointer;"
+                            title="Mostrar ou ocultar senha">
                             <i data-lucide="eye" id="iconeSenha"></i>
                         </button>
                     </div>
                     <div class="form-text">Senha criptografada com hash scrypt seguro.</div>
                 </div>
 
-                <div class="form-check form-switch" style="margin-bottom:var(--space-5); background:var(--background); padding:var(--space-3) var(--space-4) var(--space-3) 2.5rem; border-radius:2px; border:1px solid var(--border);">
-                    <input class="form-check-input" type="checkbox" id="checkTrocarSenha" name="trocar_senha" value="1" checked style="cursor:pointer;">
-                    <label class="form-check-label" for="checkTrocarSenha" style="font-size:0.8125rem; font-weight:600; font-family:var(--font-mono); color:var(--text-primary); cursor:pointer;">
+                <div class="form-check form-switch"
+                    style="margin-bottom:var(--space-5); background:var(--background); padding:var(--space-3) var(--space-4) var(--space-3) 2.5rem; border-radius:2px; border:1px solid var(--border);">
+                    <input class="form-check-input" type="checkbox" id="checkTrocarSenha" name="trocar_senha" value="1"
+                        checked style="cursor:pointer;">
+                    <label class="form-check-label" for="checkTrocarSenha"
+                        style="font-size:0.8125rem; font-weight:600; font-family:var(--font-mono); color:var(--text-primary); cursor:pointer;">
                         Exigir redefinição de senha no primeiro acesso
                     </label>
                     <div class="form-text" style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">
-                        Recomendado: o usuário deverá cadastrar uma nova senha pessoal obrigatória logo no primeiro login.
+                        Recomendado: o usuário deverá cadastrar uma nova senha pessoal obrigatória logo no primeiro
+                        login.
                     </div>
                 </div>
 
-                <div style="display:flex; justify-content:space-between; align-items:center; padding-top:var(--space-4); border-top:1px solid var(--border);">
+                <div
+                    style="display:flex; justify-content:space-between; align-items:center; padding-top:var(--space-4); border-top:1px solid var(--border);">
                     <a href="/" class="btn btn-secondary btn-sm">Cancelar</a>
                     <button type="submit" class="btn btn-primary btn-sm" id="btnSubmit">
                         <i data-lucide="user-check"></i>
@@ -113,17 +157,20 @@
         let bloco = document.getElementById('blocoCoordenador');
         let campoNome = document.getElementById('campoNomeCompleto');
         let campoCpf = document.getElementById('campoCpf');
+        let campoSetor = document.getElementById('campoSetor');
         let textoBtnSubmit = document.getElementById('textoBtnSubmit');
 
         if (role === 'coordenador') {
             bloco.style.display = 'block';
             campoNome.required = true;
             campoCpf.required = true;
-            textoBtnSubmit.textContent = 'Salvar Usuário & Coordenador';
+            if (campoSetor) campoSetor.required = true;
+            textoBtnSubmit.textContent = 'Salvar Usuário & Coordenador / Solicitante';
         } else {
             bloco.style.display = 'none';
             campoNome.required = false;
             campoCpf.required = false;
+            if (campoSetor) campoSetor.required = false;
             textoBtnSubmit.textContent = 'Salvar Administrador';
         }
     }
@@ -137,11 +184,11 @@
         }
     }
 
-    document.getElementById('campoUsername').addEventListener('input', function() {
+    document.getElementById('campoUsername').addEventListener('input', function () {
         this.dataset.editadoManualmente = 'true';
     });
 
-    document.getElementById('toggleSenha').addEventListener('click', function() {
+    document.getElementById('toggleSenha').addEventListener('click', function () {
         const input = document.getElementById('campoSenha');
         const btn = document.getElementById('toggleSenha');
         if (input.type === 'password') {

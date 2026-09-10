@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-<div style="max-width:800px; margin:0 auto;">
+<div style="max-width:820px; margin:0 auto;">
 
     <div class="cv-breadcrumb">
         <a href="/meus-chamados"><i data-lucide="clipboard-list" class="me-1"></i>Meus Chamados</a>
@@ -16,6 +16,7 @@
                 </div>
                 <div style="font-size:0.8125rem; color:var(--text-muted); margin-top:2px;">
                     Solicitante: <strong style="color:var(--text-primary);">{{ nome_coordenador }}</strong> (<code style="color:var(--lime);">#{{ id_coordenador }}</code>)
+                    {% if setor_padrao %} &bull; Setor: <span class="badge-notion badge-notion-blue" style="font-size:0.7rem;">{{ setor_padrao }}</span>{% endif %}
                 </div>
             </div>
         </div>
@@ -24,41 +25,136 @@
             <form action="/solicitar-equipamento" method="POST" id="formSolicitacao">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-                <!-- Seção 1: Ativo & Quantidade -->
+                <!-- Seção 1: Equipamento(s) & Quantidade -->
+                <div style="margin-bottom:var(--space-5);">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:var(--space-4); padding-bottom:var(--space-2); border-bottom:1px solid var(--border); flex-wrap:wrap; gap:var(--space-2);">
+                        <div style="display:flex; align-items:center; gap:var(--space-2);">
+                            <span style="display:flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:2px; background:rgba(206, 220, 0, 0.15); color:var(--lime); font-size:0.75rem; font-weight:700; font-family:var(--font-mono); flex-shrink:0;">1</span>
+                            <span style="font-size:0.8125rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.05em; color:var(--text-primary);">Equipamento(s) Solicitado(s)</span>
+                        </div>
+                        <button type="button" class="btn btn-outline btn-sm" onclick="adicionarLinhaEquipamento()" style="font-size:0.75rem; padding:4px 10px; display:inline-flex; align-items:center; gap:6px; border-color:var(--border);">
+                            <i data-lucide="plus" style="width:14px; height:14px; color:var(--lime);"></i> Adicionar mais um tipo de equipamento
+                        </button>
+                    </div>
+
+                    <!-- Container com as linhas de equipamentos -->
+                    <div id="containerEquipamentos" style="display:flex; flex-direction:column; gap:var(--space-3);">
+                        <!-- Linha 1 (Padrão) -->
+                        <div class="linha-equipamento surface-card" style="padding:var(--space-3); border:1px solid var(--border); border-radius:3px; background:rgba(255,255,255,0.015);">
+                            <div class="row g-3 align-items-end">
+                                <div class="col-md-7">
+                                    <label class="form-label">Tipo de Equipamento <span style="color:var(--status-danger-text);">*</span></label>
+                                    <select class="form-select select-tipo" name="tipo_equipamento" required>
+                                        <option value="" disabled selected>Selecione o tipo de equipamento...</option>
+                                        <option value="Celular">Celular</option>
+                                        <option value="Câmera">Câmera</option>
+                                        <option value="Notebook">Notebook</option>
+                                        <option value="Monitor">Monitor</option>
+                                        <option value="Teclado">Teclado</option>
+                                        <option value="Mouse">Mouse</option>
+                                        <option value="Headset">Headset</option>
+                                        <option value="Tablet">Tablet</option>
+                                        <option value="Rádio Comunicador">Rádio Comunicador</option>
+                                        <option value="Detector de Gás">Detector de Gás</option>
+                                        <option value="Nobreak / Estabilizador">Nobreak / Estabilizador</option>
+                                        <option value="Periféricos / Acessórios">Periféricos / Acessórios</option>
+                                        <option value="Outro">Outro</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 col-sm-10">
+                                    <label class="form-label">Quantidade <span style="color:var(--status-danger-text);">*</span></label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control input-qtd" name="quantidade" value="1" min="1" max="50" required>
+                                        <span class="input-group-text">un.</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-1 col-sm-2 d-flex justify-content-end align-items-center">
+                                    <button type="button" class="btn btn-outline-danger btn-sm btn-remover-linha" onclick="removerLinhaEquipamento(this)" style="display:none; width:36px; height:36px; padding:0; align-items:center; justify-content:center;" title="Remover este equipamento">
+                                        <i data-lucide="trash-2" style="width:16px; height:16px;"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:var(--space-2); padding:0 2px;">
+                        <span id="contadorLinhasEquip" style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">
+                            1 tipo de equipamento adicionado
+                        </span>
+                        <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" onclick="adicionarLinhaEquipamento()" style="font-size:0.75rem; color:var(--lime); display:inline-flex; align-items:center; gap:4px;">
+                            <i data-lucide="plus-circle" style="width:14px; height:14px;"></i> + Linha de Equipamento
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Seção 2: Setor Solicitante & Finalidade do Uso (Operação vs Base) -->
                 <div style="margin-bottom:var(--space-5);">
                     <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-4); padding-bottom:var(--space-2); border-bottom:1px solid var(--border);">
-                        <span style="display:flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:2px; background:rgba(206, 220, 0, 0.15); color:var(--lime); font-size:0.75rem; font-weight:700; font-family:var(--font-mono); flex-shrink:0;">1</span>
-                        <span style="font-size:0.8125rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.05em; color:var(--text-primary);">Ativo &amp; Quantidade</span>
+                        <span style="display:flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:2px; background:rgba(206, 220, 0, 0.15); color:var(--lime); font-size:0.75rem; font-weight:700; font-family:var(--font-mono); flex-shrink:0;">2</span>
+                        <span style="font-size:0.8125rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.05em; color:var(--text-primary);">Setor &amp; Finalidade do Uso</span>
                     </div>
+
                     <div class="row g-3">
-                        <div class="col-md-8">
-                            <label class="form-label" for="tipo_equipamento">Tipo de Equipamento <span style="color:var(--status-danger-text);">*</span></label>
-                            <select class="form-select" name="tipo_equipamento" id="tipo_equipamento" required>
-                                <option value="" disabled selected>Selecione o tipo de equipamento...</option>
-                                <option value="Rádio Comunicador (VHF / UHF / Intrínseco)">Rádio Comunicador (VHF / UHF / Intrínseco)</option>
-                                <option value="Celular / Smartphone Corporativo (Com PTT)">Celular / Smartphone Corporativo (Com PTT)</option>
-                                <option value="Câmera Fotográfica Intrinsecamente Segura">Câmera Fotográfica Intrinsecamente Segura</option>
-                                <option value="Tablet Operacional / Rugged Industrial">Tablet Operacional / Rugged Industrial</option>
-                                <option value="Detector de Gases / Multigás">Detector de Gases / Multigás</option>
-                                <option value="Notebook / Estação Móvel de Operações">Notebook / Estação Móvel de Operações</option>
-                                <option value="Kit Completo de Comunicação">Kit Completo de Comunicação</option>
-                                <option value="Outro Equipamento Operacional">Outro Equipamento Operacional</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label" for="quantidade">Quantidade <span style="color:var(--status-danger-text);">*</span></label>
+                        <div class="col-md-12" style="margin-bottom:var(--space-3);">
+                            <label class="form-label" for="setor">Setor Solicitante <span style="color:var(--status-danger-text);">*</span></label>
                             <div class="input-group">
-                                <input type="number" class="form-control" name="quantidade" id="quantidade" value="1" min="1" max="50" required>
-                                <span class="input-group-text">un.</span>
+                                <span class="input-group-text"><i data-lucide="briefcase"></i></span>
+                                <select class="form-select" name="setor" id="setor" required>
+                                    <option value="TI (Tecnologia da Informação)" {% if setor_padrao in ('TI', 'TI (Tecnologia da Informação)') %}selected{% endif %}>TI (Tecnologia da Informação)</option>
+                                    <option value="Operações" {% if setor_padrao == 'Operações' or not setor_padrao %}selected{% endif %}>Operações</option>
+                                    <option value="QSMS" {% if setor_padrao in ('QSMS', 'SMS') %}selected{% endif %}>QSMS</option>
+                                    <option value="Planejamento" {% if setor_padrao == 'Planejamento' %}selected{% endif %}>Planejamento</option>
+                                    <option value="Compras" {% if setor_padrao == 'Compras' %}selected{% endif %}>Compras</option>
+                                    <option value="Financeiro" {% if setor_padrao in ('Financeiro', 'Financeiro / Administrativo') %}selected{% endif %}>Financeiro</option>
+                                    <option value="Almoxarifado" {% if setor_padrao == 'Almoxarifado' %}selected{% endif %}>Almoxarifado</option>
+                                </select>
+                            </div>
+                            <div class="form-text">Setor funcional ou departamento do solicitante.</div>
+                        </div>
+
+                        <!-- Card Toggle: Operação vs Ficar na Base -->
+                        <div class="col-12">
+                            <label class="form-label" style="display:block; margin-bottom:var(--space-2);">
+                                Destino / Onde o equipamento será utilizado? <span style="color:var(--status-danger-text);">*</span>
+                            </label>
+
+                            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:var(--space-3);">
+                                <!-- Opção 1: Operação -->
+                                <label class="cv-tipo-uso-card active" id="cardUsoOperacao" style="cursor:pointer; border:1px solid var(--lime); background:rgba(206, 220, 0, 0.05); border-radius:3px; padding:var(--space-3) var(--space-4); display:flex; align-items:flex-start; gap:var(--space-3); transition:all 0.15s ease;">
+                                    <input type="radio" name="tipo_uso" id="radioOperacao" value="Operação" checked onchange="alternarTipoUso('Operação')" style="margin-top:3px;">
+                                    <div>
+                                        <div style="display:flex; align-items:center; gap:6px; font-weight:700; font-size:0.875rem; color:var(--text-primary); font-family:var(--font-mono);">
+                                            <i data-lucide="anchor" style="width:16px; height:16px; color:var(--lime);"></i>
+                                            Operação de Campo
+                                        </div>
+                                        <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">
+                                            Equipamento será enviado para plataformas, navios, frentes de campo ou missões externas.
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <!-- Opção 2: Ficar na Base -->
+                                <label class="cv-tipo-uso-card" id="cardUsoBase" style="cursor:pointer; border:1px solid var(--border); background:var(--background); border-radius:3px; padding:var(--space-3) var(--space-4); display:flex; align-items:flex-start; gap:var(--space-3); transition:all 0.15s ease;">
+                                    <input type="radio" name="tipo_uso" id="radioBase" value="Base" onchange="alternarTipoUso('Base')" style="margin-top:3px;">
+                                    <div>
+                                        <div style="display:flex; align-items:center; gap:6px; font-weight:700; font-size:0.875rem; color:var(--text-primary); font-family:var(--font-mono);">
+                                            <i data-lucide="building-2" style="width:16px; height:16px; color:var(--text-secondary);"></i>
+                                            Ficar na Base (Uso Interno)
+                                        </div>
+                                        <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">
+                                            Equipamento permanecerá na Base Operacional ou escritório local para uso diário.
+                                        </div>
+                                    </div>
+                                </label>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Seção 2: Destinatário & Destino -->
+                <!-- Seção 3: Destinatário & Destino Detalhado -->
                 <div style="margin-bottom:var(--space-5);">
                     <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-4); padding-bottom:var(--space-2); border-bottom:1px solid var(--border);">
-                        <span style="display:flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:2px; background:rgba(206, 220, 0, 0.15); color:var(--lime); font-size:0.75rem; font-weight:700; font-family:var(--font-mono); flex-shrink:0;">2</span>
+                        <span style="display:flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:2px; background:rgba(206, 220, 0, 0.15); color:var(--lime); font-size:0.75rem; font-weight:700; font-family:var(--font-mono); flex-shrink:0;">3</span>
                         <span style="font-size:0.8125rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.05em; color:var(--text-primary);">Destinatário &amp; Destino</span>
                     </div>
                     <div class="row g-3">
@@ -67,60 +163,56 @@
                             <div class="input-group">
                                 <span class="input-group-text"><i data-lucide="user"></i></span>
                                 <input type="text" class="form-control" name="destinatario" id="destinatario"
-                                    placeholder="Ex: Carlos Silva (Téc. Operações)" required>
+                                    placeholder="Ex: Carlos Silva (Técnico / Analista)" required>
                             </div>
-                            <div class="form-text">Colaborador, equipe ou função operacional.</div>
+                            <div class="form-text" id="destinatarioAjuda">Colaborador, equipe ou função responsável.</div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label" for="plataforma">Plataforma ou Base de Destino <span style="color:var(--status-danger-text);">*</span></label>
+                            <label class="form-label" for="plataforma" id="labelPlataforma">Plataforma ou Unidade de Operação <span style="color:var(--status-danger-text);">*</span></label>
                             <div class="input-group">
-                                <span class="input-group-text"><i data-lucide="map-pin"></i></span>
+                                <span class="input-group-text"><i data-lucide="map-pin" id="iconeDestino"></i></span>
                                 <input type="text" class="form-control" name="plataforma" id="plataforma"
-                                    list="sugestoesPlataformas" placeholder="Ex: Plataforma P-71" required>
+                                    list="sugestoesDestino" placeholder="Ex: Plataforma P-71" required>
                             </div>
-                            <datalist id="sugestoesPlataformas">
-                                <option value="Plataforma P-71">
-                                <option value="Plataforma P-68">
-                                <option value="FPSO Carioca">
-                                <option value="FPSO Almirante Barroso">
-                                <option value="Plataforma Mexilhão (PMX)">
-                                <option value="Campo de Búzios">
-                                <option value="Base Niterói (Ambipar)">
-                                <option value="Navio de Apoio Skandi">
-                                <option value="Terminal Ilha d'Água">
+                            <datalist id="sugestoesDestino">
+                                <!-- Preenchido dinamicamente via JS de acordo com a seleção de Operação ou Base -->
                             </datalist>
-                            <div class="form-text">Unidade operacional de destino.</div>
+                            <div class="form-text" id="destinoAjuda">Unidade operacional externa de embarque.</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Seção 3: Planejamento & Detalhes -->
+                <!-- Seção 4: Planejamento & Detalhes -->
                 <div style="margin-bottom:var(--space-5);">
                     <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-4); padding-bottom:var(--space-2); border-bottom:1px solid var(--border);">
-                        <span style="display:flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:2px; background:rgba(206, 220, 0, 0.15); color:var(--lime); font-size:0.75rem; font-weight:700; font-family:var(--font-mono); flex-shrink:0;">3</span>
+                        <span style="display:flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:2px; background:rgba(206, 220, 0, 0.15); color:var(--lime); font-size:0.75rem; font-weight:700; font-family:var(--font-mono); flex-shrink:0;">4</span>
                         <span style="font-size:0.8125rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.05em; color:var(--text-primary);">Planejamento &amp; Detalhes</span>
                     </div>
                     <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label" for="rdo_projeto">RDO / Projeto</label>
+                        <!-- Campo RDO/Projeto: visível apenas para Operação, ocultado quando Ficar na Base -->
+                        <div class="col-md-4" id="colunaRdo">
+                            <label class="form-label" for="rdo_projeto" id="labelRdo">RDO / Projeto</label>
                             <input type="text" class="form-control" name="rdo_projeto" id="rdo_projeto" placeholder="Ex: RDO-2026-0905">
+                            <div class="form-text" id="ajudaRdo" style="font-size:0.72rem;">Código do RDO ou projeto associado.</div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-4" id="colunaDataNecessidade">
                             <label class="form-label" for="data_necessidade">Data de Necessidade</label>
                             <input type="date" class="form-control" name="data_necessidade" id="data_necessidade">
+                            <div class="form-text" style="font-size:0.72rem;">Prazo desejado para disponibilização.</div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-4" id="colunaPrioridade">
                             <label class="form-label" for="prioridade">Prioridade</label>
                             <select class="form-select" name="prioridade" id="prioridade">
                                 <option value="Normal" selected>Normal</option>
                                 <option value="Alta">Alta</option>
                                 <option value="Urgente">Urgente</option>
                             </select>
+                            <div class="form-text" style="font-size:0.72rem;">Nível de criticidade do atendimento.</div>
                         </div>
                         <div class="col-12">
-                            <label class="form-label" for="justificativa">Justificativa Operacional / Observações</label>
+                            <label class="form-label" for="justificativa" id="labelJustificativa">Justificativa da Solicitação / Observações</label>
                             <textarea class="form-control" name="justificativa" id="justificativa" rows="3"
-                                placeholder="Descreva a finalidade do uso ou instruções de entrega..."></textarea>
+                                placeholder="Descreva a finalidade do uso, instruções de entrega ou contexto..."></textarea>
                         </div>
                     </div>
                 </div>
@@ -135,4 +227,197 @@
         </div>
     </div>
 </div>
+
+<script>
+    const SUGESTOES_OPERACAO = [
+        "Plataforma P-71",
+        "Plataforma P-68",
+        "FPSO Carioca",
+        "FPSO Almirante Barroso",
+        "Plataforma Mexilhão (PMX)",
+        "Campo de Búzios",
+        "Base Niterói - Frente Externa",
+        "Navio de Apoio Skandi",
+        "Terminal Ilha d'Água",
+        "Terminal Aquaviário de Angra dos Reis (TEBIG)"
+    ];
+
+    const SUGESTOES_BASE = [
+        "Base Niterói (Ambipar) - TI (Tecnologia da Informação)",
+        "Base Niterói (Ambipar) - Operações",
+        "Base Niterói (Ambipar) - QSMS",
+        "Base Niterói (Ambipar) - Planejamento",
+        "Base Niterói (Ambipar) - Compras",
+        "Base Niterói (Ambipar) - Financeiro",
+        "Base Niterói (Ambipar) - Almoxarifado",
+        "Escritório Central - Recepção",
+        "Escritório Central - Mesa de Trabalho",
+        "Posto Avançado Macaé"
+    ];
+
+    function atualizarBotoesRemocao() {
+        const container = document.getElementById('containerEquipamentos');
+        if (!container) return;
+        const linhas = container.querySelectorAll('.linha-equipamento');
+        const contador = document.getElementById('contadorLinhasEquip');
+
+        if (contador) {
+            contador.textContent = linhas.length === 1 
+                ? '1 tipo de equipamento adicionado' 
+                : `${linhas.length} tipos de equipamentos adicionados`;
+        }
+
+        linhas.forEach(function(linha) {
+            const btnRemover = linha.querySelector('.btn-remover-linha');
+            if (btnRemover) {
+                if (linhas.length > 1) {
+                    btnRemover.style.display = 'inline-flex';
+                } else {
+                    btnRemover.style.display = 'none';
+                }
+            }
+        });
+    }
+
+    function adicionarLinhaEquipamento() {
+        const container = document.getElementById('containerEquipamentos');
+        if (!container) return;
+
+        const novaLinha = document.createElement('div');
+        novaLinha.className = 'linha-equipamento surface-card';
+        novaLinha.style.cssText = 'padding:var(--space-3); border:1px solid var(--border); border-radius:3px; background:rgba(255,255,255,0.015);';
+
+        novaLinha.innerHTML = `
+            <div class="row g-3 align-items-end">
+                <div class="col-md-7">
+                    <label class="form-label">Tipo de Equipamento <span style="color:var(--status-danger-text);">*</span></label>
+                    <select class="form-select select-tipo" name="tipo_equipamento" required>
+                        <option value="" disabled selected>Selecione o tipo de equipamento...</option>
+                        <option value="Celular">Celular</option>
+                        <option value="Câmera">Câmera</option>
+                        <option value="Notebook">Notebook</option>
+                        <option value="Monitor">Monitor</option>
+                        <option value="Teclado">Teclado</option>
+                        <option value="Mouse">Mouse</option>
+                        <option value="Headset">Headset</option>
+                        <option value="Tablet">Tablet</option>
+                        <option value="Rádio Comunicador">Rádio Comunicador</option>
+                        <option value="Detector de Gás">Detector de Gás</option>
+                        <option value="Nobreak / Estabilizador">Nobreak / Estabilizador</option>
+                        <option value="Periféricos / Acessórios">Periféricos / Acessórios</option>
+                        <option value="Outro">Outro</option>
+                    </select>
+                </div>
+                <div class="col-md-4 col-sm-10">
+                    <label class="form-label">Quantidade <span style="color:var(--status-danger-text);">*</span></label>
+                    <div class="input-group">
+                        <input type="number" class="form-control input-qtd" name="quantidade" value="1" min="1" max="50" required>
+                        <span class="input-group-text">un.</span>
+                    </div>
+                </div>
+                <div class="col-md-1 col-sm-2 d-flex justify-content-end align-items-center">
+                    <button type="button" class="btn btn-outline-danger btn-sm btn-remover-linha" onclick="removerLinhaEquipamento(this)" style="width:36px; height:36px; padding:0; display:inline-flex; align-items:center; justify-content:center;" title="Remover este equipamento">
+                        <i data-lucide="trash-2" style="width:16px; height:16px;"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+
+        container.appendChild(novaLinha);
+        atualizarBotoesRemocao();
+
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+
+        const novoSelect = novaLinha.querySelector('select');
+        if (novoSelect) {
+            novoSelect.focus();
+        }
+    }
+
+    function removerLinhaEquipamento(botao) {
+        const container = document.getElementById('containerEquipamentos');
+        if (!container) return;
+        const linhas = container.querySelectorAll('.linha-equipamento');
+        if (linhas.length <= 1) return;
+
+        const linha = botao.closest('.linha-equipamento');
+        if (linha) {
+            linha.remove();
+            atualizarBotoesRemocao();
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+        }
+    }
+
+    function alternarTipoUso(tipo) {
+        const cardOp = document.getElementById('cardUsoOperacao');
+        const cardBase = document.getElementById('cardUsoBase');
+        const labelPlat = document.getElementById('labelPlataforma');
+        const inputPlat = document.getElementById('plataforma');
+        const listaDestino = document.getElementById('sugestoesDestino');
+        const destinoAjuda = document.getElementById('destinoAjuda');
+        
+        // Elementos do RDO / Projeto condicional
+        const colunaRdo = document.getElementById('colunaRdo');
+        const inputRdo = document.getElementById('rdo_projeto');
+        const colData = document.getElementById('colunaDataNecessidade');
+        const colPrio = document.getElementById('colunaPrioridade');
+
+        listaDestino.innerHTML = '';
+
+        if (tipo === 'Base') {
+            cardBase.style.borderColor = 'var(--lime)';
+            cardBase.style.background = 'rgba(206, 220, 0, 0.05)';
+            cardOp.style.borderColor = 'var(--border)';
+            cardOp.style.background = 'var(--background)';
+
+            labelPlat.innerHTML = 'Base / Setor / Posto de Trabalho <span style="color:var(--status-danger-text);">*</span>';
+            inputPlat.placeholder = 'Ex: Base Niterói - TI, Almoxarifado, Escritório...';
+            destinoAjuda.textContent = 'Localização física interna onde o equipamento ficará em uso contínuo.';
+
+            // Oculta o campo de RDO/Projeto e limpa o valor quando ficar na base
+            if (colunaRdo) colunaRdo.style.display = 'none';
+            if (inputRdo) inputRdo.value = '';
+            if (colData) colData.className = 'col-md-6';
+            if (colPrio) colPrio.className = 'col-md-6';
+
+            SUGESTOES_BASE.forEach(function(item) {
+                const opt = document.createElement('option');
+                opt.value = item;
+                listaDestino.appendChild(opt);
+            });
+        } else {
+            cardOp.style.borderColor = 'var(--lime)';
+            cardOp.style.background = 'rgba(206, 220, 0, 0.05)';
+            cardBase.style.borderColor = 'var(--border)';
+            cardBase.style.background = 'var(--background)';
+
+            labelPlat.innerHTML = 'Plataforma ou Unidade de Operação <span style="color:var(--status-danger-text);">*</span>';
+            inputPlat.placeholder = 'Ex: Plataforma P-71, FPSO Carioca, Frente de Campo...';
+            destinoAjuda.textContent = 'Unidade operacional externa ou plataforma de embarque.';
+
+            // Reexibe o campo de RDO/Projeto para operação de campo
+            if (colunaRdo) colunaRdo.style.display = 'block';
+            if (colData) colData.className = 'col-md-4';
+            if (colPrio) colPrio.className = 'col-md-4';
+
+            SUGESTOES_OPERACAO.forEach(function(item) {
+                const opt = document.createElement('option');
+                opt.value = item;
+                listaDestino.appendChild(opt);
+            });
+        }
+
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+    }
+
+    // Inicializa sugestões e estado inicial
+    alternarTipoUso('Operação');
+    atualizarBotoesRemocao();
+</script>
 {% endblock %}

@@ -216,7 +216,7 @@ def inicializar_banco():
         )
     ''')
 
-    # Tabela para chamados de solicitação de equipamentos
+    # Tabela para chamados de solicitação de equipamentos (multissetorial)
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS solicitacoes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -230,16 +230,31 @@ def inicializar_banco():
             prioridade TEXT DEFAULT 'Normal',
             justificativa TEXT,
             status TEXT NOT NULL DEFAULT 'Pendente',
+            tipo_uso TEXT DEFAULT 'Operação',
+            setor TEXT DEFAULT 'Operações',
             data_criacao DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(id_coordenador) REFERENCES coordenadores(id)
         )
     ''')
     
-    # Garante a coluna id_solicitacao na tabela cautelas se necessário
+    # Migrações seguras de colunas caso o banco já exista
     cursor.execute("PRAGMA table_info(cautelas)")
     colunas_cautelas = [col[1] for col in cursor.fetchall()]
     if colunas_cautelas and 'id_solicitacao' not in colunas_cautelas:
         cursor.execute("ALTER TABLE cautelas ADD COLUMN id_solicitacao INTEGER")
+
+    cursor.execute("PRAGMA table_info(solicitacoes)")
+    colunas_solicitacoes = [col[1] for col in cursor.fetchall()]
+    if colunas_solicitacoes:
+        if 'tipo_uso' not in colunas_solicitacoes:
+            cursor.execute("ALTER TABLE solicitacoes ADD COLUMN tipo_uso TEXT DEFAULT 'Operação'")
+        if 'setor' not in colunas_solicitacoes:
+            cursor.execute("ALTER TABLE solicitacoes ADD COLUMN setor TEXT DEFAULT 'Operações'")
+
+    cursor.execute("PRAGMA table_info(coordenadores)")
+    colunas_coord = [col[1] for col in cursor.fetchall()]
+    if colunas_coord and 'setor' not in colunas_coord:
+        cursor.execute("ALTER TABLE coordenadores ADD COLUMN setor TEXT DEFAULT 'Operações'")
 
     conexao.commit()
     conexao.close()
@@ -419,11 +434,11 @@ def erro_servidor(e):
 
 # --- REGRAS DE CADASTRO DE USUÁRIOS E SENHAS ---
 
-def salvar_novo_usuario(username, senha_pura, role='coordenador', id_personalizado=None, nome_completo=None, cpf_matricula=None, trocar_senha=1):
+def salvar_novo_usuario(username, senha_pura, role='coordenador', id_personalizado=None, nome_completo=None, cpf_matricula=None, setor='Operações', trocar_senha=1):
     """
     Cadastra um novo usuário no banco com senha criptografada via scrypt.
     Se o papel for 'coordenador', cadastra atomicamente em 'usuarios' e 'coordenadores' com o MESMO ID.
-    Valida formatos e restringe tamanho para evitar DoS.
+    Valida formatos, proíbe letras na Matrícula Geral e restringe tamanho para evitar DoS.
     """
     if role not in ('admin', 'coordenador'):
         return False, "O papel (role) deve ser 'admin' ou 'coordenador'."
@@ -437,9 +452,14 @@ def salvar_novo_usuario(username, senha_pura, role='coordenador', id_personaliza
 
     if role == 'coordenador':
         if not nome_completo or not cpf_matricula:
-            return False, "Para cadastro de Coordenador, o Nome Completo e CPF/Matrícula são obrigatórios."
+            return False, "Para cadastro de perfil Coordenador / Setor, o Nome Completo e Matrícula Geral/CPF são obrigatórios."
         nome_completo = nome_completo.strip()[:100]
         cpf_matricula = cpf_matricula.strip()[:30]
+        setor = (setor or 'Operações').strip()[:50]
+
+        # Regra Estrita: A Matrícula Geral corporativa não começa nem contém letras, é apenas números
+        if re.search(r'[a-zA-Z]', cpf_matricula):
+            return False, "A Matrícula Geral / CPF não pode conter letras. Informe exclusivamente dígitos numéricos."
 
     senha_hash = generate_password_hash(senha_pura)
     conexao = get_db_connection()
@@ -480,14 +500,14 @@ def salvar_novo_usuario(username, senha_pura, role='coordenador', id_personaliza
             if existe_coord:
                 cursor.execute('''
                     UPDATE coordenadores 
-                    SET nome_completo = ?, cpf_matricula = ?
+                    SET nome_completo = ?, cpf_matricula = ?, setor = ?
                     WHERE id = ?
-                ''', (nome_completo, cpf_matricula, user_id))
+                ''', (nome_completo, cpf_matricula, setor, user_id))
             else:
                 cursor.execute('''
-                    INSERT INTO coordenadores (id, nome_completo, cpf_matricula)
-                    VALUES (?, ?, ?)
-                ''', (user_id, nome_completo, cpf_matricula))
+                    INSERT INTO coordenadores (id, nome_completo, cpf_matricula, setor)
+                    VALUES (?, ?, ?, ?)
+                ''', (user_id, nome_completo, cpf_matricula, setor))
 
         conexao.commit()
         papel_str = "Coordenador" if role == 'coordenador' else "Administrador"
@@ -712,6 +732,7 @@ def cadastrar_usuario():
         id_custom = request.form.get('id_custom', '').strip()
         nome_completo = request.form.get('nome_completo', '').strip()
         cpf = request.form.get('cpf', '').strip()
+        setor = request.form.get('setor', 'Operações').strip()
         trocar_senha = 1 if request.form.get('trocar_senha') == '1' else 0
 
         if not username or not senha:
@@ -726,6 +747,7 @@ def cadastrar_usuario():
             id_personalizado=id_param,
             nome_completo=nome_completo if role == 'coordenador' else None,
             cpf_matricula=cpf if role == 'coordenador' else None,
+            setor=setor if role == 'coordenador' else 'Operações',
             trocar_senha=trocar_senha
         )
         if sucesso:
@@ -742,18 +764,26 @@ def obter_categoria_equipamento(texto):
     if not texto:
         return 'outro'
     t = texto.lower()
-    if any(k in t for k in ['radio', 'rádio', 'comunicador', 'vhf', 'uhf', 'ht', 'transceptor']):
-        return 'radio'
     if any(k in t for k in ['celular', 'smartphone', 'telefone', 'ptt', 'iphone']):
         return 'celular'
-    if any(k in t for k in ['camera', 'câmera', 'fotogr']):
+    if any(k in t for k in ['camera', 'câmera', 'kodak', 'pixpro', 'fotogr', 'filmagem', 'gopro']):
         return 'camera'
+    if any(k in t for k in ['notebook', 'laptop', 'computador', 'pc', 'macbook']):
+        return 'notebook'
+    if any(k in t for k in ['teclado', 'keyboard']):
+        return 'teclado'
+    if any(k in t for k in ['mouse']):
+        return 'mouse'
+    if any(k in t for k in ['monitor', 'tela', 'display']):
+        return 'monitor'
+    if any(k in t for k in ['headset', 'fone', 'headphone', 'auricular']):
+        return 'headset'
+    if any(k in t for k in ['radio', 'rádio', 'comunicador', 'vhf', 'uhf', 'ht', 'transceptor']):
+        return 'radio'
     if any(k in t for k in ['tablet', 'ipad', 'rugged']):
         return 'tablet'
     if any(k in t for k in ['detector', 'multigás', 'multigas', 'gás', 'gas']):
         return 'detector'
-    if any(k in t for k in ['notebook', 'laptop', 'computador']):
-        return 'notebook'
     return 'outro'
 
 
@@ -806,7 +836,9 @@ def home():
         SELECT s.id, 
                COALESCE(co.nome_completo, u.username, 'Coordenador #' || s.id_coordenador) AS nome_coord,
                s.tipo_equipamento, s.quantidade, s.destinatario, 
-               s.plataforma, s.rdo_projeto, s.prioridade, s.status, s.data_criacao, s.id_coordenador
+               s.plataforma, s.rdo_projeto, s.prioridade, s.status, s.data_criacao, s.id_coordenador,
+               COALESCE(s.tipo_uso, 'Operação') AS tipo_uso,
+               COALESCE(s.setor, 'Operações') AS setor
         FROM solicitacoes s
         LEFT JOIN coordenadores co ON s.id_coordenador = co.id
         LEFT JOIN usuarios u ON s.id_coordenador = u.id
@@ -872,6 +904,8 @@ def home():
             'status': status_atual,
             'data_criacao': s[9],
             'id_coordenador': s[10],
+            'tipo_uso': s[11] if len(s) > 11 else 'Operação',
+            'setor': s[12] if len(s) > 12 else 'Operações',
             'itens_emitidos': itens_ativos if not is_finalizada else itens_emitidos,
             'itens_devolvidos': itens_devolvidos,
             'qtd_emitida': qtd_emitida,
@@ -1283,7 +1317,9 @@ def meus_chamados():
 
     cursor.execute('''
         SELECT id, tipo_equipamento, quantidade, destinatario, plataforma,
-               rdo_projeto, data_necessidade, prioridade, justificativa, status, data_criacao
+               rdo_projeto, data_necessidade, prioridade, justificativa, status, data_criacao,
+               COALESCE(tipo_uso, 'Operação') AS tipo_uso,
+               COALESCE(setor, 'Operações') AS setor
         FROM solicitacoes
         WHERE id_coordenador = ? OR id_coordenador = ?
         ORDER BY id DESC
@@ -1305,7 +1341,7 @@ def meus_chamados():
 
     solicitacoes = []
     for s in solicitacoes_rows:
-        id_sol, tipo_eq, qtd, dest, plat, rdo_proj, dt_nec, prio, just, st, dt_cria = s
+        id_sol, tipo_eq, qtd, dest, plat, rdo_proj, dt_nec, prio, just, st, dt_cria, tipo_uso, setor = s
 
         cursor.execute('''
             SELECT c.id_cautela, e.tipo, e.modelo, e.patrimonio_sn, c.data_hora_saida, c.data_hora_devolucao
@@ -1371,6 +1407,8 @@ def meus_chamados():
             'badge_class': badge_class,
             'timeline_step': timeline_step,
             'data_criacao': dt_cria,
+            'tipo_uso': tipo_uso,
+            'setor': setor,
             'itens_emitidos': itens_ativos if not is_finalizada else itens_emitidos,
             'itens_devolvidos': itens_devolvidos,
             'qtd_emitida': qtd_emitida,
@@ -1434,52 +1472,94 @@ def solicitar_equipamento():
 
     id_coordenador = current_user.id
     cursor.execute('''
-        SELECT id, nome_completo FROM coordenadores 
+        SELECT id, nome_completo, COALESCE(setor, 'Operações') FROM coordenadores 
         WHERE id = ? OR LOWER(nome_completo) = LOWER(?) OR LOWER(cpf_matricula) = LOWER(?)
     ''', (current_user.id, current_user.username, current_user.username))
     coord_row = cursor.fetchone()
     nome_coordenador = current_user.username
+    setor_padrao = 'Operações'
     if coord_row:
         id_coordenador = coord_row[0]
         nome_coordenador = coord_row[1]
+        setor_padrao = coord_row[2] if len(coord_row) > 2 and coord_row[2] else 'Operações'
+    else:
+        # Se for um usuário sem registro na tabela de coordenadores (ex: admin), cadastra para respeitar FK
+        cursor.execute('SELECT id FROM coordenadores WHERE id = ?', (current_user.id,))
+        if not cursor.fetchone():
+            cursor.execute('''
+                INSERT INTO coordenadores (id, nome_completo, cpf_matricula, setor)
+                VALUES (?, ?, ?, 'TI (Tecnologia da Informação)')
+            ''', (current_user.id, current_user.username, f"ADM{current_user.id:06d}"))
+            conexao.commit()
+        id_coordenador = current_user.id
+        nome_coordenador = current_user.username
+        setor_padrao = 'TI (Tecnologia da Informação)'
 
     if request.method == 'POST':
-        tipo = (request.form.get('tipo_equipamento') or '').strip()[:100]
-        quantidade = request.form.get('quantidade', 1, type=int)
+        tipos = request.form.getlist('tipo_equipamento') or request.form.getlist('tipo_equipamento[]')
+        quantidades = request.form.getlist('quantidade') or request.form.getlist('quantidade[]')
         destinatario = (request.form.get('destinatario') or '').strip()[:100]
+        tipo_uso = (request.form.get('tipo_uso') or 'Operação').strip()[:30]
+        setor = (request.form.get('setor') or setor_padrao).strip()[:50]
         plataforma = (request.form.get('plataforma') or '').strip()[:100]
-        rdo = (request.form.get('rdo_projeto') or '').strip()[:60]
+        
+        # Quando marcada a opção de ficar na base, não há RDO/Projeto associado
+        if tipo_uso == 'Base':
+            rdo = ''
+        else:
+            rdo = (request.form.get('rdo_projeto') or '').strip()[:60]
+
         data_necessidade = (request.form.get('data_necessidade') or '').strip()[:30]
         prioridade = (request.form.get('prioridade') or 'Normal').strip()[:20]
         justificativa = (request.form.get('justificativa') or '').strip()[:500]
 
-        if not tipo or not destinatario or not plataforma:
-            flash("Por favor, preencha o tipo de equipamento, o destinatário e a plataforma de destino.", "warning")
-            conexao.close()
-            return render_template('solicitar_equipamento.html', nome_coordenador=nome_coordenador, id_coordenador=id_coordenador)
+        itens_solicitados = []
+        for t, q in zip(tipos, quantidades):
+            t_clean = (t or '').strip()[:100]
+            try:
+                q_int = int(q)
+            except (ValueError, TypeError):
+                q_int = 1
+            if t_clean and q_int > 0:
+                if q_int > 100:
+                    q_int = 100
+                itens_solicitados.append((t_clean, q_int))
 
-        if quantidade < 1 or quantidade > 100:
-            flash("Quantidade permitida por chamado deve estar entre 1 e 100 unidades.", "warning")
+        if not itens_solicitados or not destinatario or not plataforma:
+            destino_txt = "unidade operacional" if tipo_uso == 'Operação' else "local/base"
+            flash(f"Por favor, adicione ao menos um tipo de equipamento válido, informe o destinatário e o destino ({destino_txt}).", "warning")
             conexao.close()
-            return render_template('solicitar_equipamento.html', nome_coordenador=nome_coordenador, id_coordenador=id_coordenador)
+            return render_template('solicitar_equipamento.html', nome_coordenador=nome_coordenador, id_coordenador=id_coordenador, setor_padrao=setor_padrao)
 
         try:
-            cursor.execute('''
-                INSERT INTO solicitacoes (id_coordenador, tipo_equipamento, quantidade, destinatario, plataforma, rdo_projeto, data_necessidade, prioridade, justificativa, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pendente')
-            ''', (id_coordenador, tipo, quantidade, destinatario, plataforma, rdo, data_necessidade, prioridade, justificativa))
+            ids_criados = []
+            resumo_itens = []
+            for tipo_item, qtd_item in itens_solicitados:
+                cursor.execute('''
+                    INSERT INTO solicitacoes (id_coordenador, tipo_equipamento, quantidade, destinatario, plataforma, rdo_projeto, data_necessidade, prioridade, justificativa, status, tipo_uso, setor)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pendente', ?, ?)
+                ''', (id_coordenador, tipo_item, qtd_item, destinatario, plataforma, rdo, data_necessidade, prioridade, justificativa, tipo_uso, setor))
+                ids_criados.append(cursor.lastrowid)
+                resumo_itens.append(f"{qtd_item}x {tipo_item}")
+
             conexao.commit()
-            id_chamado = cursor.lastrowid
-            flash(f"Chamado #{id_chamado} criado com sucesso! Solicitação de {quantidade}x {tipo} registrada.", "success")
+
+            if len(ids_criados) == 1:
+                flash(f"Chamado #{ids_criados[0]} criado com sucesso! Solicitação de {resumo_itens[0]} ({tipo_uso} - {setor}) registrada.", "success")
+            else:
+                ids_str = ", ".join([f"#{i}" for i in ids_criados])
+                itens_str = ", ".join(resumo_itens)
+                flash(f"{len(ids_criados)} chamados criados com sucesso ({ids_str})! Itens solicitados: {itens_str} ({tipo_uso} - {setor}).", "success")
+
             conexao.close()
             return redirect(url_for('meus_chamados'))
         except Exception as e:
-            flash(f"Erro ao registrar chamado: {e}", "danger")
+            flash(f"Erro ao registrar chamado(s): {e}", "danger")
             conexao.close()
-            return render_template('solicitar_equipamento.html', nome_coordenador=nome_coordenador, id_coordenador=id_coordenador)
+            return render_template('solicitar_equipamento.html', nome_coordenador=nome_coordenador, id_coordenador=id_coordenador, setor_padrao=setor_padrao)
 
     conexao.close()
-    return render_template('solicitar_equipamento.html', nome_coordenador=nome_coordenador, id_coordenador=id_coordenador)
+    return render_template('solicitar_equipamento.html', nome_coordenador=nome_coordenador, id_coordenador=id_coordenador, setor_padrao=setor_padrao)
 
 
 if __name__ == '__main__':

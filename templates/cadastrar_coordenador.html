@@ -33,8 +33,8 @@
                     <input type="text" class="form-control" name="nome" id="campoNome" placeholder="Ex: Carlos Silva Mendes" required>
                 </div>
                 <div style="margin-bottom:var(--space-5);">
-                    <label class="form-label" for="campoCpf">CPF ou Matrícula <span style="color:var(--status-danger-text);">*</span></label>
-                    <input type="text" class="form-control" name="cpf" id="campoCpf" placeholder="Ex: 123.456.789-00 ou M12345" required>
+                    <label class="form-label" for="campoCpf">Matrícula Geral ou CPF <span style="color:var(--status-danger-text);">*</span></label>
+                    <input type="text" class="form-control" name="cpf" id="campoCpf" inputmode="numeric" pattern="[0-9.-]*" oninput="this.value = this.value.replace(/[^0-9.-]/g, '')" placeholder="Ex: 104523 ou 123.456.789-00 (Apenas números)" required>
                 </div>
 
                 <div style="display:flex; justify-content:space-between; align-items:center; padding-top:var(--space-4); border-top:1px solid var(--border);">

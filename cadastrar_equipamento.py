@@ -7,7 +7,7 @@ def adicionar_equipamento():
     
     # Coletando os dados do usuário no terminal
     try:
-        tipo = input("Qual o Tipo? (ex: Celular, Camera, Radio): ").strip()
+        tipo = input("Qual o Tipo? (ex: Celular, Câmera, Notebook, Monitor, Teclado, Mouse, Headset): ").strip()
     except (EOFError, KeyboardInterrupt):
         tipo = ""
 
@@ -16,7 +16,7 @@ def adicionar_equipamento():
         return
 
     try:
-        modelo = input("Qual o Modelo? (ex: Samsung A54, Nikon D3100): ").strip()
+        modelo = input("Qual o Modelo? (ex: Samsung Galaxy A54, Kodak Pixpro FZ55, Dell Latitude): ").strip()
     except (EOFError, KeyboardInterrupt):
         modelo = ""
 

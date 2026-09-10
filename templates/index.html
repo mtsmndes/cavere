@@ -134,7 +134,8 @@
                 {% for s in solicitacoes %}
                 <tr class="linha-solicitacao {% if s.prioridade == 'Urgente' %}is-urgent{% endif %}"
                     data-status="{{ s.status }}"
-                    data-finalizada="{{ '1' if s.status in ('Finalizada', 'Concluído', 'Concluido', 'Finalizado', 'Devolvido') else '0' }}">
+                    data-finalizada="{{ '1' if s.status in ('Finalizada', 'Concluído', 'Concluido', 'Finalizado', 'Devolvido') else '0' }}"
+                    data-busca="{{ s.id }} {{ s.nome_coord }} {{ s.setor or '' }} {{ s.tipo_uso or '' }} {{ s.tipo_equipamento }} {{ s.destinatario }} {{ s.plataforma }} {{ s.rdo }} {{ s.status }}">
                     
                     <td class="ps-4">
                         <div style="display:flex; align-items:center; gap:6px;">
@@ -153,7 +154,12 @@
                             <div style="width:26px; height:26px; border-radius:2px; background:rgba(206, 220, 0, 0.15); border:1px solid rgba(206, 220, 0, 0.45); color:var(--lime); display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:700; font-family:var(--font-mono); flex-shrink:0;">
                                 {{ s.nome_coord[0]|upper if s.nome_coord else '?' }}
                             </div>
-                            <span style="font-weight:500; font-size:0.875rem; color:var(--text-primary);">{{ s.nome_coord }}</span>
+                            <div>
+                                <span style="font-weight:500; font-size:0.875rem; color:var(--text-primary);">{{ s.nome_coord }}</span>
+                                <div style="font-size:0.75rem; margin-top:2px;">
+                                    <span class="badge-notion badge-notion-gray" style="font-size:0.68rem; padding:0 5px;">{{ s.setor or 'Operações' }}</span>
+                                </div>
+                            </div>
                         </div>
                     </td>
 
@@ -196,11 +202,24 @@
                     </td>
 
                     <td>
+                        <div style="display:flex; align-items:center; gap:5px; margin-bottom:3px;">
+                            {% if s.tipo_uso == 'Base' %}
+                            <span class="badge-notion badge-notion-purple" style="font-size:0.65rem; padding:1px 6px;"><i data-lucide="building-2" class="me-1" style="width:11px;height:11px;"></i>Base</span>
+                            {% else %}
+                            <span class="badge-notion badge-notion-blue" style="font-size:0.65rem; padding:1px 6px;"><i data-lucide="anchor" class="me-1" style="width:11px;height:11px;"></i>Operação</span>
+                            {% endif %}
+                        </div>
                         <div style="font-size:0.875rem; color:var(--text-primary);"><i data-lucide="user" class="text-muted me-1" style="width:14px;height:14px;"></i>{{ s.destinatario }}</div>
                         <div style="font-size:0.8125rem; color:var(--text-muted);"><i data-lucide="map-pin" class="me-1" style="width:14px;height:14px;"></i>{{ s.plataforma }}</div>
                     </td>
 
-                    <td><code>{{ s.rdo }}</code></td>
+                    <td>
+                        {% if s.tipo_uso == 'Base' or not s.rdo or s.rdo == '-' or s.rdo == 'N/A' %}
+                        <span class="badge-notion badge-notion-gray" style="font-size:0.68rem; padding:1px 6px;">Base (Interno)</span>
+                        {% else %}
+                        <code>{{ s.rdo }}</code>
+                        {% endif %}
+                    </td>
 
                     <td>
                         {% if s.status == 'Pendente' %}
@@ -223,6 +242,7 @@
                             data-id="{{ s.id }}"
                             data-coord-id="{{ s.id_coordenador }}"
                             data-rdo="{{ s.rdo }}"
+                            data-tipo-uso="{{ s.tipo_uso }}"
                             data-tipo="{{ s.tipo_equipamento }}"
                             data-coord-nome="{{ s.nome_coord }}"
                             data-item-atual="{{ s.qtd_emitida + 1 }}"
@@ -495,15 +515,16 @@
         const idSol = btn.getAttribute('data-id') || '';
         const idCoord = btn.getAttribute('data-coord-id') || '';
         const rdo = btn.getAttribute('data-rdo') || '';
+        const tipoUso = btn.getAttribute('data-tipo-uso') || 'Operação';
         const tipoEq = btn.getAttribute('data-tipo') || '';
         const nomeCoord = btn.getAttribute('data-coord-nome') || '';
         const itemAtual = btn.getAttribute('data-item-atual') || '1';
         const totalItens = btn.getAttribute('data-total-itens') || '1';
         const categoriaEq = btn.getAttribute('data-categoria') || '';
-        abrirModalAtendimento(idSol, idCoord, rdo, tipoEq, nomeCoord, itemAtual, totalItens, categoriaEq);
+        abrirModalAtendimento(idSol, idCoord, rdo, tipoEq, nomeCoord, itemAtual, totalItens, categoriaEq, tipoUso);
     }
 
-    function abrirModalAtendimento(idSol, idCoord, rdo, tipoEq, nomeCoord, itemAtual, totalItens, categoriaEq) {
+    function abrirModalAtendimento(idSol, idCoord, rdo, tipoEq, nomeCoord, itemAtual, totalItens, categoriaEq, tipoUso) {
         document.getElementById('campoIdSolicitacaoModal').value = idSol || '';
         categoriaFiltroAtivo = categoriaEq || null;
         tipoSolicitadoAtivo = tipoEq || '';
@@ -518,7 +539,9 @@
             }
         }
 
-        if (rdo && rdo !== 'None' && rdo !== 'N/A') {
+        if (tipoUso === 'Base' || !rdo || rdo === 'None' || rdo === 'N/A' || rdo === '-') {
+            document.getElementById('campoRdoModal').value = (tipoUso === 'Base') ? 'Base (Uso Interno)' : '';
+        } else {
             document.getElementById('campoRdoModal').value = rdo;
         }
 
