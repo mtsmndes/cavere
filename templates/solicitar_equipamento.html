@@ -1,0 +1,737 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="max-width:820px; margin:0 auto;">
+
+    <div class="cv-breadcrumb">
+        <a href="/meus-chamados"><i data-lucide="clipboard-list" class="me-1"></i>Meus Chamados</a>
+        <span class="sep">/</span>
+        <span class="current">Nova Solicitação de Equipamento</span>
+    </div>
+
+    <div class="surface-card">
+        <div class="surface-card-header">
+            <div>
+                <div style="font-size:1rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.04em; color:var(--text-primary);">
+                    Abertura de Chamado de Equipamento
+                </div>
+                <div style="font-size:0.8125rem; color:var(--text-muted); margin-top:2px; display:flex; align-items:center; flex-wrap:wrap; gap:6px;">
+                    <span>Solicitante: <strong style="color:var(--text-primary);">{{ nome_coordenador }}</strong> (<code style="color:var(--lime);">#{{ id_coordenador }}</code>)</span>
+                    {% if setor_padrao %}
+                    <span style="color:var(--text-muted);">&bull;</span>
+                    <span style="display:inline-flex; align-items:center; gap:4px;">Setor: <strong style="color:var(--text-primary);">{{ setor_padrao }}</strong></span>
+                    {% endif %}
+                    {% if base_padrao %}
+                    <span style="color:var(--text-muted);">&bull;</span>
+                    <span style="display:inline-flex; align-items:center; gap:4px;">Base: <strong style="color:var(--lime);">{{ base_padrao }}</strong></span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="surface-card-body">
+            <form action="/solicitar-equipamento" method="POST" id="formSolicitacao">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <!-- Seção 1: Equipamento(s) & Quantidade -->
+                <div style="margin-bottom:var(--space-5);">
+                    <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-4); padding-bottom:var(--space-2); border-bottom:1px solid var(--border);">
+                        <span style="display:flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:2px; background:rgba(206, 220, 0, 0.15); color:var(--lime); font-size:0.75rem; font-weight:700; font-family:var(--font-mono); flex-shrink:0;">1</span>
+                        <span style="font-size:0.8125rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.05em; color:var(--text-primary);">Equipamento(s) Solicitado(s)</span>
+                    </div>
+
+                    <!-- Container com as linhas de equipamentos -->
+                    <div id="containerEquipamentos" style="display:flex; flex-direction:column; gap:var(--space-3);">
+                        <!-- Linha 1 (Padrão) -->
+                        <div class="linha-equipamento surface-card" style="padding:var(--space-3); border:1px solid var(--border); border-radius:3px; background:rgba(255,255,255,0.015);">
+                            <div class="row g-3 align-items-end">
+                                <div class="col-md-7">
+                                    <label class="form-label">Tipo de Equipamento <span style="color:var(--status-danger-text);">*</span></label>
+                                    <select class="form-select select-tipo" name="tipo_equipamento" required>
+                                        <option value="" disabled selected>Selecione o tipo de equipamento...</option>
+                                        <option value="Celular">Celular</option>
+                                        <option value="Câmera">Câmera</option>
+                                        <option value="Notebook">Notebook</option>
+                                        <option value="Monitor">Monitor</option>
+                                        <option value="Teclado">Teclado</option>
+                                        <option value="Mouse">Mouse</option>
+                                        <option value="Headset">Headset</option>
+                                        <option value="Tablet">Tablet</option>
+                                        <option value="Rádio Comunicador">Rádio Comunicador</option>
+                                        <option value="Detector de Gás">Detector de Gás</option>
+                                        <option value="Nobreak / Estabilizador">Nobreak / Estabilizador</option>
+                                        <option value="Periféricos / Acessórios">Periféricos / Acessórios</option>
+                                        <option value="Outro">Outro</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 col-sm-10">
+                                    <label class="form-label">Quantidade <span style="color:var(--status-danger-text);">*</span></label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control input-qtd" name="quantidade" value="1" min="1" max="50" required>
+                                        <span class="input-group-text">un.</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-1 col-sm-2 d-flex justify-content-end align-items-center">
+                                    <button type="button" class="btn btn-outline-danger btn-sm btn-remover-linha" data-action="remover-linha" style="display:none; width:36px; height:36px; padding:0; align-items:center; justify-content:center;" title="Remover este equipamento">
+                                        <i data-lucide="trash-2" style="width:16px; height:16px;"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:var(--space-2); padding:0 2px;">
+                        <span id="contadorLinhasEquip" style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">
+                            1 tipo de equipamento adicionado
+                        </span>
+                        <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" data-action="adicionar-linha" style="font-size:0.75rem; color:var(--lime); display:inline-flex; align-items:center; gap:4px;">
+                            <i data-lucide="plus-circle" style="width:14px; height:14px;"></i> Linha de Equipamento
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Seção 2: Setor Solicitante & Finalidade do Uso (Operação vs Base) -->
+                <div style="margin-bottom:var(--space-5);">
+                    <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-4); padding-bottom:var(--space-2); border-bottom:1px solid var(--border);">
+                        <span style="display:flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:2px; background:rgba(206, 220, 0, 0.15); color:var(--lime); font-size:0.75rem; font-weight:700; font-family:var(--font-mono); flex-shrink:0;">2</span>
+                        <span style="font-size:0.8125rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.05em; color:var(--text-primary);">Setor &amp; Finalidade do Uso</span>
+                    </div>
+
+                    <div class="row g-3">
+                        {% if is_ti %}
+                        <div class="col-md-12" style="margin-bottom:var(--space-3);">
+                            <label class="form-label" for="setor">Setor Solicitante / Atendido <span style="color:var(--status-danger-text);">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i data-lucide="briefcase"></i></span>
+                                <select class="form-select" name="setor" id="setor" required>
+                                    <option value="TI (Tecnologia da Informação)" {% if setor_padrao in ('TI', 'TI (Tecnologia da Informação)') %}selected{% endif %}>TI (Tecnologia da Informação)</option>
+                                    <option value="Operações" {% if setor_padrao == 'Operações' %}selected{% endif %}>Operações</option>
+                                    <option value="QSMS" {% if setor_padrao in ('QSMS', 'SMS') %}selected{% endif %}>QSMS</option>
+                                    <option value="Planejamento" {% if setor_padrao == 'Planejamento' %}selected{% endif %}>Planejamento</option>
+                                    <option value="Compras" {% if setor_padrao == 'Compras' %}selected{% endif %}>Compras</option>
+                                    <option value="Financeiro" {% if setor_padrao in ('Financeiro', 'Financeiro / Administrativo') %}selected{% endif %}>Financeiro</option>
+                                    <option value="Almoxarifado" {% if setor_padrao == 'Almoxarifado' %}selected{% endif %}>Almoxarifado</option>
+                                </select>
+                            </div>
+                            <div class="form-text">Como integrante de TI, você tem permissão para abrir chamados para qualquer setor corporativo.</div>
+                        </div>
+                        {% elif is_operacoes %}
+                        <div class="col-md-12" style="margin-bottom:var(--space-3);">
+                            <label class="form-label" for="setor">Setor Solicitante <span style="color:var(--status-danger-text);">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i data-lucide="briefcase"></i></span>
+                                <select class="form-select" name="setor" id="setor" required>
+                                    <option value="Operações" selected>Operações</option>
+                                    <option value="Pátio / Operacional">Pátio / Operacional</option>
+                                </select>
+                            </div>
+                            <div class="form-text">Setor de Operações vinculado ao seu cadastro.</div>
+                        </div>
+                        {% else %}
+                        <div class="col-md-12" style="margin-bottom:var(--space-3);">
+                            <label class="form-label" style="margin-bottom:var(--space-2);">Setor Solicitante &amp; Base Designada</label>
+                            <div class="d-flex align-items-center flex-wrap gap-3 p-2.5 px-3 surface-card" style="border:1px solid var(--border); border-radius:4px; background:rgba(255,255,255,0.02); min-height:42px;">
+                                <div style="display:inline-flex; align-items:center; gap:6px; font-size:0.875rem; line-height:1.2;">
+                                    <i data-lucide="briefcase" style="width:16px; height:16px; color:var(--lime); flex-shrink:0;"></i>
+                                    <span style="color:var(--text-muted); font-size:0.875rem; font-weight:500;">Setor:</span>
+                                    <strong style="color:var(--text-primary); font-size:0.875rem; font-weight:700;">{{ setor_padrao }}</strong>
+                                </div>
+                                <span style="color:var(--border-strong, var(--border)); user-select:none; font-size:0.875rem;">&bull;</span>
+                                <div style="display:inline-flex; align-items:center; gap:6px; font-size:0.875rem; line-height:1.2;">
+                                    <i data-lucide="building-2" style="width:16px; height:16px; color:var(--lime); flex-shrink:0;"></i>
+                                    <span style="color:var(--text-muted); font-size:0.875rem; font-weight:500;">Base:</span>
+                                    <strong style="color:var(--text-primary); font-size:0.875rem; font-weight:700;">{{ base_padrao }}</strong>
+                                </div>
+                                <span class="badge-notion badge-notion-gray ms-auto" style="font-size:0.68rem; padding:3px 8px; font-weight:600;">Automático do Cadastro</span>
+                            </div>
+                            <input type="hidden" name="setor" id="setor" value="{{ setor_padrao }}">
+                        </div>
+                        {% endif %}
+
+                        <!-- Card Toggle: Operação vs Ficar na Base -->
+                        <div class="col-12">
+                            <label class="form-label" style="display:block; margin-bottom:var(--space-2);">
+                                Destino / Onde o equipamento será utilizado? <span style="color:var(--status-danger-text);">*</span>
+                            </label>
+
+                            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:var(--space-3);">
+                                <!-- Opção 1: Operação -->
+                                <label class="cv-tipo-uso-card active" id="cardUsoOperacao" style="cursor:pointer; border:1px solid var(--lime); background:rgba(206, 220, 0, 0.05); border-radius:3px; padding:var(--space-3) var(--space-4); display:flex; align-items:flex-start; gap:var(--space-3); transition:all 0.15s ease;">
+                                    <input type="radio" name="tipo_uso" id="radioOperacao" value="Operação" checked onchange="alternarTipoUso('Operação')" style="margin-top:3px;">
+                                    <div>
+                                        <div style="display:flex; align-items:center; gap:6px; font-weight:700; font-size:0.875rem; color:var(--text-primary); font-family:var(--font-mono);">
+                                            <i data-lucide="anchor" style="width:16px; height:16px; color:var(--lime);"></i>
+                                            Operação de Campo
+                                        </div>
+                                        <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">
+                                            Equipamento será enviado para plataformas, navios, frentes de campo ou missões externas.
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <!-- Opção 2: Ficar na Base -->
+                                <label class="cv-tipo-uso-card" id="cardUsoBase" style="cursor:pointer; border:1px solid var(--border); background:var(--background); border-radius:3px; padding:var(--space-3) var(--space-4); display:flex; align-items:flex-start; gap:var(--space-3); transition:all 0.15s ease;">
+                                    <input type="radio" name="tipo_uso" id="radioBase" value="Base" onchange="alternarTipoUso('Base')" style="margin-top:3px;">
+                                    <div>
+                                        <div style="display:flex; align-items:center; gap:6px; font-weight:700; font-size:0.875rem; color:var(--text-primary); font-family:var(--font-mono);">
+                                            <i data-lucide="building-2" style="width:16px; height:16px; color:var(--text-secondary);"></i>
+                                            Ficar na Base (Uso Interno)
+                                        </div>
+                                        <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">
+                                            Equipamento permanecerá na Base Operacional ou escritório local para uso diário.
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seção 3: Destinatário & Destino Detalhado -->
+                <div style="margin-bottom:var(--space-5);">
+                    <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-4); padding-bottom:var(--space-2); border-bottom:1px solid var(--border);">
+                        <span style="display:flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:2px; background:rgba(206, 220, 0, 0.15); color:var(--lime); font-size:0.75rem; font-weight:700; font-family:var(--font-mono); flex-shrink:0;">3</span>
+                        <span style="font-size:0.8125rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.05em; color:var(--text-primary);">Destinatário &amp; Destino</span>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-5">
+                            <label class="form-label" for="destinatario">Destinatário do Equipamento <span style="color:var(--status-danger-text);">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i data-lucide="user"></i></span>
+                                <input type="text" class="form-control" name="destinatario" id="destinatario"
+                                    placeholder="Ex: Carlos Silva (Técnico / Analista)" required>
+                            </div>
+                            <div class="form-text" id="destinatarioAjuda">Colaborador, equipe ou função responsável.</div>
+                        </div>
+
+                        <div class="col-md-7">
+                            <!-- Campos de sincronização para submissão do formulário -->
+                            <input type="hidden" name="plataforma" id="plataforma" required>
+                            <input type="hidden" name="base_operacional" id="baseOperacional" value="Operação">
+
+                            <!-- Bloco 1: Destino Operação de Campo (Offshore / Frente Externa) -->
+                            <div id="blocoDestinoOperacao">
+                                <label class="form-label" for="inputDestinoOperacao" id="labelDestinoOperacao">
+                                    Plataforma ou Unidade de Operação <span style="color:var(--status-danger-text);">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i data-lucide="anchor"></i></span>
+                                    <input type="text" class="form-control" id="inputDestinoOperacao"
+                                        list="sugestoesDestinoOperacao" placeholder="Ex: Plataforma P-71, FPSO Carioca..." oninput="aoMudarDestinoOperacao(this.value)">
+                                </div>
+                                <datalist id="sugestoesDestinoOperacao">
+                                    <option value="Plataforma P-71">
+                                    <option value="Plataforma P-68">
+                                    <option value="FPSO Carioca">
+                                    <option value="FPSO Almirante Barroso">
+                                    <option value="Plataforma Mexilhão (PMX)">
+                                    <option value="Campo de Búzios">
+                                    <option value="Base Niterói - Frente Externa">
+                                    <option value="Navio de Apoio Skandi">
+                                    <option value="Terminal Ilha d'Água">
+                                    <option value="Terminal Aquaviário de Angra dos Reis (TEBIG)">
+                                </datalist>
+                                <div class="form-text" id="destinoOperacaoAjuda">Unidade operacional externa ou plataforma de embarque.</div>
+                            </div>
+
+                            <!-- Bloco 2: Destino Ficar na Base -->
+                            <div id="blocoDestinoBase" style="display:none;">
+                                {% if is_ti %}
+                                <!-- PERFIL TI / ADMIN: Seleção corporativa ampla para qualquer base e setor da empresa -->
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--space-1);">
+                                    <label class="form-label mb-0" for="selectDestinoBase" id="labelDestinoBase">
+                                        Destino na Base / Setor Atendido <span style="color:var(--status-danger-text);">*</span>
+                                    </label>
+                                    <span id="badgeBaseSelecionada" class="badge-notion badge-notion-blue" style="font-size:0.68rem; font-family:var(--font-mono);">
+                                        Todas as Bases
+                                    </span>
+                                </div>
+
+                                <!-- Filtro / Seletor Rápido por Base para TI -->
+                                <div class="btn-group btn-group-sm w-100 mb-2" role="group" id="grupoFiltroBaseDestino" style="font-size:0.75rem;">
+                                    <button type="button" class="btn btn-secondary active py-1" data-action="filtrar-destino" data-base="todas" id="btnBaseTodas" title="Exibir todas as opções organizadas por base">
+                                        Todas
+                                    </button>
+                                    <button type="button" class="btn btn-secondary py-1" data-action="filtrar-destino" data-base="Tank" id="btnBaseTank" title="Base Tank (Niterói - Tank Cleaning)">
+                                        🛢️ Tank
+                                    </button>
+                                    <button type="button" class="btn btn-secondary py-1" data-action="filtrar-destino" data-base="TDBR" id="btnBaseTdbr" title="Base TDBR (Inspeções / Macaé)">
+                                        🔍 TDBR
+                                    </button>
+                                    <button type="button" class="btn btn-secondary py-1" data-action="filtrar-destino" data-base="Repair" id="btnBaseRepair" title="Base Repair (Reparo Naval e Manutenção)">
+                                        🛠️ Repair
+                                    </button>
+                                    <button type="button" class="btn btn-secondary py-1" data-action="filtrar-destino" data-base="Central" id="btnBaseCentral" title="Escritório Central e Outras Instalações">
+                                        🏢 Central/Outros
+                                    </button>
+                                </div>
+
+                                <!-- Select com Seções (<optgroup>) por Base -->
+                                <div class="input-group">
+                                    <span class="input-group-text"><i data-lucide="building-2"></i></span>
+                                    <select class="form-select" id="selectDestinoBase" onchange="aoMudarDestinoBase(this)">
+                                        <option value="" disabled selected>Selecione a base e o setor atendido...</option>
+                                        
+                                        <optgroup label="🛢️ TANK (Base Niterói - Tank Cleaning)" data-base="Tank">
+                                            <option value="Tank - TI (Tecnologia da Informação)">Tank - TI (Tecnologia da Informação)</option>
+                                            <option value="Tank - Operações">Tank - Operações</option>
+                                            <option value="Tank - QSMS">Tank - QSMS</option>
+                                            <option value="Tank - Planejamento">Tank - Planejamento</option>
+                                            <option value="Tank - Compras">Tank - Compras</option>
+                                            <option value="Tank - Financeiro">Tank - Financeiro</option>
+                                            <option value="Tank - Almoxarifado">Tank - Almoxarifado</option>
+                                            <option value="Tank - Pátio / Operacional">Tank - Pátio / Operacional</option>
+                                        </optgroup>
+
+                                        <optgroup label="🔍 TDBR (TDBR Inspections / Macaé)" data-base="TDBR">
+                                            <option value="TDBR - TI (Tecnologia da Informação)">TDBR - TI (Tecnologia da Informação)</option>
+                                            <option value="TDBR - Operações / Inspeções">TDBR - Operações / Inspeções</option>
+                                            <option value="TDBR - QSMS">TDBR - QSMS</option>
+                                            <option value="TDBR - Planejamento">TDBR - Planejamento</option>
+                                            <option value="TDBR - Compras">TDBR - Compras</option>
+                                            <option value="TDBR - Financeiro">TDBR - Financeiro</option>
+                                            <option value="TDBR - Almoxarifado">TDBR - Almoxarifado</option>
+                                            <option value="TDBR - Laboratório / Drones">TDBR - Laboratório / Drones</option>
+                                        </optgroup>
+
+                                        <optgroup label="🛠️ REPAIR (Reparo e Manutenção Naval / Industrial)" data-base="Repair">
+                                            <option value="Repair - TI (Tecnologia da Informação)">Repair - TI (Tecnologia da Informação)</option>
+                                            <option value="Repair - Oficina / Reparo">Repair - Oficina / Reparo</option>
+                                            <option value="Repair - Operações">Repair - Operações</option>
+                                            <option value="Repair - QSMS">Repair - QSMS</option>
+                                            <option value="Repair - Planejamento">Repair - Planejamento</option>
+                                            <option value="Repair - Compras">Repair - Compras</option>
+                                            <option value="Repair - Financeiro">Repair - Financeiro</option>
+                                            <option value="Repair - Almoxarifado">Repair - Almoxarifado</option>
+                                            <option value="Repair - Bancada de Testes / Manutenção">Repair - Bancada de Testes / Manutenção</option>
+                                            <option value="Repair - Pátio / Operacional">Repair - Pátio / Operacional</option>
+                                        </optgroup>
+
+                                        <optgroup label="🏢 ESCRITÓRIO CENTRAL &amp; OUTROS" data-base="Central">
+                                            <option value="Escritório Central - Recepção">Escritório Central - Recepção</option>
+                                            <option value="Escritório Central - Diretoria / Administrativo">Escritório Central - Diretoria / Administrativo</option>
+                                            <option value="Posto Avançado Macaé">Posto Avançado Macaé</option>
+                                            <option value="Outro">Outro (Digitar manualmente...)</option>
+                                        </optgroup>
+                                    </select>
+                                </div>
+
+                                <!-- Campo extra aberto se TI escolher 'Outro' -->
+                                <div id="campoOutroPostoBase" style="display:none; margin-top:var(--space-2);">
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i data-lucide="edit-3"></i></span>
+                                        <input type="text" class="form-control" id="inputOutroPostoBase" placeholder="Especifique a base e setor de destino..." oninput="aoDigitarOutroPosto(this.value)">
+                                    </div>
+                                    <div class="form-text" style="font-size:0.72rem;">Ex: Base Macaé - Sala de Engenharia, Galpão 02, etc.</div>
+                                </div>
+
+                                <div class="form-text" id="destinoBaseAjuda">Selecione a base e o setor atendido de uso contínuo.</div>
+
+                                {% elif is_operacoes %}
+                                <!-- PERFIL OPERAÇÕES: Base já vinculada ao cadastro (base_padrao). Seleciona setor operacional ou pátio -->
+                                <label class="form-label" for="selectDestinoBaseOperacoes" id="labelDestinoBase">
+                                    Local Operacional na Base {{ base_padrao }} <span style="color:var(--status-danger-text);">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i data-lucide="building-2"></i></span>
+                                    <select class="form-select" id="selectDestinoBaseOperacoes" onchange="aoMudarDestinoBaseOperacoes(this)">
+                                        <option value="{{ base_padrao }} - Operações" selected>{{ base_padrao }} - Operações</option>
+                                        <option value="{{ base_padrao }} - Pátio / Operacional">{{ base_padrao }} - Pátio / Operacional</option>
+                                        {% if base_padrao == 'Repair' %}
+                                        <option value="Repair - Oficina / Reparo">Repair - Oficina / Reparo</option>
+                                        <option value="Repair - Bancada de Testes / Manutenção">Repair - Bancada de Testes / Manutenção</option>
+                                        {% elif base_padrao == 'TDBR' %}
+                                        <option value="TDBR - Laboratório / Drones">TDBR - Laboratório / Drones</option>
+                                        {% endif %}
+                                    </select>
+                                </div>
+                                <div class="form-text">Destino operacional interno na Base {{ base_padrao }}. Sua base já foi vinculada automaticamente.</div>
+
+                                {% else %}
+                                <!-- DEMAIS COLABORADORES (Compras, Financeiro, QSMS, Planejamento, etc): 100% AUTOMÁTICO -->
+                                <label class="form-label" id="labelDestinoBase">
+                                    Destino na Base <span style="color:var(--status-danger-text);">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i data-lucide="building-2"></i></span>
+                                    <input type="text" class="form-control" id="inputDestinoBaseFixo" 
+                                           value="{{ base_padrao }} - {{ setor_padrao }}" readonly
+                                           style="background:var(--background-secondary); color:var(--text-primary); font-weight:600; cursor:not-allowed;">
+                                </div>
+                                <div class="form-text">
+                                    O equipamento permanecerá na sua base cadastrada (<strong>{{ base_padrao }}</strong>) e setor (<strong>{{ setor_padrao }}</strong>).
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seção 4: Planejamento & Detalhes -->
+                <div style="margin-bottom:var(--space-5);">
+                    <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-4); padding-bottom:var(--space-2); border-bottom:1px solid var(--border);">
+                        <span style="display:flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:2px; background:rgba(206, 220, 0, 0.15); color:var(--lime); font-size:0.75rem; font-weight:700; font-family:var(--font-mono); flex-shrink:0;">4</span>
+                        <span style="font-size:0.8125rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.05em; color:var(--text-primary);">Planejamento &amp; Detalhes</span>
+                    </div>
+                    <div class="row g-3">
+                        <!-- Campo RDO/Projeto: visível apenas para Operação, ocultado quando Ficar na Base -->
+                        <div class="col-md-4" id="colunaRdo">
+                            <label class="form-label" for="rdo_projeto" id="labelRdo">RDO / Projeto</label>
+                            <input type="text" class="form-control" name="rdo_projeto" id="rdo_projeto" placeholder="Ex: RDO-2026-0905">
+                            <div class="form-text" id="ajudaRdo" style="font-size:0.72rem;">Código do RDO ou projeto associado.</div>
+                        </div>
+                        <div class="col-md-4" id="colunaDataNecessidade">
+                            <label class="form-label" for="data_necessidade">Data de Necessidade</label>
+                            <input type="date" class="form-control" name="data_necessidade" id="data_necessidade">
+                            <div class="form-text" style="font-size:0.72rem;">Prazo desejado para disponibilização.</div>
+                        </div>
+                        <div class="col-md-4" id="colunaPrioridade">
+                            <label class="form-label" for="prioridade">Prioridade</label>
+                            <select class="form-select" name="prioridade" id="prioridade">
+                                <option value="Normal" selected>Normal</option>
+                                <option value="Alta">Alta</option>
+                                <option value="Urgente">Urgente</option>
+                            </select>
+                            <div class="form-text" style="font-size:0.72rem;">Nível de criticidade do atendimento.</div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" for="justificativa" id="labelJustificativa">Justificativa da Solicitação / Observações</label>
+                            <textarea class="form-control" name="justificativa" id="justificativa" rows="3"
+                                placeholder="Descreva a finalidade do uso, instruções de entrega ou contexto..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; padding-top:var(--space-4); border-top:1px solid var(--border);">
+                    <a href="/meus-chamados" class="btn btn-secondary btn-sm">Cancelar</a>
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i data-lucide="send"></i> Enviar Solicitação
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="solicitacaoConfig"
+     data-is-ti="{{ 'true' if is_ti else 'false' }}"
+     data-is-operacoes="{{ 'true' if is_operacoes else 'false' }}"
+     data-base-padrao="{{ base_padrao or '' }}"
+     data-setor-padrao="{{ setor_padrao or '' }}"
+     style="display:none;"></div>
+
+<script>
+    const SUGESTOES_OPERACAO = [
+        "Plataforma P-71",
+        "Plataforma P-68",
+        "FPSO Carioca",
+        "FPSO Almirante Barroso",
+        "Plataforma Mexilhão (PMX)",
+        "Campo de Búzios",
+        "Base Niterói - Frente Externa",
+        "Navio de Apoio Skandi",
+        "Terminal Ilha d'Água",
+        "Terminal Aquaviário de Angra dos Reis (TEBIG)"
+    ];
+
+    const SUGESTOES_BASE = [
+        "Base Niterói (Ambipar) - TI (Tecnologia da Informação)",
+        "Base Niterói (Ambipar) - Operações",
+        "Base Niterói (Ambipar) - QSMS",
+        "Base Niterói (Ambipar) - Planejamento",
+        "Base Niterói (Ambipar) - Compras",
+        "Base Niterói (Ambipar) - Financeiro",
+        "Base Niterói (Ambipar) - Almoxarifado",
+        "Escritório Central - Recepção",
+        "Posto Avançado Macaé"
+    ];
+
+    function atualizarBotoesRemocao() {
+        const container = document.getElementById('containerEquipamentos');
+        if (!container) return;
+        const linhas = container.querySelectorAll('.linha-equipamento');
+        const contador = document.getElementById('contadorLinhasEquip');
+
+        if (contador) {
+            contador.textContent = linhas.length === 1 
+                ? '1 tipo de equipamento adicionado' 
+                : `${linhas.length} tipos de equipamentos adicionados`;
+        }
+
+        linhas.forEach(function(linha) {
+            const btnRemover = linha.querySelector('.btn-remover-linha');
+            if (btnRemover) {
+                if (linhas.length > 1) {
+                    btnRemover.style.display = 'inline-flex';
+                } else {
+                    btnRemover.style.display = 'none';
+                }
+            }
+        });
+    }
+
+    function adicionarLinhaEquipamento() {
+        const container = document.getElementById('containerEquipamentos');
+        if (!container) return;
+        const primeiraLinha = container.querySelector('.linha-equipamento');
+        if (!primeiraLinha) return;
+        const novaLinha = primeiraLinha.cloneNode(true);
+        const sel = novaLinha.querySelector('.select-tipo');
+        if (sel) sel.selectedIndex = 0;
+        const inp = novaLinha.querySelector('.input-qtd');
+        if (inp) inp.value = '1';
+        container.appendChild(novaLinha);
+        atualizarBotoesRemocao();
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+        const novoSelect = novaLinha.querySelector('select');
+        if (novoSelect) {
+            novoSelect.focus();
+        }
+    }
+
+    function removerLinhaEquipamento(botao) {
+        const container = document.getElementById('containerEquipamentos');
+        if (!container) return;
+        const linhas = container.querySelectorAll('.linha-equipamento');
+        if (linhas.length <= 1) return;
+
+        const linha = botao.closest('.linha-equipamento');
+        if (linha) {
+            linha.remove();
+            atualizarBotoesRemocao();
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+        }
+    }
+
+    const _cfg = document.getElementById('solicitacaoConfig')?.dataset || {};
+    const isTI = _cfg.isTi === 'true';
+    const isOperacoes = _cfg.isOperacoes === 'true';
+    const basePadraoUsuario = _cfg.basePadrao || 'Tank';
+    const setorPadraoUsuario = _cfg.setorPadrao || 'Operações';
+
+    let tipoUsoAtual = 'Operação';
+    let baseSelecionadaFiltro = 'todas';
+
+    function aoMudarDestinoOperacao(val) {
+        document.getElementById('plataforma').value = (val || '').trim();
+        document.getElementById('baseOperacional').value = 'Operação';
+    }
+
+    function aoMudarDestinoBaseOperacoes(select) {
+        const val = select.value;
+        document.getElementById('plataforma').value = val;
+        document.getElementById('baseOperacional').value = basePadraoUsuario;
+    }
+
+    function aoMudarDestinoBase(select) {
+        const val = select.value;
+        const campoOutro = document.getElementById('campoOutroPostoBase');
+        const inputOutro = document.getElementById('inputOutroPostoBase');
+
+        if (val === 'Outro') {
+            if (campoOutro) campoOutro.style.display = 'block';
+            if (inputOutro) inputOutro.focus();
+            document.getElementById('plataforma').value = inputOutro ? inputOutro.value.trim() : '';
+        } else {
+            if (campoOutro) campoOutro.style.display = 'none';
+            document.getElementById('plataforma').value = val;
+            
+            // Define base operacional correspondente
+            if (val.startsWith('Tank')) {
+                document.getElementById('baseOperacional').value = 'Tank';
+            } else if (val.startsWith('TDBR')) {
+                document.getElementById('baseOperacional').value = 'TDBR';
+            } else if (val.startsWith('Repair')) {
+                document.getElementById('baseOperacional').value = 'Repair';
+            } else if (val.startsWith('Escritório Central')) {
+                document.getElementById('baseOperacional').value = 'Escritório Central';
+            } else {
+                document.getElementById('baseOperacional').value = 'Base';
+            }
+        }
+    }
+
+    function aoDigitarOutroPosto(val) {
+        document.getElementById('plataforma').value = val.trim();
+        const baseAtual = baseSelecionadaFiltro !== 'todas' ? baseSelecionadaFiltro : 'Base';
+        document.getElementById('baseOperacional').value = baseAtual === 'Central' ? 'Escritório Central' : baseAtual;
+    }
+
+    function filtrarBaseDestino(base, botao) {
+        baseSelecionadaFiltro = base;
+        const grupo = document.getElementById('grupoFiltroBaseDestino');
+        if (grupo) {
+            grupo.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
+        }
+        if (botao) {
+            botao.classList.add('active');
+        }
+
+        const badge = document.getElementById('badgeBaseSelecionada');
+        if (badge) {
+            if (base === 'todas') badge.textContent = 'Todas as Bases';
+            else if (base === 'Tank') badge.textContent = '🛢️ Base Tank';
+            else if (base === 'TDBR') badge.textContent = '🔍 Base TDBR';
+            else if (base === 'Repair') badge.textContent = '🛠️ Base Repair';
+            else if (base === 'Central') badge.textContent = '🏢 Escritório Central';
+        }
+
+        const select = document.getElementById('selectDestinoBase');
+        if (!select) return;
+        const optgroups = select.querySelectorAll('optgroup');
+
+        let primeiraOpcaoVisivel = null;
+
+        optgroups.forEach(function(og) {
+            const baseOg = og.getAttribute('data-base');
+            if (base === 'todas' || baseOg === base) {
+                og.style.display = '';
+                og.disabled = false;
+                if (!primeiraOpcaoVisivel && og.children.length > 0) {
+                    primeiraOpcaoVisivel = og.children[0];
+                }
+            } else {
+                og.style.display = 'none';
+                og.disabled = true;
+            }
+        });
+
+        // Se uma base específica for clicada, seleciona a primeira opção daquela base para conveniência
+        if (base !== 'todas' && primeiraOpcaoVisivel) {
+            select.value = primeiraOpcaoVisivel.value;
+            aoMudarDestinoBase(select);
+        }
+    }
+
+    function alternarTipoUso(tipo) {
+        tipoUsoAtual = tipo;
+        const cardOp = document.getElementById('cardUsoOperacao');
+        const cardBase = document.getElementById('cardUsoBase');
+        const blocoOp = document.getElementById('blocoDestinoOperacao');
+        const blocoBase = document.getElementById('blocoDestinoBase');
+        const inputOp = document.getElementById('inputDestinoOperacao');
+        const selectBase = document.getElementById('selectDestinoBase');
+        const selectOp = document.getElementById('selectDestinoBaseOperacoes');
+        
+        // Elementos do RDO / Projeto condicional
+        const colunaRdo = document.getElementById('colunaRdo');
+        const inputRdo = document.getElementById('rdo_projeto');
+        const colData = document.getElementById('colunaDataNecessidade');
+        const colPrio = document.getElementById('colunaPrioridade');
+
+        if (tipo === 'Base') {
+            cardBase.style.borderColor = 'var(--lime)';
+            cardBase.style.background = 'rgba(206, 220, 0, 0.05)';
+            cardOp.style.borderColor = 'var(--border)';
+            cardOp.style.background = 'var(--background)';
+
+            if (blocoOp) blocoOp.style.display = 'none';
+            if (blocoBase) blocoBase.style.display = 'block';
+
+            if (inputOp) inputOp.required = false;
+
+            // Oculta o campo de RDO/Projeto e limpa o valor quando ficar na base
+            if (colunaRdo) colunaRdo.style.display = 'none';
+            if (inputRdo) inputRdo.value = '';
+            if (colData) colData.className = 'col-md-6';
+            if (colPrio) colPrio.className = 'col-md-6';
+
+            // Atualiza valor de plataforma e base conforme o perfil
+            if (isTI) {
+                if (selectBase) {
+                    selectBase.required = true;
+                    if (selectBase.value) aoMudarDestinoBase(selectBase);
+                }
+            } else if (isOperacoes) {
+                if (selectOp) {
+                    selectOp.required = true;
+                    document.getElementById('plataforma').value = selectOp.value;
+                }
+                document.getElementById('baseOperacional').value = basePadraoUsuario;
+            } else {
+                // Perfil padrão: Base e Setor 100% automáticos
+                document.getElementById('plataforma').value = basePadraoUsuario + ' - ' + setorPadraoUsuario;
+                document.getElementById('baseOperacional').value = basePadraoUsuario;
+            }
+        } else {
+            cardOp.style.borderColor = 'var(--lime)';
+            cardOp.style.background = 'rgba(206, 220, 0, 0.05)';
+            cardBase.style.borderColor = 'var(--border)';
+            cardBase.style.background = 'var(--background)';
+
+            if (blocoOp) blocoOp.style.display = 'block';
+            if (blocoBase) blocoBase.style.display = 'none';
+
+            if (inputOp) {
+                inputOp.required = true;
+                aoMudarDestinoOperacao(inputOp.value);
+            }
+            if (selectBase) selectBase.required = false;
+            if (selectOp) selectOp.required = false;
+
+            // Reexibe o campo de RDO/Projeto para operação de campo
+            if (colunaRdo) colunaRdo.style.display = 'block';
+            if (colData) colData.className = 'col-md-4';
+            if (colPrio) colPrio.className = 'col-md-4';
+            document.getElementById('baseOperacional').value = 'Operação';
+        }
+
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+    }
+
+    // Validação e sincronização final no envio
+    const formSol = document.getElementById('formSolicitacao');
+    if (formSol) {
+        formSol.addEventListener('submit', function(e) {
+            const plat = document.getElementById('plataforma');
+            if (tipoUsoAtual === 'Operação') {
+                const inputOp = document.getElementById('inputDestinoOperacao');
+                plat.value = (inputOp?.value || '').trim();
+                document.getElementById('baseOperacional').value = 'Operação';
+            } else {
+                if (isTI) {
+                    const selectBase = document.getElementById('selectDestinoBase');
+                    if (selectBase && selectBase.value === 'Outro') {
+                        const inputOutro = document.getElementById('inputOutroPostoBase');
+                        plat.value = (inputOutro?.value || '').trim();
+                    } else if (selectBase) {
+                        plat.value = (selectBase.value || '').trim();
+                    }
+                } else if (isOperacoes) {
+                    const selectOp = document.getElementById('selectDestinoBaseOperacoes');
+                    plat.value = (selectOp?.value || (basePadraoUsuario + ' - Operações')).trim();
+                    document.getElementById('baseOperacional').value = basePadraoUsuario;
+                } else {
+                    plat.value = basePadraoUsuario + ' - ' + setorPadraoUsuario;
+                    document.getElementById('baseOperacional').value = basePadraoUsuario;
+                }
+            }
+
+            if (!plat.value) {
+                e.preventDefault();
+                alert('Por favor, informe a plataforma operacional ou o local de destino na base.');
+                return false;
+            }
+        });
+    }
+
+    // Inicializa sugestões e estado inicial
+    alternarTipoUso('Operação');
+    atualizarBotoesRemocao();
+
+    document.addEventListener('click', function(e) {
+        const btnRem = e.target.closest('[data-action="remover-linha"]');
+        if (btnRem) removerLinhaEquipamento(btnRem);
+        const btnAdd = e.target.closest('[data-action="adicionar-linha"]');
+        if (btnAdd) adicionarLinhaEquipamento();
+        const btnDest = e.target.closest('[data-action="filtrar-destino"]');
+        if (btnDest) filtrarBaseDestino(btnDest.getAttribute('data-base'), btnDest);
+    });
+    
+</script>
+{% endblock %}

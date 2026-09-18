@@ -1,0 +1,1618 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Cavere — Sistema de Gestão e Controle de Cautelas de Equipamentos Operacionais. Ambipar Industrial.">
+    <title>Cavere • Ambipar Industrial</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        :root {
+            /* AETHER / AMBIPAR COMMAND CENTER DESIGN SYSTEM */
+            --font-sans: 'Inter', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+
+            /* Base Theme: Light Canvas with Preserved Dark Command Sidebar */
+            --background: #f8fafc;
+            --foreground: #0f172a;
+            --card: #ffffff;
+            --card-foreground: #0f172a;
+            --popover: #ffffff;
+            --popover-foreground: #0f172a;
+            
+            --surface: #ffffff;
+            --surface-hover: #f8fafc;
+            --surface-active: #f1f5f9;
+            
+            --border: #e2e8f0;
+            --border-subtle: #f1f5f9;
+            --border-strong: #cbd5e1;
+
+            /* Ambipar Electric Lime Core */
+            --lime: #CEDC00;
+            --lime-hover: #d8e800;
+            --lime-active: #b5c200;
+            --lime-text: #CEDC00;
+            --lime-glow: rgba(206, 220, 0, 0.25);
+            --lime-glow-sm: 0 0 10px rgba(206, 220, 0, 0.25);
+            --accent: #CEDC00;
+            --accent-on: #050505; /* Texto escuro sobre o limão para alto contraste */
+
+            /* Typography colors (Crisp Slate for Light Theme) */
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+
+            /* Technical Status Badges (Monospace Rectangular AETHER style - light canvas) */
+            --status-live-bg: rgba(206, 220, 0, 0.22);
+            --status-live-text: #484f00;
+            --status-live-border: rgba(206, 220, 0, 0.55);
+
+            --status-warn-bg: #fef3c7;
+            --status-warn-text: #b45309;
+            --status-warn-border: #fde68a;
+
+            --status-info-bg: #e0f2fe;
+            --status-info-text: #0369a1;
+            --status-info-border: #bae6fd;
+
+            --status-success-bg: #dcfce7;
+            --status-success-text: #15803d;
+            --status-success-border: #bbf7d0;
+
+            --status-danger-bg: #fee2e2;
+            --status-danger-text: #b91c1c;
+            --status-danger-border: #fecaca;
+
+            --status-purple-bg: #f3e8ff;
+            --status-purple-text: #7e22ce;
+            --status-purple-border: #e9d5ff;
+
+            /* AETHER Geometry - Sharp Architectural 0px / 2px radius */
+            --radius-sm: 0px;
+            --radius-md: 2px;
+            --radius-card: 2px;
+            --radius-pill: 2px;
+            --radius-modal: 2px;
+
+            /* Spacing */
+            --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+            --space-5: 20px; --space-6: 24px; --space-8: 32px;
+
+            /* Dimensions */
+            --sidebar-width: 256px;
+            --topbar-height: 56px;
+
+            /* Motion scale (Seção 6 e 9.B) */
+            --duration-micro: 120ms;
+            --duration-standard: 220ms;
+            --duration-medium: 320ms;
+            --duration-long: 450ms;
+            --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
+            --ease-exit: cubic-bezier(0.7, 0, 0.84, 0);
+            --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        i[data-lucide], svg.lucide {
+            width: 1.125rem;
+            height: 1.125rem;
+            stroke-width: 1.75;
+            vertical-align: -0.125em;
+            display: inline-block;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+        
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--background);
+            color: var(--foreground);
+            letter-spacing: -0.025em;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* AETHER Utilities */
+        .pulse-live {
+            animation: pulse-live 2s ease-in-out infinite;
+        }
+        @keyframes pulse-live {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.35; transform: scale(0.85); }
+        }
+
+        .lime-glow {
+            box-shadow: 0 0 20px var(--lime-glow), 0 0 40px var(--lime-glow);
+        }
+        .lime-glow-sm {
+            box-shadow: 0 0 10px var(--lime-glow);
+        }
+
+        .surface-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-card);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+            transition: border-color var(--duration-standard) var(--ease-standard);
+        }
+        .surface-card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #ffffff;
+        }
+        .surface-card-body {
+            padding: 20px;
+        }
+
+        /* Layout Structure */
+        .cv-layout-wrap {
+            min-height: 100vh;
+            display: flex;
+            background-color: var(--background);
+        }
+        .cv-sidebar-spacer {
+            width: var(--sidebar-width);
+            flex-shrink: 0;
+        }
+        .cv-content-area {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            background: var(--background);
+        }
+
+        /* AETHER Command Center Sidebar (Dedicated Dark Theme) */
+        .cv-sidebar {
+            position: fixed;
+            top: 0; left: 0; bottom: 0;
+            width: var(--sidebar-width);
+            background: #07080a;
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            flex-direction: column;
+            z-index: 1060;
+            overflow-y: auto;
+            scrollbar-width: none;
+        }
+        .cv-sidebar::-webkit-scrollbar { display: none; }
+
+        .cv-sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .cv-sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+        .cv-logo-badge {
+            width: 32px;
+            height: 32px;
+            background: var(--lime);
+            color: #050505;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-mono);
+            font-weight: 800;
+            font-size: 1rem;
+            flex-shrink: 0;
+            box-shadow: 0 0 12px rgba(206, 220, 0, 0.3);
+        }
+        .cv-brand-info {
+            line-height: 1.2;
+        }
+        .cv-brand-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: -0.02em;
+            display: block;
+        }
+        .cv-brand-subtitle {
+            font-size: 0.6875rem;
+            font-family: var(--font-mono);
+            color: #656c76;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            display: block;
+        }
+
+        /* Sidebar Navigation */
+        .cv-sidebar-nav {
+            flex: 1;
+            padding: 16px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .cv-sidebar-section-title {
+            font-size: 0.65rem;
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: #656c76;
+            padding: 16px 12px 6px;
+        }
+        .cv-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 12px;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: #9aa0a6;
+            text-decoration: none;
+            border-radius: var(--radius-md);
+            position: relative;
+            transition: all var(--duration-standard) var(--ease-standard);
+        }
+        .cv-nav-item:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .cv-nav-item.active {
+            color: #050505;
+            background: var(--lime);
+            font-weight: 600;
+            box-shadow: 0 0 16px rgba(206, 220, 0, 0.25);
+        }
+        .cv-nav-item.active i[data-lucide] {
+            color: #050505;
+        }
+        .cv-nav-item:not(.active) i[data-lucide] {
+            color: #9aa0a6;
+            transition: color var(--duration-standard) var(--ease-standard);
+        }
+        .cv-nav-item:hover:not(.active) i[data-lucide] {
+            color: #ffffff;
+        }
+
+        /* Sidebar CTA button */
+        .cv-sidebar-cta {
+            margin: 8px 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 9px 14px;
+            background: var(--lime);
+            color: #050505 !important;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: var(--radius-md);
+            box-shadow: 0 0 16px rgba(206, 220, 0, 0.2);
+            transition: all var(--duration-standard) var(--ease-standard);
+        }
+        .cv-sidebar-cta:hover {
+            background: var(--lime-hover);
+            box-shadow: 0 0 24px rgba(206, 220, 0, 0.4);
+            transform: translateY(-1px);
+        }
+        .cv-sidebar-cta:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        /* Sidebar User Identity Box */
+        .cv-sidebar-footer {
+            padding: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(0, 0, 0, 0.25);
+        }
+        .cv-user-badge {
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: var(--lime);
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .cv-user-details {
+            flex: 1;
+            min-width: 0;
+            line-height: 1.25;
+        }
+        .cv-user-name {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: #ffffff;
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .cv-user-role {
+            font-size: 0.65rem;
+            font-family: var(--font-mono);
+            color: #656c76;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        .cv-btn-logout {
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #9aa0a6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: all var(--duration-standard) var(--ease-standard);
+        }
+        .cv-btn-logout:hover {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+
+        /* Minimalist Topbar */
+        .cv-topbar {
+            height: var(--topbar-height);
+            background: #ffffff;
+            border-bottom: 1px solid var(--border);
+            padding: 0 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+        .cv-topbar-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.75rem;
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-secondary);
+        }
+        .cv-live-indicator {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #16a34a;
+            box-shadow: 0 0 6px rgba(22, 163, 74, 0.4);
+            display: inline-block;
+        }
+
+        .cv-content-body {
+            flex: 1;
+            padding: 28px;
+        }
+
+        @media (max-width: 1023px) {
+            .cv-sidebar { display: none; }
+            .cv-sidebar-spacer { display: none; }
+            .cv-topbar { padding: 0 16px; }
+            .cv-content-body { padding: 16px; }
+        }
+
+        /* Cards - AETHER Precision Style */
+        .card {
+            background: var(--card) !important;
+            border: 1px solid var(--border) !important;
+            border-radius: var(--radius-card) !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+        .card-header {
+            background: #ffffff !important;
+            border-bottom: 1px solid var(--border) !important;
+            padding: 16px 20px !important;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            color: var(--text-primary);
+        }
+        .card-body {
+            padding: 20px !important;
+            color: var(--foreground);
+        }
+        .card-footer {
+            background: #f8fafc !important;
+            border-top: 1px solid var(--border) !important;
+            padding: 12px 20px !important;
+        }
+
+        /* Glance Cards (KPIs) */
+        .cv-glance-card {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-card);
+            padding: 20px 22px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            transition: border-color var(--duration-standard) var(--ease-standard),
+                        background-color var(--duration-standard) var(--ease-standard),
+                        box-shadow var(--duration-standard) var(--ease-standard),
+                        transform var(--duration-standard) var(--ease-standard);
+        }
+        .cv-glance-card:hover {
+            border-color: #cbd5e1;
+            background: #ffffff;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+            transform: translateY(-1px);
+        }
+        .cv-glance-card:active {
+            transform: translateY(0) scale(0.99);
+            transition-duration: var(--duration-micro);
+        }
+        .cv-glance-label {
+            font-size: 0.7rem;
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .cv-glance-value {
+            font-size: 2.25rem;
+            font-weight: 700;
+            font-family: var(--font-mono);
+            letter-spacing: -0.04em;
+            color: var(--text-primary);
+            line-height: 1;
+            margin-bottom: 0;
+        }
+        .cv-glance-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 10px;
+        }
+        .cv-glance-icon {
+            color: var(--text-muted);
+            opacity: 0.85;
+        }
+
+        /* Buttons */
+        .btn {
+            font-family: var(--font-sans);
+            font-size: 0.8125rem;
+            font-weight: 600;
+            border-radius: var(--radius-md) !important;
+            padding: 8px 16px;
+            gap: 6px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.2;
+            cursor: pointer;
+            transition: all var(--duration-standard) var(--ease-standard);
+        }
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.75rem;
+            gap: 5px;
+        }
+
+        .btn-primary {
+            background: var(--lime) !important;
+            color: #050505 !important;
+            border: 1px solid var(--lime) !important;
+            font-weight: 600 !important;
+            box-shadow: 0 0 14px rgba(206, 220, 0, 0.25) !important;
+        }
+        .btn-primary:hover {
+            background: var(--lime-hover) !important;
+            border-color: var(--lime-hover) !important;
+            box-shadow: 0 0 20px rgba(206, 220, 0, 0.45) !important;
+            transform: translateY(-1px);
+            color: #050505 !important;
+        }
+        .btn-primary:active {
+            transform: translateY(0) scale(0.98) !important;
+            transition-duration: var(--duration-micro) !important;
+        }
+
+        .btn-secondary {
+            background: #ffffff !important;
+            color: var(--text-primary) !important;
+            border: 1px solid var(--border) !important;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+        }
+        .btn-secondary:hover {
+            background: #f8fafc !important;
+            border-color: var(--border-strong) !important;
+            color: var(--text-primary) !important;
+            transform: translateY(-1px);
+        }
+        .btn-secondary:active {
+            transform: translateY(0) scale(0.98) !important;
+        }
+
+        .btn-outline {
+            background: #ffffff !important;
+            color: var(--text-secondary) !important;
+            border: 1px solid var(--border) !important;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+        }
+        .btn-outline:hover {
+            background: #f8fafc !important;
+            border-color: var(--border-strong) !important;
+            color: var(--text-primary) !important;
+            transform: translateY(-1px);
+        }
+
+        .btn-group {
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 2px !important;
+            background: #f1f5f9 !important;
+            padding: 3px !important;
+            border: 1px solid var(--border) !important;
+            border-radius: var(--radius-md) !important;
+        }
+        .btn-group > .btn {
+            background: transparent !important;
+            border: none !important;
+            color: var(--text-secondary) !important;
+            padding: 5px 12px !important;
+            font-size: 0.75rem !important;
+            font-weight: 500 !important;
+            border-radius: var(--radius-sm) !important;
+            box-shadow: none !important;
+        }
+        .btn-group > .btn:hover {
+            color: var(--text-primary) !important;
+            background: rgba(0, 0, 0, 0.04) !important;
+        }
+        .btn-group > .btn.active {
+            background: #ffffff !important;
+            color: var(--text-primary) !important;
+            font-weight: 600 !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+            border: 1px solid var(--border) !important;
+        }
+
+        /* Action Buttons in tables */
+        .cv-btn-action {
+            height: 30px;
+            padding: 0 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: var(--radius-md) !important;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            text-decoration: none;
+            border: 1px solid var(--border);
+            background: #ffffff;
+            color: var(--text-secondary);
+            white-space: nowrap !important;
+            line-height: 1;
+            flex-shrink: 0;
+            box-sizing: border-box;
+            transition: all var(--duration-standard) var(--ease-standard);
+        }
+        .cv-btn-action i,
+        .cv-btn-action svg {
+            width: 14px !important;
+            height: 14px !important;
+            flex-shrink: 0 !important;
+        }
+        .cv-btn-action span {
+            white-space: nowrap !important;
+            line-height: 1 !important;
+        }
+        .cv-btn-action:hover {
+            background: #f8fafc;
+            border-color: var(--border-strong);
+            color: var(--text-primary);
+            transform: translateY(-1px);
+        }
+        .cv-btn-action-primary {
+            background: var(--lime) !important;
+            color: #050505 !important;
+            border: 1px solid #b5c200 !important;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+        }
+        .cv-btn-action-primary:hover {
+            background: var(--lime-hover) !important;
+            box-shadow: 0 2px 8px rgba(206, 220, 0, 0.3) !important;
+        }
+        .cv-btn-action-done {
+            background: transparent !important;
+            color: var(--text-muted) !important;
+            border: 1px solid var(--border-subtle) !important;
+        }
+
+        /* Data Feed Table (Technical Grid) */
+        .table-enterprise {
+            margin-bottom: 0;
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .table-enterprise thead th {
+            background: #f8fafc !important;
+            color: var(--text-secondary) !important;
+            font-family: var(--font-mono);
+            font-size: 0.6875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            border-top: none !important;
+            border-bottom: 1px solid var(--border) !important;
+            padding: 12px 16px;
+            white-space: nowrap;
+        }
+        .table-enterprise tbody td {
+            background: #ffffff;
+            color: var(--foreground);
+            border-bottom: 1px solid #f1f5f9 !important;
+            font-size: 0.8125rem;
+            padding: 12px 16px;
+            vertical-align: middle;
+            height: 52px;
+        }
+        .table-enterprise tbody tr:hover td {
+            background: #f8fafc !important;
+        }
+
+        /* Modern Progress Bar in Data Feed */
+        .cv-progress {
+            height: 6px !important;
+            background-color: #e2e8f0 !important;
+            border-radius: 999px !important;
+            overflow: hidden !important;
+            margin-bottom: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+        .cv-progress .progress-bar {
+            background-color: #0284c7 !important;
+            border-radius: 999px !important;
+            transition: width var(--duration-medium) var(--ease-enter) !important;
+        }
+        .cv-progress .progress-bar.is-pending {
+            background-color: #f59e0b !important;
+        }
+
+        /* Detail/Info Micro Button */
+        .cv-btn-detail {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 22px !important;
+            height: 22px !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            border: 1px solid var(--border) !important;
+            background: #ffffff !important;
+            color: var(--text-muted) !important;
+            border-radius: var(--radius-md) !important;
+            cursor: pointer;
+            flex-shrink: 0;
+            line-height: 1 !important;
+            vertical-align: middle;
+            transition: all var(--duration-micro) var(--ease-standard) !important;
+            outline: none !important;
+        }
+        .cv-btn-detail:hover {
+            background: #f8fafc !important;
+            border-color: var(--border-strong) !important;
+            color: var(--text-primary) !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+            transform: scale(1.05);
+        }
+        .cv-btn-detail:active {
+            transform: scale(0.95);
+        }
+        .cv-btn-detail:focus-visible {
+            border-color: var(--lime) !important;
+            box-shadow: 0 0 0 2px var(--lime-glow) !important;
+        }
+        .cv-btn-detail i[data-lucide],
+        .cv-btn-detail svg.lucide {
+            width: 12px !important;
+            height: 12px !important;
+            stroke-width: 2.2px !important;
+            display: block;
+        }
+
+        /* Clean Popover Styling */
+        .popover {
+            border: 1px solid var(--border-strong) !important;
+            border-radius: var(--radius-md) !important;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+            font-family: var(--font-sans) !important;
+        }
+        .popover-header {
+            background: #f8fafc !important;
+            border-bottom: 1px solid var(--border) !important;
+            font-family: var(--font-mono) !important;
+            font-size: 0.75rem !important;
+            font-weight: 700 !important;
+            color: var(--text-primary) !important;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 8px 12px !important;
+        }
+        .popover-body {
+            font-size: 0.8125rem !important;
+            color: var(--text-secondary) !important;
+            padding: 10px 12px !important;
+        }
+
+        /* Technical Monospace Status Tags */
+        .badge-notion {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 8px;
+            border-radius: var(--radius-pill);
+            font-size: 0.6875rem;
+            font-family: var(--font-mono);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+        .badge-notion-gray   { background: #f1f5f9; color: #475569; border-color: var(--border); }
+        .badge-notion-green  { background: var(--status-success-bg); color: var(--status-success-text); border-color: var(--status-success-border); }
+        .badge-notion-blue   { background: var(--status-info-bg); color: var(--status-info-text); border-color: var(--status-info-border); }
+        .badge-notion-orange { background: var(--status-warn-bg); color: var(--status-warn-text); border-color: var(--status-warn-border); }
+        .badge-notion-red    { background: var(--status-danger-bg); color: var(--status-danger-text); border-color: var(--status-danger-border); }
+        .badge-notion-purple { background: var(--status-purple-bg); color: var(--status-purple-text); border-color: var(--status-purple-border); }
+        .badge-notion-lime   { background: var(--status-live-bg); color: var(--status-live-text); border-color: var(--status-live-border); }
+
+        /* Form Inputs (Technical minimalist) */
+        .form-label {
+            font-size: 0.75rem;
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            display: block;
+        }
+        .form-control, .form-select {
+            background: #ffffff !important;
+            border: 1px solid #cbd5e1 !important;
+            color: var(--text-primary) !important;
+            border-radius: var(--radius-md) !important;
+            font-size: 0.8125rem !important;
+            padding: 8px 12px !important;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02) !important;
+            transition: all var(--duration-standard) var(--ease-standard);
+        }
+        .form-control:focus, .form-select:focus {
+            background: #ffffff !important;
+            border-color: #9da800 !important;
+            box-shadow: 0 0 0 3px rgba(206, 220, 0, 0.25) !important;
+            outline: none !important;
+        }
+        .form-control::placeholder {
+            color: var(--text-muted) !important;
+        }
+        .input-group-text {
+            background: #f8fafc !important;
+            border: 1px solid #cbd5e1 !important;
+            color: var(--text-secondary) !important;
+            font-size: 0.8125rem !important;
+            border-radius: var(--radius-md) !important;
+        }
+        .form-text {
+            color: var(--text-muted) !important;
+            font-size: 0.71875rem !important;
+            margin-top: 4px;
+        }
+
+        /* Stepper pills */
+        .notion-stepper {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #ffffff;
+            padding: 3px 8px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+        }
+        .step-pill {
+            font-size: 0.6875rem;
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+        }
+        .step-pill.active {
+            color: var(--lime-text);
+            font-weight: 700;
+        }
+        .step-pill.completed {
+            color: #16a34a;
+        }
+        .step-divider {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+
+        /* Modals (Clean Enterprise) */
+        .modal-backdrop.fade {
+            background: #0f172a;
+            opacity: 0;
+            transition: opacity var(--duration-medium) var(--ease-enter);
+        }
+        .modal-backdrop.show {
+            opacity: 0.45;
+        }
+        .modal-content {
+            background: #ffffff !important;
+            border: 1px solid var(--border) !important;
+            border-radius: var(--radius-modal) !important;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.15) !important;
+            color: var(--foreground) !important;
+        }
+        .modal-header {
+            border-bottom: 1px solid var(--border) !important;
+            padding: 18px 24px !important;
+            background: #ffffff;
+        }
+        .modal-body {
+            padding: 24px !important;
+            background: #ffffff;
+        }
+        .modal-footer {
+            border-top: 1px solid var(--border) !important;
+            padding: 14px 24px !important;
+            background: #f8fafc;
+        }
+        .btn-close {
+            filter: none;
+            opacity: 0.5;
+        }
+        .btn-close:hover { opacity: 0.9; }
+
+        /* Dropdowns */
+        .dropdown-menu {
+            background: #ffffff !important;
+            border: 1px solid var(--border) !important;
+            border-radius: var(--radius-md) !important;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08) !important;
+            padding: 6px !important;
+        }
+        .dropdown-item {
+            color: var(--text-secondary) !important;
+            font-size: 0.8125rem !important;
+            padding: 7px 12px !important;
+            border-radius: var(--radius-sm) !important;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all var(--duration-micro) var(--ease-standard);
+        }
+        .dropdown-item:hover {
+            color: var(--text-primary) !important;
+            background: #f1f5f9 !important;
+        }
+        .dropdown-divider {
+            border-color: var(--border) !important;
+            margin: 4px 0 !important;
+        }
+
+        /* Popovers */
+        .popover {
+            background: #ffffff !important;
+            border: 1px solid var(--border) !important;
+            border-radius: var(--radius-md) !important;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08) !important;
+            max-width: 340px;
+        }
+        .popover-header {
+            background: #f8fafc !important;
+            border-bottom: 1px solid var(--border) !important;
+            color: var(--text-primary) !important;
+            font-size: 0.75rem !important;
+            font-family: var(--font-mono) !important;
+            text-transform: uppercase !important;
+            padding: 10px 14px !important;
+        }
+        .popover-body {
+            color: var(--text-secondary) !important;
+            font-size: 0.8125rem !important;
+            padding: 12px 14px !important;
+        }
+
+        /* Page Banner */
+        .cv-page-banner {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .cv-page-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.035em;
+            margin: 0 0 4px;
+        }
+        .cv-page-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        /* Breadcrumb */
+        .cv-breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 16px;
+        }
+        .cv-breadcrumb a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .cv-breadcrumb a:hover {
+            color: var(--lime-text);
+        }
+        .cv-breadcrumb .sep {
+            color: var(--text-muted);
+        }
+        .cv-breadcrumb .current {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* Empty state */
+        .cv-empty-state {
+            padding: 48px 24px;
+            text-align: center;
+        }
+        .cv-empty-icon {
+            font-size: 2rem;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+        .cv-empty-title {
+            font-size: 0.9375rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        .cv-empty-text {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            max-width: 380px;
+            margin: 0 auto;
+        }
+
+        /* Alert notifications */
+        .alert {
+            background: rgba(255, 255, 255, 0.96) !important;
+            border: 1px solid var(--border) !important;
+            border-radius: var(--radius-md) !important;
+            color: var(--text-primary) !important;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px !important;
+            font-size: 0.8125rem !important;
+            box-shadow: 0 4px 16px -4px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.03) !important;
+        }
+        .alert-success {
+            border-left: 3.5px solid #16a34a !important;
+            border-color: #bbf7d0 !important;
+            background: #f0fdf4 !important;
+            color: #14532d !important;
+        }
+        .alert-danger  {
+            border-left: 3.5px solid #dc2626 !important;
+            border-color: #fecaca !important;
+            background: #fef2f2 !important;
+            color: #7f1d1d !important;
+        }
+        .alert-warning {
+            border-left: 3.5px solid #d97706 !important;
+            border-color: #fde68a !important;
+            background: #fffbeb !important;
+            color: #78350f !important;
+        }
+        .alert-info {
+            border-left: 3.5px solid #a6b500 !important;
+            border-color: rgba(206, 220, 0, 0.55) !important;
+            background: #fbfde8 !important;
+            color: #303700 !important;
+        }
+        .alert-info i, .alert-info svg {
+            color: #556000 !important;
+        }
+
+        .alert.alert-dismissible {
+            padding-right: 16px !important;
+        }
+        .alert .btn-close {
+            position: static !important;
+            padding: 0 !important;
+            margin-left: auto !important;
+            box-shadow: none !important;
+            font-size: 0.75rem !important;
+            opacity: 0.55 !important;
+            transition: opacity 150ms ease !important;
+        }
+        .alert .btn-close:hover {
+            opacity: 1 !important;
+        }
+
+        /* prefers-reduced-motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* ===== CAVERE LOADING ANIMATION (base pages) ===== */
+        #cavere-loader {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: #CEDC00;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            clip-path: circle(150% at 50% 50%);
+            transition: clip-path 1s cubic-bezier(0.76, 0, 0.24, 1);
+        }
+        #cavere-loader.fade-out {
+            clip-path: circle(0% at 50% 50%);
+            pointer-events: none;
+        }
+        #cavere-loader canvas { display: block; touch-action: none; }
+    </style>
+</head>
+<body>
+    <!-- ===== CAVERE LOADING ANIMATION (first entry per browser session) ===== -->
+    <div id="cavere-loader" aria-hidden="true">
+        <canvas id="cavere-loader-canvas"></canvas>
+    </div>
+    <script>
+    (function() {
+        const FLAG = 'cavere_loaded_session';
+        const loader = document.getElementById('cavere-loader');
+        const canvas = document.getElementById('cavere-loader-canvas');
+        if (!loader || !canvas) return;
+
+        if (sessionStorage.getItem(FLAG)) {
+            loader.style.display = 'none';
+            return;
+        }
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) { loader.style.display = 'none'; return; }
+
+        const W = Math.min(window.innerWidth * 0.88, 520);
+        const H = 120;
+        const DPR = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width  = Math.round(W * DPR);
+        canvas.height = Math.round(H * DPR);
+        canvas.style.width  = W + 'px';
+        canvas.style.height = H + 'px';
+        ctx.scale(DPR, DPR);
+
+        const COLOR = '#000000';
+        const FONT_SIZE = W < 380 ? 58 : 72;
+
+        function sampleText(text) {
+            const off = document.createElement('canvas');
+            off.width = W; off.height = H;
+            const oc = off.getContext('2d', { willReadFrequently: true });
+            let fStr = '900 ' + FONT_SIZE + 'px Inter, Arial, sans-serif';
+            oc.font = fStr;
+            if (oc.measureText(text).width < 30) {
+                fStr = '900 ' + FONT_SIZE + 'px Arial, sans-serif';
+                oc.font = fStr;
+            }
+            oc.fillStyle = '#000';
+            oc.textAlign = 'center';
+            oc.textBaseline = 'middle';
+            const chars = text.split('');
+            const gap   = chars.length > 1 ? 4 : 0;
+            const ws    = chars.map(c => oc.measureText(c).width);
+            const total = ws.reduce((a,b) => a+b, 0) + gap*(chars.length-1);
+            let sx = (W - total) / 2;
+            const cy = H / 2;
+            chars.forEach((c, i) => { oc.fillText(c, sx + ws[i]/2, cy); sx += ws[i] + gap; });
+            const data = oc.getImageData(0, 0, W, H).data;
+            const pts  = [];
+            const step = 2;
+            const minY = Math.max(0, Math.floor(cy - FONT_SIZE * 0.55));
+            const maxY = Math.min(H-1, Math.ceil(cy + FONT_SIZE * 0.55));
+            for (let y = minY; y <= maxY; y += step)
+                for (let x = 0; x < W; x += step)
+                    if (data[(y*W+x)*4+3] > 70) pts.push({x, y});
+            return pts;
+        }
+
+        let parts = [];
+        function initParticles() {
+            const ptsCav = sampleText('CAVERE');
+            const ptsC   = sampleText('C');
+            const cCX = ptsC.reduce((a,b) => a+b.x, 0) / (ptsC.length || 1);
+            const cCY = ptsC.reduce((a,b) => a+b.y, 0) / (ptsC.length || 1);
+            parts = ptsCav.map((pCav, i) => {
+                const pC    = ptsC[i % ptsC.length];
+                const angle = Math.random() * Math.PI * 2;
+                const dist  = Math.random() * 65 + 25;
+                return {
+                    startX: cCX + Math.cos(angle) * dist,
+                    startY: cCY + Math.sin(angle) * dist,
+                    cX: pC.x, cY: pC.y,
+                    baseX: pCav.x, baseY: pCav.y,
+                    size:  Math.random() * 0.4 + 1.6,
+                    phase: Math.random() * Math.PI * 2
+                };
+            });
+        }
+
+        const T0 = 1300, T1 = 650, T2 = 1500, T3 = 600;
+        let phase = 0, phaseStart = null, raf = null, time = 0;
+
+        function lerp(a,b,t)  { return a + (b-a) * Math.min(1, Math.max(0, t)); }
+        function easeOut3(t)  { return 1 - Math.pow(1-t, 3); }
+        function easeInOut(t) { return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2; }
+
+        function exitLoader() {
+            cancelAnimationFrame(raf);
+            sessionStorage.setItem(FLAG, '1');
+            loader.classList.add('fade-out');
+            loader.addEventListener('transitionend', () => {
+                loader.style.display = 'none';
+            }, { once: true });
+            setTimeout(() => { loader.style.display = 'none'; }, 1200);
+        }
+
+        function draw(ts) {
+            if (!phaseStart) phaseStart = ts;
+            const elapsed = ts - phaseStart;
+            time += 0.025;
+            ctx.clearRect(0, 0, W, H);
+            if (phase === 0) {
+                const t = easeOut3(elapsed / T0);
+                for (const p of parts) {
+                    const idle = Math.sin(time + p.phase) * (1 - t) * 4;
+                    ctx.fillStyle = COLOR;
+                    ctx.fillRect(lerp(p.startX, p.cX, t), lerp(p.startY, p.cY, t) + idle, p.size, p.size);
+                }
+                if (elapsed >= T0) { phase = 1; phaseStart = ts; }
+            } else if (phase === 1) {
+                const idle = Math.sin(time * 1.4) * 0.35;
+                for (const p of parts) {
+                    ctx.fillStyle = COLOR;
+                    ctx.fillRect(p.cX, p.cY + idle * Math.sin(p.phase), p.size, p.size);
+                }
+                if (elapsed >= T1) { phase = 2; phaseStart = ts; }
+            } else if (phase === 2) {
+                const t = easeInOut(elapsed / T2);
+                for (const p of parts) {
+                    ctx.fillStyle = COLOR;
+                    ctx.fillRect(lerp(p.cX, p.baseX, t), lerp(p.cY, p.baseY, t), p.size, p.size);
+                }
+                if (elapsed >= T2) { phase = 3; phaseStart = ts; }
+            } else if (phase === 3) {
+                const idle = Math.sin(time) * 0.35;
+                for (const p of parts) {
+                    ctx.fillStyle = COLOR;
+                    ctx.fillRect(p.baseX, p.baseY + idle * Math.sin(p.phase), p.size, p.size);
+                }
+                if (elapsed >= T3) { exitLoader(); return; }
+            }
+            raf = requestAnimationFrame(draw);
+        }
+
+        function start() { initParticles(); raf = requestAnimationFrame(draw); }
+
+        if (document.fonts && document.fonts.load) {
+            document.fonts.load('900 ' + FONT_SIZE + 'px Inter').then(start).catch(start);
+        } else {
+            setTimeout(start, 80);
+        }
+    })();
+    </script>
+    <div class="cv-layout-wrap">
+        {% if current_user.is_authenticated %}
+        <!-- AETHER Command Center Sidebar -->
+        <aside class="cv-sidebar">
+            <div class="cv-sidebar-header">
+                <a href="{% if current_user.role == 'coordenador' %}/meus-chamados{% else %}/{% endif %}" class="cv-sidebar-brand">
+                    <div class="cv-logo-badge">C</div>
+                    <div class="cv-brand-info">
+                        <span class="cv-brand-title">CAVERE</span>
+                        <span class="cv-brand-subtitle">Ambipar Industrial</span>
+                    </div>
+                </a>
+            </div>
+
+            <nav class="cv-sidebar-nav">
+                {% if current_user.role == 'admin' %}
+                <span class="cv-sidebar-section-title">Gestão Operacional</span>
+                <a href="/" class="cv-nav-item {% if request.path == '/' %}active{% endif %}">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span>Painel Principal</span>
+                </a>
+                <a href="/historico" class="cv-nav-item {% if request.path == '/historico' %}active{% endif %}">
+                    <i data-lucide="history"></i>
+                    <span>Histórico de Cautelas</span>
+                </a>
+
+                <span class="cv-sidebar-section-title">Inventário &amp; Registros</span>
+                <a href="/equipamentos" class="cv-nav-item {% if request.path == '/equipamentos' %}active{% endif %}" id="nav-link-equipamentos">
+                    <i data-lucide="laptop"></i>
+                    <span>Inventário de Equipamentos</span>
+                </a>
+                <a href="/colaboradores" class="cv-nav-item {% if request.path == '/colaboradores' %}active{% endif %}" id="nav-link-colaboradores">
+                    <i data-lucide="users"></i>
+                    <span>Colaboradores Registrados</span>
+                </a>
+
+                <span class="cv-sidebar-section-title">Cadastros</span>
+                <a href="/novo-equipamento" class="cv-nav-item {% if request.path == '/novo-equipamento' %}active{% endif %}">
+                    <i data-lucide="package-plus"></i>
+                    <span>Novo Equipamento</span>
+                </a>
+                <a href="/cadastrar-usuario" class="cv-nav-item {% if request.path == '/cadastrar-usuario' %}active{% endif %}">
+                    <i data-lucide="user-plus"></i>
+                    <span>Usuários &amp; Perfis</span>
+                </a>
+                {% elif current_user.role == 'coordenador' %}
+                <a href="/solicitar-equipamento" class="cv-sidebar-cta">
+                    <i data-lucide="plus"></i>
+                    <span>Solicitar Equipamento</span>
+                </a>
+                <span class="cv-sidebar-section-title">Chamados &amp; Ativos</span>
+                <a href="/meus-chamados" class="cv-nav-item {% if request.path == '/meus-chamados' %}active{% endif %}">
+                    <i data-lucide="clipboard-list"></i>
+                    <span>Meus Chamados</span>
+                </a>
+                <a href="/historico" class="cv-nav-item {% if request.path == '/historico' %}active{% endif %}">
+                    <i data-lucide="history"></i>
+                    <span>Histórico de Cautelas</span>
+                </a>
+                {% endif %}
+            </nav>
+
+            <div class="cv-sidebar-footer">
+                <div class="cv-user-badge">{{ current_user.username[0]|upper }}</div>
+                <div class="cv-user-details">
+                    <span class="cv-user-name">{{ current_user.username }}</span>
+                    <span class="cv-user-role">{% if current_user.role == 'admin' %}Admin{% else %}Coordenador &bull; {{ current_user.base }}{% endif %}</span>
+                </div>
+                <a class="cv-btn-logout" href="/logout" title="Encerrar sessão">
+                    <i data-lucide="log-out"></i>
+                </a>
+            </div>
+        </aside>
+        <div class="cv-sidebar-spacer"></div>
+        {% endif %}
+
+        <div class="cv-content-area">
+            {% if current_user.is_authenticated %}
+            <!-- Minimalist Topbar -->
+            <header class="cv-topbar">
+                <div class="cv-topbar-status">
+                    <span class="cv-live-indicator pulse-live"></span>
+                    <span>Base Operacional {{ current_user.base_nome }} &bull; Ambipar Industrial</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <span class="badge-notion badge-notion-lime">
+                        <i data-lucide="radio" style="width:12px; height:12px;"></i>
+                        <span>Sistema Ativo</span>
+                    </span>
+                </div>
+            </header>
+            {% endif %}
+
+            <main class="cv-content-body">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                    <div style="margin-bottom:20px;">
+                        {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {% if category == 'success' %}<i data-lucide="check-circle" class="flex-shrink-0" style="color:#4ade80;"></i>
+                            {% elif category == 'danger' %}<i data-lucide="alert-octagon" class="flex-shrink-0" style="color:#f87171;"></i>
+                            {% elif category == 'warning' %}<i data-lucide="alert-triangle" class="flex-shrink-0" style="color:#fbbf24;"></i>
+                            {% else %}<i data-lucide="info" class="flex-shrink-0" style="color:#60a5fa;"></i>{% endif %}
+                            <span>{{ message }}</span>
+                            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Fechar" style="font-size:0.75rem;"></button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                {% endwith %}
+
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+            popoverTriggerList.map(function (popoverTriggerEl) {
+                return new bootstrap.Popover(popoverTriggerEl, { sanitize: false });
+            });
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+        });
+
+        // Formatadores Utilitários para Relatórios Executivos
+        window.formatarDataHoraBR = function(dataStr) {
+            if (!dataStr || dataStr === '-' || dataStr === '--') return '--';
+            const str = String(dataStr).trim();
+            const m = str.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{2}):(\d{2})(?::(\d{2}))?)?/);
+            if (m) {
+                const ano = m[1], mes = m[2], dia = m[3];
+                const hora = m[4], min = m[5];
+                if (hora !== undefined && min !== undefined) {
+                    return `${dia}/${mes}/${ano} ${hora}:${min}`;
+                }
+                return `${dia}/${mes}/${ano}`;
+            }
+            return str;
+        };
+
+        window.formatarCodigoId = function(prefixo, id) {
+            if (!id || id === '-' || id === '--') return '--';
+            const num = String(id).replace(/\D/g, '');
+            if (!num) return String(id);
+            return `${prefixo}-${num.padStart(4, '0')}`;
+        };
+
+        // Motor de Exportação Executiva e Auditável para Planilha (.csv e .xlsx)
+        window.exportarRelatorioExecutivo = function(config) {
+            const nomeBase = config.nomeArquivo || 'relatorio_cavere';
+            const cabecalhos = config.cabecalhos || [];
+            const linhasDados = config.linhasDados || [];
+            const formato = (config.formato || 'csv').toLowerCase();
+
+            if (!linhasDados || linhasDados.length === 0) {
+                window.mostrarNotificacaoToast('Nenhum registro visível para exportar com os filtros atuais.', 'warning');
+                return false;
+            }
+
+            const agora = new Date();
+            const pad = (n) => String(n).padStart(2, '0');
+            const dataHoraBR = `${pad(agora.getDate())}/${pad(agora.getMonth() + 1)}/${agora.getFullYear()} às ${pad(agora.getHours())}:${pad(agora.getMinutes())}:${pad(agora.getSeconds())}`;
+            const timestampArquivo = `${agora.getFullYear()}-${pad(agora.getMonth() + 1)}-${pad(agora.getDate())}_${pad(agora.getHours())}${pad(agora.getMinutes())}`;
+
+            // Estruturação do Relatório Corporativo com Espaçamento Amplo
+            const linhasRelatorio = [];
+
+            // 1. Banner Institucional e Metadados com espaçamento
+            linhasRelatorio.push(['SISTEMA CAVERE • AMBIPAR INDUSTRIAL']);
+            linhasRelatorio.push(['RELATÓRIO GERENCIAL E AUDITÁVEL DE GESTÃO OPERACIONAL']);
+            linhasRelatorio.push([]); // Espaçamento vertical
+
+            linhasRelatorio.push(['MÓDULO:', config.tituloModulo || 'Gestão Operacional', '', '', 'DATA/HORA EMISSÃO:', dataHoraBR]);
+            linhasRelatorio.push(['EMITIDO POR:', config.operador || 'Administrador', '', '', 'TOTAL REGISTROS:', `${linhasDados.length} registro(s)`]);
+            linhasRelatorio.push(['FILTROS ATIVOS:', config.filtrosDescricao || 'Nenhum filtro aplicado (Listagem completa)']);
+            linhasRelatorio.push([]); // Espaçamento duplo para separar os blocos
+            linhasRelatorio.push([]);
+
+            // 2. Tabela de Dados com espaçamento
+            linhasRelatorio.push(['TABELA DE DADOS DETALHADOS']);
+            linhasRelatorio.push([]); // Espaçamento antes dos cabeçalhos
+            linhasRelatorio.push(cabecalhos);
+
+            linhasDados.forEach(function(linha) {
+                linhasRelatorio.push(linha);
+            });
+
+            // 3. Resumo Executivo (KPIs) com espaçamento
+            linhasRelatorio.push([]); // Espaçamento duplo
+            linhasRelatorio.push([]);
+            linhasRelatorio.push(['RESUMO EXECUTIVO DOS DADOS AUDITADOS']);
+            linhasRelatorio.push([]); // Espaçamento antes dos indicadores
+
+            if (config.resumoKpis && config.resumoKpis.length > 0) {
+                config.resumoKpis.forEach(function(kpi) {
+                    linhasRelatorio.push([kpi.rotulo, kpi.valor]);
+                });
+            } else {
+                linhasRelatorio.push(['Total de Registros:', String(linhasDados.length)]);
+            }
+
+            linhasRelatorio.push([]);
+            linhasRelatorio.push(['AVISO DE CONFIDENCIALIDADE:', 'Documento confidencial gerado pelo Sistema Cavere - Ambipar Industrial. Registro auditável para controle interno.']);
+
+            // Geração em Excel Nativo (.xlsx) com altura de linhas e largura de colunas generosas
+            if (formato === 'xlsx' && window.XLSX) {
+                const ws = XLSX.utils.aoa_to_sheet(linhasRelatorio);
+
+                // Largura ampla para cada coluna com folga extra de caracteres
+                const colWidths = cabecalhos.map(function(c, i) {
+                    let maxLen = String(c).length;
+                    linhasDados.forEach(function(r) {
+                        if (r[i]) maxLen = Math.max(maxLen, String(r[i]).length);
+                    });
+                    const largura = Math.min(Math.max(maxLen + 6, 16), 55);
+                    if (i === 0) return { wch: 12 }; // Coluna ITEM com folga
+                    return { wch: largura };
+                });
+                ws['!cols'] = colWidths;
+
+                // Altura ampla de linhas (espaçamento vertical para não ficar achatado)
+                const rowHeights = linhasRelatorio.map(function(r, idx) {
+                    if (idx === 0) return { hpt: 30 }; // Título principal
+                    if (idx === 1) return { hpt: 24 }; // Subtítulo
+                    if (r.length === 0) return { hpt: 16 }; // Linha de espaçamento
+                    if (r === cabecalhos || r[0] === 'ITEM') return { hpt: 32 }; // Cabeçalhos da tabela altos
+                    if (r[0] === 'TABELA DE DADOS DETALHADOS' || r[0] === 'RESUMO EXECUTIVO DOS DADOS AUDITADOS') return { hpt: 26 };
+                    return { hpt: 24 }; // Linhas de dados confortáveis (24pt em vez do padrão 15pt)
+                });
+                ws['!rows'] = rowHeights;
+
+                // Mesclagem de títulos principais
+                const totalCols = Math.max(cabecalhos.length, 6);
+                ws['!merges'] = [
+                    { s: { r: 0, c: 0 }, e: { r: 0, c: totalCols - 1 } },
+                    { s: { r: 1, c: 0 }, e: { r: 1, c: totalCols - 1 } },
+                    { s: { r: 6, c: 0 }, e: { r: 6, c: totalCols - 1 } }
+                ];
+
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Relatório");
+                const nomeArquivoXLSX = `${nomeBase}_${timestampArquivo}.xlsx`;
+                XLSX.writeFile(wb, nomeArquivoXLSX);
+                window.mostrarNotificacaoToast(`${linhasDados.length} registro(s) exportado(s) em formato Excel "${nomeArquivoXLSX}"!`, 'success');
+                return true;
+            }
+
+            // Geração em Planilha CSV com espaçamento interno (Padding de células e Delimitador ;)
+            const escaparCSV = function(valor) {
+                if (valor === null || valor === undefined || valor === '') return '""';
+                let str = String(valor).trim();
+                str = str.replace(/"/g, '""');
+                // Adiciona espaçamento interno (padding) nas células para não ficarem achatadas
+                return `"  ${str}  "`;
+            };
+
+            const separador = ';';
+            const linhasCSV = [];
+
+            linhasRelatorio.forEach(function(linha) {
+                if (linha.length === 0) {
+                    linhasCSV.push(''); // Linha vazia de espaçamento vertical limpo
+                } else {
+                    linhasCSV.push(linha.map(escaparCSV).join(separador));
+                }
+            });
+
+            const conteudoCSV = '\uFEFF' + linhasCSV.join('\r\n');
+            const blob = new Blob([conteudoCSV], { type: 'text/csv;charset=utf-8;' });
+            const nomeArquivoCSV = `${nomeBase}_${timestampArquivo}.csv`;
+
+            const link = document.createElement('a');
+            if (link.download !== undefined) {
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', nomeArquivoCSV);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            }
+
+            window.mostrarNotificacaoToast(`${linhasDados.length} registro(s) exportado(s) com sucesso em "${nomeArquivoCSV}"!`, 'success');
+            return true;
+        };
+
+        // Compatibilidade com chamadas diretas
+        window.exportarParaCSV = function(nomeBase, cabecalhos, linhasDados) {
+            return window.exportarRelatorioExecutivo({
+                nomeArquivo: nomeBase,
+                tituloModulo: 'Relatório Geral',
+                cabecalhos: cabecalhos,
+                linhasDados: linhasDados,
+                formato: 'csv'
+            });
+        };
+
+        // Feedback Toast Flutuante AETHER / Cavere
+        window.mostrarNotificacaoToast = function(mensagem, tipo) {
+            tipo = tipo || 'info';
+            let container = document.getElementById('cv-toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'cv-toast-container';
+                container.style.cssText = 'position:fixed; bottom:24px; right:24px; z-index:99999; display:flex; flex-direction:column; gap:8px; pointer-events:none; max-width:440px;';
+                document.body.appendChild(container);
+            }
+
+            const toast = document.createElement('div');
+            const corBorda = tipo === 'success' ? 'var(--lime, #CEDC00)' : (tipo === 'warning' ? '#f59e0b' : '#3b82f6');
+            const corBg = '#0f172a';
+            const corIcone = tipo === 'success' ? 'var(--lime, #CEDC00)' : (tipo === 'warning' ? '#fbbf24' : '#60a5fa');
+            const iconeSvg = tipo === 'success' 
+                ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>'
+                : (tipo === 'warning'
+                    ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>'
+                    : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>');
+
+            toast.style.cssText = 'background:' + corBg + '; color:#f8fafc; border:1px solid ' + corBorda + '; border-radius:4px; padding:12px 16px; font-size:0.8125rem; font-family:var(--font-sans); box-shadow:0 10px 25px rgba(0,0,0,0.3); display:flex; align-items:center; gap:10px; pointer-events:auto; transform:translateY(12px); opacity:0; transition:all 200ms cubic-bezier(0.16,1,0.3,1);';
+
+            const spanIcon = document.createElement('span');
+            spanIcon.style.cssText = 'color:' + corIcone + '; flex-shrink:0;';
+            const iconEl = document.createElement('i');
+            iconEl.setAttribute('data-lucide', tipo === 'success' ? 'check-circle' : (tipo === 'warning' ? 'alert-triangle' : 'info'));
+            iconEl.style.cssText = 'width:18px; height:18px; display:inline-block;';
+            spanIcon.appendChild(iconEl);
+
+            const spanMsg = document.createElement('span');
+            spanMsg.style.cssText = 'flex-grow:1; line-height:1.4;';
+            spanMsg.textContent = String(mensagem || '');
+
+            toast.appendChild(spanIcon);
+            toast.appendChild(spanMsg);
+            if (window.lucide && window.lucide.createIcons) {
+                window.lucide.createIcons({ root: toast });
+            }
+
+            container.appendChild(toast);
+
+            requestAnimationFrame(function() {
+                toast.style.transform = 'translateY(0)';
+                toast.style.opacity = '1';
+            });
+
+            setTimeout(function() {
+                toast.style.transform = 'translateY(12px)';
+                toast.style.opacity = '0';
+                setTimeout(function() {
+                    if (toast.parentNode) toast.parentNode.removeChild(toast);
+                }, 250);
+            }, 4000);
+        };
+    </script>
+</body>
+</html>

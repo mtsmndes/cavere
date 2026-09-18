@@ -1,0 +1,13 @@
+.git
+.gitignore
+.dockerignore
+.env*
+*.bak
+*.old
+*.swp
+*~
+__pycache__/
+*.pyc
+relatorios_seg/
+.pytest_cache/
+tests/

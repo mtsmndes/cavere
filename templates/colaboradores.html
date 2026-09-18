@@ -1,0 +1,824 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- Hero / Page Banner -->
+<div class="cv-page-banner">
+    <div>
+        <div class="cv-breadcrumb">
+            <a href="/"><i data-lucide="layout-dashboard" class="me-1"></i>Painel Principal</a>
+            <span class="sep">/</span>
+            <span class="current">Gestão de Colaboradores</span>
+        </div>
+        <h1 class="cv-page-title" style="margin-bottom:4px;">
+            Lista de <span style="color:var(--lime);">Colaboradores</span> &amp; Coordenadores
+        </h1>
+        <p class="cv-page-subtitle">
+            Quadro oficial de solicitantes, documentação completa (Matrícula, CPF, E-mail e Celular) e chamados
+        </p>
+    </div>
+    <div style="display:flex; gap:var(--space-2); flex-wrap:wrap; align-items:center;">
+        <a href="/cadastrar-usuario" class="btn btn-primary btn-sm" title="Cadastrar novo colaborador / coordenador">
+            <i data-lucide="user-plus"></i> Novo Colaborador
+        </a>
+    </div>
+</div>
+
+<!-- Glance Metric Cards -->
+<div class="row g-3" style="margin-bottom:var(--space-5);">
+    <div class="col-sm-6 col-lg-4">
+        <div class="cv-glance-card" data-action="resetar-filtros" role="button" tabindex="0" title="Ver todos os colaboradores">
+            <div class="cv-glance-header">
+                <span class="cv-glance-label">Total de Colaboradores</span>
+            </div>
+            <div class="cv-glance-value">{{ metricas.total }}</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-4">
+        <div class="cv-glance-card" role="button" tabindex="0" title="Departamentos ativos no sistema">
+            <div class="cv-glance-header">
+                <span class="cv-glance-label">Setores Ativos</span>
+            </div>
+            <div class="cv-glance-value" style="color:var(--status-info-text);">{{ metricas.setores }}</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-4">
+        <div class="cv-glance-card" data-action="navegar-solicitacoes" role="button" tabindex="0" title="Ir para fila de chamados">
+            <div class="cv-glance-header">
+                <span class="cv-glance-label">Chamados Vinculados</span>
+            </div>
+            <div class="cv-glance-value" style="color:var(--status-success-text);">{{ metricas.total_chamados }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabela de Colaboradores -->
+<div class="surface-card" style="margin-bottom:var(--space-5);">
+    <div class="surface-card-header" style="padding:18px 20px; flex-wrap:wrap; gap:var(--space-3);">
+        <div>
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
+                <span style="font-size:0.875rem; font-weight:700; color:var(--text-primary); text-transform:uppercase; letter-spacing:0.05em; font-family:var(--font-mono); line-height:1.2;">
+                    Quadro Geral de Colaboradores
+                </span>
+                <span class="badge-notion badge-notion-gray" id="badgeContadorColab" style="font-size:0.75rem; padding:2px 8px; font-weight:600;">
+                    {{ colaboradores|length }} cadastrado(s)
+                </span>
+            </div>
+            <div style="font-size:0.8125rem; color:var(--text-muted);">
+                Consulta rápida de identificação funcional, contatos e documentos
+            </div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:var(--space-2); flex-wrap:wrap;">
+            <!-- Campo de Busca em Tempo Real -->
+            <div class="input-group input-group-sm" style="min-width:260px; max-width:320px;">
+                <span class="input-group-text"><i data-lucide="search"></i></span>
+                <input type="text" id="filtroTextoColab" class="form-control"
+                       placeholder="Buscar por nome, matrícula, CPF, e-mail..."
+                       >
+                <button class="btn btn-outline-secondary" type="button" id="btnLimparTextoColab" data-action="limpar-texto" style="display:none;">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            {% if current_user.role == 'admin' %}
+            <div class="btn-group btn-group-sm">
+                <button type="button" class="btn btn-primary btn-sm" data-action="exportar" data-formato="csv" title="Exportar colaboradores filtrados para planilha executiva CSV">
+                    <i data-lucide="download"></i> Exportar Dados
+                </button>
+                <button type="button" class="btn btn-primary btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false" title="Formatos de exportação">
+                    <span class="visually-hidden">Opções</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="font-size:0.8125rem;">
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center gap-2" href="javascript:void(0)" data-action="exportar" data-formato="csv">
+                            <i data-lucide="file-spreadsheet" class="text-success" style="width:14px;height:14px;"></i>
+                            <span>Planilha Executiva (.csv)</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center gap-2" href="javascript:void(0)" data-action="exportar" data-formato="xlsx">
+                            <i data-lucide="file-check" class="text-primary" style="width:14px;height:14px;"></i>
+                            <span>Planilha Excel (.xlsx)</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            {% endif %}
+
+            <!-- Botão Limpar -->
+            <button type="button" class="btn btn-outline-secondary btn-sm" data-action="resetar-filtros" title="Limpar busca e filtros">
+                <i data-lucide="rotate-ccw"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Filtros de Setor por Botões -->
+    <!-- Filtros de Base e Setor por Botões -->
+    <div style="background:#f8fafc; border-bottom:1px solid var(--border); padding:var(--space-3) var(--space-4); display:flex; align-items:center; gap:var(--space-2); flex-wrap:wrap;">
+        <span style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-right:4px;">
+            Base:
+        </span>
+        <button type="button" class="btn btn-secondary btn-sm btn-filtro-base active" data-base="todas" data-action="filtrar-base" data-base="todas">
+            Todas
+        </button>
+        <button type="button" class="btn btn-secondary btn-sm btn-filtro-base" data-base="Tank" data-action="filtrar-base" data-base="Tank">
+            Tank
+        </button>
+        <button type="button" class="btn btn-secondary btn-sm btn-filtro-base" data-base="TDBR" data-action="filtrar-base" data-base="TDBR">
+            TDBR
+        </button>
+        <button type="button" class="btn btn-secondary btn-sm btn-filtro-base" data-base="Repair" data-action="filtrar-base" data-base="Repair">
+            Repair
+        </button>
+        <button type="button" class="btn btn-secondary btn-sm btn-filtro-base" data-base="Central" data-action="filtrar-base" data-base="Central">
+            Escritório Central
+        </button>
+
+        <span style="border-left:1px solid var(--border); height:16px; margin:0 4px;"></span>
+
+        <span style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-right:4px;">
+            Setor:
+        </span>
+        <button type="button" class="btn btn-secondary btn-sm btn-filtro-setor active" data-setor="todos" data-action="filtrar-setor" data-setor="todos">
+            Todos [{{ colaboradores|length }}]
+        </button>
+        <button type="button" class="btn btn-secondary btn-sm btn-filtro-setor" data-setor="Operações" data-action="filtrar-setor" data-setor="Operações">
+            Operações
+        </button>
+        <button type="button" class="btn btn-secondary btn-sm btn-filtro-setor" data-setor="TI" data-action="filtrar-setor" data-setor="TI">
+            TI
+        </button>
+        <button type="button" class="btn btn-secondary btn-sm btn-filtro-setor" data-setor="QSMS" data-action="filtrar-setor" data-setor="QSMS">
+            QSMS
+        </button>
+        <button type="button" class="btn btn-secondary btn-sm btn-filtro-setor" data-setor="Planejamento" data-action="filtrar-setor" data-setor="Planejamento">
+            Planejamento
+        </button>
+        <button type="button" class="btn btn-secondary btn-sm btn-filtro-setor" data-setor="Compras" data-action="filtrar-setor" data-setor="Compras">
+            Compras
+        </button>
+        <button type="button" class="btn btn-secondary btn-sm btn-filtro-setor" data-setor="Financeiro" data-action="filtrar-setor" data-setor="Financeiro">
+            Financeiro
+        </button>
+        <button type="button" class="btn btn-secondary btn-sm btn-filtro-setor" data-setor="Almoxarifado" data-action="filtrar-setor" data-setor="Almoxarifado">
+            Almoxarifado
+        </button>
+    </div>
+
+    <!-- Tabela -->
+    <div style="overflow-x:auto;">
+        {% if colaboradores %}
+        <table class="table table-hover align-middle table-enterprise cv-table-uniform mb-0" id="tabelaColaboradores">
+            <thead>
+                <tr>
+                    <th class="ps-4">Colaborador / Solicitante</th>
+                    <th>Matrícula</th>
+                    <th>Base</th>
+                    <th>Setor</th>
+                    <th class="text-center">Chamados</th>
+                    <th class="text-center pe-4" style="min-width:150px;">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in colaboradores %}
+                <tr class="linha-colaborador"
+                    id="linha-colab-{{ c.id }}"
+                    data-id="{{ c.id }}"
+                    data-nome="{{ c.nome_completo|replace('"', '&quot;') }}"
+                    data-matricula="{{ c.matricula }}"
+                    data-cpf="{{ c.cpf }}"
+                    data-base="{{ c.base }}"
+                    data-setor="{{ c.setor }}"
+                    data-email="{{ c.email or '' }}"
+                    data-celular="{{ c.celular or '' }}"
+                    data-role="{{ 'Administrador' if c.role == 'admin' else 'Coordenador' }}"
+                    data-username="{{ c.username }}"
+                    data-total-chamados="{{ c.total_solicitacoes }}"
+                    data-busca="{{ c.id }} {{ c.nome_completo }} {{ c.matricula }} {{ c.cpf }} {{ c.email }} {{ c.celular }} {{ c.base }} {{ c.setor }} {{ c.username }} {{ 'administrador' if c.role == 'admin' else 'coordenador' }}">
+                    
+                    <td class="ps-4">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <div style="width:34px; height:34px; border-radius:50%; background:var(--bg-card); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.8125rem; color:var(--text-primary); flex-shrink:0;">
+                                {{ c.nome_completo[:1]|upper }}
+                            </div>
+                            <div>
+                                <div style="font-weight:600; font-size:0.875rem; color:var(--text-primary); display:flex; align-items:center; gap:6px;">
+                                    <span>{{ c.nome_completo }}</span>
+                                    {% if c.role == 'admin' %}
+                                    <span class="badge-notion badge-notion-purple" style="font-size:0.65rem; padding:1px 5px;">Admin</span>
+                                    {% endif %}
+                                </div>
+                                <div style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">
+                                    ID #{{ c.id }} &bull; @{{ c.username }}
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+
+                    <td>
+                        <div style="display:inline-flex; align-items:center; gap:4px;">
+                            <code style="font-size:0.8125rem; font-weight:700; color:var(--text-primary); background:rgba(0,0,0,0.04); padding:2px 6px; border-radius:2px; border:1px solid var(--border);">
+                                {{ c.matricula }}
+                            </code>
+                        </div>
+                    </td>
+
+                    <td>
+                        {% if c.base == 'Tank' %}
+                        <span class="badge-notion badge-notion-blue"><i data-lucide="map-pin" style="width:11px; height:11px; margin-right:3px;"></i>Tank</span>
+                        {% elif c.base == 'TDBR' %}
+                        <span class="badge-notion badge-notion-purple"><i data-lucide="map-pin" style="width:11px; height:11px; margin-right:3px;"></i>TDBR</span>
+                        {% elif c.base == 'Repair' %}
+                        <span class="badge-notion badge-notion-orange"><i data-lucide="wrench" style="width:11px; height:11px; margin-right:3px;"></i>Repair</span>
+                        {% elif 'Central' in c.base %}
+                        <span class="badge-notion badge-notion-gray"><i data-lucide="building" style="width:11px; height:11px; margin-right:3px;"></i>Central</span>
+                        {% else %}
+                        <span class="badge-notion badge-notion-gray"><i data-lucide="map-pin" style="width:11px; height:11px; margin-right:3px;"></i>{{ c.base }}</span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if c.setor == 'TI (Tecnologia da Informação)' or c.setor == 'TI' %}
+                        <span class="badge-notion badge-notion-blue">TI</span>
+                        {% elif c.setor == 'QSMS' %}
+                        <span class="badge-notion badge-notion-green">QSMS</span>
+                        {% elif c.setor == 'Planejamento' %}
+                        <span class="badge-notion badge-notion-purple">Planejamento</span>
+                        {% elif c.setor == 'Compras' %}
+                        <span class="badge-notion badge-notion-orange">Compras</span>
+                        {% elif c.setor == 'Financeiro' %}
+                        <span class="badge-notion badge-notion-gray">Financeiro</span>
+                        {% else %}
+                        <span class="badge-notion badge-notion-gray">{{ c.setor }}</span>
+                        {% endif %}
+                    </td>
+
+                    <td class="text-center">
+                        <a href="/?busca={{ c.nome_completo|trim|urlencode }}#secaoSolicitacoes" style="text-decoration:none;" title="Ver {{ c.total_solicitacoes }} chamado(s) de {{ c.nome_completo }} no painel">
+                            <span class="badge-notion {% if c.total_solicitacoes > 0 %}badge-notion-blue{% else %}badge-notion-gray{% endif %}" style="font-weight:700; font-size:0.75rem; cursor:pointer;">
+                                {{ c.total_solicitacoes }}
+                            </span>
+                        </a>
+                    </td>
+
+                    <td class="text-center pe-4">
+                        <div style="display:inline-flex; align-items:center; gap:6px;">
+                            <button type="button" 
+                                    class="cv-btn-action cv-btn-action-secondary btn-toggle-colab" 
+                                    id="btn-toggle-colab-{{ c.id }}"
+                                    data-action="alternar-detalhes" data-id="{{ c.id }}" 
+                                    style="height:28px; font-size:0.75rem; padding:0 10px; cursor:pointer; display:inline-flex; align-items:center; gap:4px;"
+                                    title="Expandir detalhes de {{ c.nome_completo }}">
+                                <i data-lucide="chevron-down" id="icon-toggle-colab-{{ c.id }}" style="width:13px; height:13px; transition:transform 0.2s;"></i>
+                                <span id="label-toggle-colab-{{ c.id }}">Mais Dados</span>
+                            </button>
+                            
+                            <a href="/?busca={{ c.nome_completo|trim|urlencode }}#secaoSolicitacoes" 
+                               class="cv-btn-action cv-btn-action-secondary" 
+                               style="height:28px; font-size:0.75rem; padding:0 8px; text-decoration:none; display:inline-flex; align-items:center; gap:4px;" 
+                               title="Ver chamados de {{ c.nome_completo }} no painel">
+                                <i data-lucide="eye" style="width:13px; height:13px;"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Linha Expansível de Detalhes do Colaborador -->
+                <tr id="detalhes-colab-{{ c.id }}" class="linha-detalhe-colaborador d-none" data-parent-id="{{ c.id }}" style="background: rgba(0,0,0,0.015);">
+                    <td colspan="6" class="p-0 border-0">
+                        <div style="padding: 16px 24px; background: #fafafa; border-bottom: 1px solid var(--border); border-top: 1px dashed var(--border);">
+                            <div class="row g-3">
+                                <!-- Card 1: Identificação & Documentos -->
+                                <div class="col-md-4">
+                                    <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 14px; height: 100%; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+                                        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 12px; font-weight: 600; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">
+                                            <i data-lucide="id-card" style="width: 14px; height: 14px; color: var(--primary);"></i>
+                                            Identificação & Acesso
+                                        </div>
+                                        <div style="display: flex; flex-direction: column; gap: 10px; font-size: 0.8125rem;">
+                                            <div>
+                                                <span style="color: var(--text-muted); display: block; font-size: 0.72rem; margin-bottom: 2px;">CPF do Colaborador:</span>
+                                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+                                                    <code style="font-family: var(--font-mono); font-size: 0.875rem; font-weight: 700; color: var(--text-primary); background: rgba(0,0,0,0.03); padding: 2px 6px; border-radius: 3px;">
+                                                        {{ c.cpf }}
+                                                    </code>
+                                                    {% if c.cpf and c.cpf != 'Não informado' %}
+                                                    <button type="button" class="btn btn-sm btn-ghost p-0 px-2" data-action="copiar" data-copiar="{{ c.cpf  }}" title="Copiar CPF" style="font-size: 0.7rem; color: var(--text-muted); border: 1px solid var(--border); border-radius: 3px; height: 22px; display: inline-flex; align-items: center; gap: 3px;">
+                                                        <i data-lucide="copy" style="width: 11px; height: 11px;"></i> Copiar
+                                                    </button>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <span style="color: var(--text-muted); display: block; font-size: 0.72rem; margin-bottom: 2px;">Matrícula Geral:</span>
+                                                <code style="font-size: 0.8125rem; font-weight: 600; color: var(--text-primary); background: rgba(0,0,0,0.03); padding: 2px 6px; border-radius: 3px;">
+                                                    {{ c.matricula }}
+                                                </code>
+                                            </div>
+                                            <div>
+                                                <span style="color: var(--text-muted); display: block; font-size: 0.72rem; margin-bottom: 2px;">Usuário & Perfil:</span>
+                                                <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                                    <span style="font-family: var(--font-mono); font-weight: 600; color: var(--text-primary);">
+                                                        @{{ c.username }}
+                                                    </span>
+                                                    <span class="badge-notion {% if c.role == 'admin' %}badge-notion-purple{% else %}badge-notion-gray{% endif %}" style="font-size: 0.68rem; padding: 1px 6px;">
+                                                        {{ 'Administrador' if c.role == 'admin' else 'Coordenador / Solicitante' }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Card 2: Contatos & Notificações -->
+                                <div class="col-md-4">
+                                    <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 14px; height: 100%; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+                                        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 12px; font-weight: 600; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">
+                                            <i data-lucide="phone-call" style="width: 14px; height: 14px; color: var(--primary);"></i>
+                                            Canais de Comunicação
+                                        </div>
+                                        <div style="display: flex; flex-direction: column; gap: 10px; font-size: 0.8125rem;">
+                                            <div>
+                                                <span style="color: var(--text-muted); display: block; font-size: 0.72rem; margin-bottom: 2px;">E-mail Corporativo:</span>
+                                                {% if c.email and '@' in c.email %}
+                                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+                                                    <a href="mailto:{{ c.email }}" style="color: var(--text-primary); text-decoration: none; font-size: 0.8125rem; font-weight: 500; word-break: break-all;" title="Enviar e-mail para {{ c.email }}">
+                                                        <i data-lucide="mail" style="width: 12px; height: 12px; margin-right: 3px; vertical-align: -2px;"></i>{{ c.email }}
+                                                    </a>
+                                                    <button type="button" class="btn btn-sm btn-ghost p-0 px-2" data-action="copiar" data-copiar="{{ c.email  }}" title="Copiar e-mail" style="font-size: 0.7rem; color: var(--text-muted); border: 1px solid var(--border); border-radius: 3px; height: 22px; flex-shrink: 0; display: inline-flex; align-items: center; gap: 3px;">
+                                                        <i data-lucide="copy" style="width: 11px; height: 11px;"></i>
+                                                    </button>
+                                                </div>
+                                                {% else %}
+                                                <span style="color: var(--text-muted); font-size: 0.8125rem;">{{ c.email }}</span>
+                                                {% endif %}
+                                            </div>
+                                            <div>
+                                                <span style="color: var(--text-muted); display: block; font-size: 0.72rem; margin-bottom: 2px;">Celular / WhatsApp:</span>
+                                                {% if c.celular and c.celular != 'Não informado' %}
+                                                {% set cel_num = c.celular|replace('(', '')|replace(')', '')|replace(' ', '')|replace('-', '') %}
+                                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; flex-wrap: wrap;">
+                                                    <a href="tel:{{ cel_num }}" style="color: var(--text-primary); text-decoration: none; font-family: var(--font-mono); font-weight: 500;" title="Ligar para {{ c.celular }}">
+                                                        <i data-lucide="phone" style="width: 12px; height: 12px; margin-right: 3px; vertical-align: -2px;"></i>{{ c.celular }}
+                                                    </a>
+                                                    <a href="https://wa.me/55{{ cel_num }}" target="_blank" rel="noopener noreferrer" class="badge-notion badge-notion-green" style="padding: 3px 8px; text-decoration: none; font-size: 0.72rem; display: inline-flex; align-items: center; gap: 4px;" title="Conversar no WhatsApp">
+                                                        <i data-lucide="message-circle" style="width: 12px; height: 12px;"></i> WhatsApp
+                                                    </a>
+                                                </div>
+                                                {% else %}
+                                                <span style="color: var(--text-muted); font-size: 0.8125rem;">{{ c.celular }}</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Card 3: Operação & Histórico de Cautelas -->
+                                <div class="col-md-4">
+                                    <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 14px; height: 100%; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+                                        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 12px; font-weight: 600; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">
+                                            <i data-lucide="activity" style="width: 14px; height: 14px; color: var(--primary);"></i>
+                                            Alocação & Cautelas
+                                        </div>
+                                        <div style="display: flex; flex-direction: column; gap: 10px; font-size: 0.8125rem;">
+                                            <div>
+                                                <span style="color: var(--text-muted); display: block; font-size: 0.72rem; margin-bottom: 2px;">Base Operacional Vinculada:</span>
+                                                <div style="margin-top: 2px;">
+                                                    {% if c.base == 'Tank' %}
+                                                    <span class="badge-notion badge-notion-blue"><i data-lucide="map-pin" class="me-1"></i>Base Tank</span>
+                                                    {% elif c.base == 'TDBR' %}
+                                                    <span class="badge-notion badge-notion-purple"><i data-lucide="map-pin" class="me-1"></i>Base TDBR</span>
+                                                    {% elif c.base == 'Repair' %}
+                                                    <span class="badge-notion badge-notion-orange"><i data-lucide="wrench" class="me-1"></i>Base Repair</span>
+                                                    {% elif 'Central' in c.base %}
+                                                    <span class="badge-notion badge-notion-gray"><i data-lucide="building" class="me-1"></i>Base Central</span>
+                                                    {% else %}
+                                                    <span class="badge-notion badge-notion-gray"><i data-lucide="map-pin" class="me-1"></i>{{ c.base }}</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <span style="color: var(--text-muted); display: block; font-size: 0.72rem; margin-bottom: 2px;">Setor de Trabalho:</span>
+                                                <span style="font-weight: 500; color: var(--text-primary);">{{ c.setor }}</span>
+                                            </div>
+                                            <div>
+                                                <span style="color: var(--text-muted); display: block; font-size: 0.72rem; margin-bottom: 2px;">Histórico de Chamados:</span>
+                                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 2px; flex-wrap: wrap;">
+                                                    <span style="font-weight: 600; color: var(--text-primary);">
+                                                        {{ c.total_solicitacoes }} chamado(s)
+                                                        {% if c.solicitacoes_pendentes %}
+                                                        <span class="badge-notion badge-notion-orange" style="font-size: 0.68rem; padding: 1px 5px; margin-left: 2px;">
+                                                            {{ c.solicitacoes_pendentes }} pendente(s)
+                                                        </span>
+                                                        {% endif %}
+                                                    </span>
+                                                    <a href="/?busca={{ c.nome_completo|trim|urlencode }}#secaoSolicitacoes" class="btn btn-sm btn-secondary" style="font-size: 0.72rem; padding: 2px 8px; height: 24px; text-decoration: none; display: inline-flex; align-items: center; gap: 3px;" title="Ver chamados deste colaborador">
+                                                        <i data-lucide="external-link" style="width: 11px; height: 11px;"></i> Ver no Painel
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+
+                <tr id="linhaVaziaColaboradores" class="d-none">
+                    <td colspan="6" class="text-center py-5 text-muted">
+                        <div style="max-width:320px; margin:0 auto;">
+                            <i data-lucide="user-x" style="width:36px; height:36px; stroke-width:1.5; color:var(--text-muted); margin-bottom:8px;"></i>
+                            <div style="font-weight:600; color:var(--text-primary); font-size:0.9375rem;">Nenhum colaborador encontrado</div>
+                            <div style="font-size:0.8125rem; color:var(--text-muted); margin-top:4px;">Tente pesquisar por outros termos ou redefinir o setor.</div>
+                            <button type="button" class="btn btn-secondary btn-sm mt-3" data-action="resetar-filtros">
+                                Limpar Busca
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        {% else %}
+        <div class="text-center py-5">
+            <i data-lucide="users" style="width:48px; height:48px; stroke-width:1.5; color:var(--text-muted); margin-bottom:12px;"></i>
+            <h5 style="font-weight:600; color:var(--text-primary);">Nenhum coordenador / colaborador cadastrado</h5>
+            <p style="color:var(--text-muted); font-size:0.875rem;">Cadastre o primeiro colaborador para liberar o acesso a chamados e emissões de cautela.</p>
+            <a href="/cadastrar-usuario" class="btn btn-primary btn-sm mt-2">
+                <i data-lucide="user-plus"></i> Cadastrar Primeiro Colaborador
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="surface-card-footer" style="padding:14px 20px; background:#fafafa; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--space-2);">
+        <span style="font-size:0.8125rem; color:var(--text-muted); font-family:var(--font-mono);" id="infoRodapeContagemColab">
+            Total de <strong>{{ colaboradores|length }}</strong> colaboradores registrados.
+        </span>
+        <div style="display:flex; gap:var(--space-2);">
+            {% if current_user.role == 'admin' %}
+            <div class="btn-group btn-group-sm">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-action="exportar" data-formato="csv" title="Exportar colaboradores filtrados para planilha executiva CSV">
+                    <i data-lucide="download"></i> Exportar Dados
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false" title="Formatos de exportação">
+                    <span class="visually-hidden">Opções</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="font-size:0.8125rem;">
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center gap-2" href="javascript:void(0)" data-action="exportar" data-formato="csv">
+                            <i data-lucide="file-spreadsheet" class="text-success" style="width:14px;height:14px;"></i>
+                            <span>Planilha Executiva (.csv)</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center gap-2" href="javascript:void(0)" data-action="exportar" data-formato="xlsx">
+                            <i data-lucide="file-check" class="text-primary" style="width:14px;height:14px;"></i>
+                            <span>Planilha Excel (.xlsx)</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            {% endif %}
+            <a href="/cadastrar-usuario" class="btn btn-primary btn-sm">
+                <i data-lucide="user-plus"></i> Novo Colaborador
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    let setorFiltroAtivo = 'todos';
+    let baseFiltroAtivo = 'todas';
+
+    function alternarDetalhesColaborador(id) {
+        const detalheRow = document.getElementById('detalhes-colab-' + id);
+        const btn = document.getElementById('btn-toggle-colab-' + id);
+        const icon = document.getElementById('icon-toggle-colab-' + id);
+        const label = document.getElementById('label-toggle-colab-' + id);
+        if (!detalheRow) return;
+
+        const estaOculto = detalheRow.classList.contains('d-none');
+        if (estaOculto) {
+            detalheRow.classList.remove('d-none');
+            if (btn) {
+                btn.classList.remove('cv-btn-action-secondary');
+                btn.classList.add('cv-btn-action-primary');
+            }
+            if (icon) {
+                icon.setAttribute('data-lucide', 'chevron-up');
+            }
+            if (label) {
+                label.textContent = 'Ocultar';
+            }
+        } else {
+            detalheRow.classList.add('d-none');
+            if (btn) {
+                btn.classList.remove('cv-btn-action-primary');
+                btn.classList.add('cv-btn-action-secondary');
+            }
+            if (icon) {
+                icon.setAttribute('data-lucide', 'chevron-down');
+            }
+            if (label) {
+                label.textContent = 'Mais Dados';
+            }
+        }
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+    }
+
+    function copiarTexto(texto, btn) {
+        if (!texto) return;
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(texto).then(() => {
+                mostrarFeedbackCopiado(btn);
+            }).catch(() => fallbackCopiar(texto, btn));
+        } else {
+            fallbackCopiar(texto, btn);
+        }
+    }
+
+    function fallbackCopiar(texto, btn) {
+        try {
+            const input = document.createElement('input');
+            input.value = texto;
+            document.body.appendChild(input);
+            input.select();
+            document.execCommand('copy');
+            document.body.removeChild(input);
+            mostrarFeedbackCopiado(btn);
+        } catch (e) {
+            alert('Copiado: ' + texto);
+        }
+    }
+
+    function mostrarFeedbackCopiado(btn) {
+        if (!btn) return;
+        const iconEl = btn.querySelector('i');
+        const textNode = Array.from(btn.childNodes).find(n => n.nodeType === Node.TEXT_NODE);
+        const originalText = textNode ? textNode.textContent : '';
+        if (textNode) textNode.textContent = ' Copiado!';
+        if (iconEl) {
+            iconEl.setAttribute('data-lucide', 'check');
+            iconEl.style.color = '#10b981';
+            if (window.lucide) lucide.createIcons();
+        }
+        setTimeout(() => {
+            if (textNode) textNode.textContent = originalText;
+            if (iconEl) {
+                iconEl.setAttribute('data-lucide', 'copy');
+                iconEl.style.color = '';
+                if (window.lucide) lucide.createIcons();
+            }
+        }, 1800);
+    }
+
+    function aplicarFiltrosColaboradores() {
+        const termo = document.getElementById('filtroTextoColab').value.toLowerCase().trim();
+        const btnLimpar = document.getElementById('btnLimparTextoColab');
+        if (btnLimpar) {
+            btnLimpar.style.display = termo ? 'inline-block' : 'none';
+        }
+
+        const linhas = document.querySelectorAll('.linha-colaborador');
+        let visiveis = 0;
+
+        linhas.forEach(function(linha) {
+            const busca = (linha.getAttribute('data-busca') || '').toLowerCase();
+            const setor = linha.getAttribute('data-setor') || '';
+            const base = linha.getAttribute('data-base') || '';
+            const colabId = linha.getAttribute('data-id');
+
+            let condTexto = (!termo || busca.includes(termo));
+            let condSetor = (setorFiltroAtivo === 'todos' || setor.toLowerCase().includes(setorFiltroAtivo.toLowerCase()));
+            let condBase = (baseFiltroAtivo === 'todas' || base.toLowerCase().includes(baseFiltroAtivo.toLowerCase()));
+
+            const detalheRow = document.getElementById('detalhes-colab-' + colabId);
+
+            if (condTexto && condSetor && condBase) {
+                linha.style.display = '';
+                visiveis++;
+            } else {
+                linha.style.display = 'none';
+                if (detalheRow) {
+                    detalheRow.classList.add('d-none');
+                    const btn = document.getElementById('btn-toggle-colab-' + colabId);
+                    const icon = document.getElementById('icon-toggle-colab-' + colabId);
+                    const label = document.getElementById('label-toggle-colab-' + colabId);
+                    if (btn) {
+                        btn.classList.remove('cv-btn-action-primary');
+                        btn.classList.add('cv-btn-action-secondary');
+                    }
+                    if (icon) {
+                        icon.setAttribute('data-lucide', 'chevron-down');
+                    }
+                    if (label) {
+                        label.textContent = 'Mais Dados';
+                    }
+                }
+            }
+        });
+
+        const linhaVazia = document.getElementById('linhaVaziaColaboradores');
+        if (linhaVazia) {
+            if (visiveis === 0 && linhas.length > 0) {
+                linhaVazia.classList.remove('d-none');
+            } else {
+                linhaVazia.classList.add('d-none');
+            }
+        }
+
+        const badgeContador = document.getElementById('badgeContadorColab');
+        if (badgeContador) {
+            badgeContador.textContent = `${visiveis} colaborador(es) exibido(s)`;
+        }
+
+        const infoRodape = document.getElementById('infoRodapeContagemColab');
+        if (infoRodape) {
+            const strongVis = document.createElement('strong');
+            strongVis.textContent = String(visiveis);
+            const strongTot = document.createElement('strong');
+            strongTot.textContent = String(linhas.length);
+            infoRodape.replaceChildren(
+                document.createTextNode('Mostrando '),
+                strongVis,
+                document.createTextNode(' de '),
+                strongTot,
+                document.createTextNode(' colaboradores registrados.')
+            );
+        }
+
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+    }
+
+    function filtrarPorBase(base, btn) {
+        baseFiltroAtivo = base;
+        document.querySelectorAll('.btn-filtro-base').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+        aplicarFiltrosColaboradores();
+    }
+
+    function filtrarPorSetor(setor, btn) {
+        setorFiltroAtivo = setor;
+        document.querySelectorAll('.btn-filtro-setor').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+        aplicarFiltrosColaboradores();
+    }
+
+    function limparTextoColab() {
+        document.getElementById('filtroTextoColab').value = '';
+        aplicarFiltrosColaboradores();
+    }
+
+    function resetarFiltrosColab() {
+        document.getElementById('filtroTextoColab').value = '';
+        setorFiltroAtivo = 'todos';
+        baseFiltroAtivo = 'todas';
+        document.querySelectorAll('.btn-filtro-base').forEach(b => {
+            if (b.getAttribute('data-base') === 'todas') {
+                b.classList.add('active');
+            } else {
+                b.classList.remove('active');
+            }
+        });
+        document.querySelectorAll('.btn-filtro-setor').forEach(b => {
+            if (b.getAttribute('data-setor') === 'todos') {
+                b.classList.add('active');
+            } else {
+                b.classList.remove('active');
+            }
+        });
+        aplicarFiltrosColaboradores();
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+    });
+
+    // Exportação Executiva e Auditável do Quadro de Colaboradores
+    function exportarColaboradores(formato) {
+        formato = formato || 'csv';
+        const linhas = document.querySelectorAll('.linha-colaborador');
+        const linhasVisiveis = [];
+        let qtdAdmins = 0;
+        let qtdCoords = 0;
+
+        linhas.forEach(function(linha) {
+            if (linha.style.display !== 'none') {
+                const itemNum = String(linhasVisiveis.length + 1).padStart(2, '0');
+                const idRaw = linha.getAttribute('data-id') || '';
+                const idColab = window.formatarCodigoId('COL', idRaw);
+                const nome = linha.getAttribute('data-nome') || '--';
+                const matricula = linha.getAttribute('data-matricula') || '--';
+                const cpf = linha.getAttribute('data-cpf') || '--';
+                const base = linha.getAttribute('data-base') || '--';
+                const setor = linha.getAttribute('data-setor') || '--';
+                const email = linha.getAttribute('data-email') || '--';
+                const celular = linha.getAttribute('data-celular') || '--';
+                const perfilRaw = linha.getAttribute('data-role') || '';
+                const perfil = perfilRaw.toUpperCase();
+                const usuario = '@' + (linha.getAttribute('data-username') || '--');
+                const chamados = (linha.getAttribute('data-total-chamados') || '0') + ' chamado(s)';
+
+                if (perfil.includes('ADMIN')) {
+                    qtdAdmins++;
+                } else {
+                    qtdCoords++;
+                }
+
+                linhasVisiveis.push([
+                    itemNum,
+                    idColab,
+                    nome,
+                    matricula,
+                    cpf,
+                    base,
+                    setor,
+                    email,
+                    celular,
+                    perfil,
+                    usuario,
+                    chamados
+                ]);
+            }
+        });
+
+        // Monta resumo dos filtros ativos aplicados em tela
+        const partesFiltros = [];
+        if (baseFiltroAtivo && baseFiltroAtivo !== 'todas') partesFiltros.push(`Base: ${baseFiltroAtivo}`);
+        if (setorFiltroAtivo && setorFiltroAtivo !== 'todos') partesFiltros.push(`Setor: ${setorFiltroAtivo}`);
+
+        const buscaTexto = (document.getElementById('filtroTextoColab')?.value || '').trim();
+        if (buscaTexto) partesFiltros.push(`Busca por Texto: "${buscaTexto}"`);
+
+        const filtrosDescricao = partesFiltros.length > 0 ? partesFiltros.join(' | ') : 'Nenhum filtro aplicado (Exibindo todos os colaboradores)';
+
+        const cabecalhos = [
+            'ITEM',
+            'ID FUNCIONAL',
+            'NOME COMPLETO',
+            'MATRÍCULA GERAL',
+            'CPF',
+            'BASE OPERACIONAL',
+            'SETOR / DEPARTAMENTO',
+            'E-MAIL CORPORATIVO',
+            'CELULAR / WHATSAPP',
+            'PERFIL DE ACESSO',
+            'USUÁRIO DE ACESSO',
+            'TOTAL DE CHAMADOS CRIADOS'
+        ];
+
+        window.exportarRelatorioExecutivo({
+            nomeArquivo: 'quadro_colaboradores',
+            tituloModulo: 'Quadro Geral de Colaboradores e Solicitantes',
+            operador: '{{ current_user.username }} (Administrador)',
+            filtrosDescricao: filtrosDescricao,
+            cabecalhos: cabecalhos,
+            linhasDados: linhasVisiveis,
+            resumoKpis: [
+                { rotulo: 'Total de Colaboradores Listados:', valor: `${linhasVisiveis.length} pessoa(s)` },
+                { rotulo: 'Administradores:', valor: `${qtdAdmins} pessoa(s)` },
+                { rotulo: 'Coordenadores / Solicitantes:', valor: `${qtdCoords} pessoa(s)` }
+            ],
+            formato: formato
+        });
+    }
+
+    // Alias retrocompatível
+    function exportarColaboradoresCSV() {
+        exportarColaboradores('csv');
+    }
+
+    // Centralized Event Delegation for data-action in Colaboradores
+    document.addEventListener('click', function(e) {
+        const el = e.target.closest('[data-action]');
+        if (!el) return;
+        const action = el.getAttribute('data-action');
+        if (action === 'resetar-filtros') {
+            resetarFiltrosColab();
+        } else if (action === 'navegar-solicitacoes') {
+            window.location.href = '/meus-chamados';
+        } else if (action === 'filtrar-base') {
+            filtrarBaseColab(el.getAttribute('data-base'), el);
+        } else if (action === 'filtrar-setor') {
+            filtrarSetorColab(el.getAttribute('data-setor'), el);
+        } else if (action === 'limpar-texto') {
+            limparBuscaTextoColab();
+        } else if (action === 'exportar') {
+            exportarColaboradores(el.getAttribute('data-formato') || 'csv');
+        } else if (action === 'alternar-detalhes') {
+            alternarDetalhesColab(el.getAttribute('data-id'));
+        } else if (action === 'copiar') {
+            copiarDado(el, el.getAttribute('data-texto'));
+        }
+    });
+
+</script>
+{% endblock %}

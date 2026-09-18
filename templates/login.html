@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Cavere — Sistema de Gestão e Controle de Cautelas de Equipamentos Operacionais. Ambipar Industrial.">
+    <title>Acessar o Sistema • Cavere Ambipar</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        :root {
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+
+            /* Paleta Ambipar Industrial Light */
+            --background: #f8fafc;
+            --background-card: #ffffff;
+            --background-input: #ffffff;
+            --border: #e2e8f0;
+            --border-hover: #cbd5e1;
+            --border-focus: #CEDC00;
+
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+
+            --lime: #CEDC00;
+            --lime-hover: #b8c500;
+            --lime-glow: rgba(206, 220, 0, 0.45);
+            --lime-surface: rgba(206, 220, 0, 0.12);
+
+            --radius: 4px;
+        }
+
+        i[data-lucide], svg.lucide {
+            width: 1.125rem;
+            height: 1.125rem;
+            stroke-width: 1.75;
+            vertical-align: -0.125em;
+            display: inline-block;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            min-height: 100%;
+            margin: 0;
+            padding: 0;
+            background-color: var(--background);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 24px 16px;
+            background-color: #f8fafc;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(206, 220, 0, 0.18) 0%, transparent 48%),
+                radial-gradient(circle at 85% 90%, rgba(226, 232, 240, 0.7) 0%, transparent 40%);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .shader-canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+            opacity: 1;
+        }
+
+        .shader-canvas-container.loaded {
+            opacity: 1;
+        }
+
+        .shader-canvas-container canvas {
+            width: 100% !important;
+            height: 100% !important;
+            display: block;
+        }
+
+        .shader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+            pointer-events: none;
+            background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.35) 0%, rgba(248, 250, 252, 0.6) 100%);
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 410px;
+            margin: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        .auth-brand {
+            text-align: center;
+            margin-bottom: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .auth-logo-text {
+            font-size: 3.25rem;
+            font-weight: 900;
+            font-family: var(--font-sans);
+            letter-spacing: -0.03em;
+            color: var(--text-primary);
+            margin: 0 0 6px 0;
+            line-height: 1;
+            user-select: none;
+        }
+
+        .brand-meta {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .brand-highlight {
+            color: #484f00;
+            font-weight: 700;
+        }
+
+        .pulse-live {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--lime);
+            box-shadow: 0 0 8px rgba(206, 220, 0, 0.9);
+            animation: pulseGlow 2s infinite ease-in-out;
+            display: inline-block;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.85); }
+        }
+
+        .auth-alerts {
+            width: 100%;
+            margin-bottom: 16px;
+        }
+
+        .auth-alert {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 11px 14px;
+            border-radius: var(--radius);
+            font-size: 0.8125rem;
+            font-family: var(--font-mono);
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 16px -4px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+            position: relative;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .auth-alert-text {
+            flex: 1;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
+        .auth-alert-close {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+            padding: 3px;
+            margin: 0;
+            color: currentColor;
+            opacity: 0.55;
+            cursor: pointer;
+            border-radius: 4px;
+            line-height: 1;
+            flex-shrink: 0;
+            transition: opacity 150ms ease, background-color 150ms ease, transform 100ms ease;
+        }
+
+        .auth-alert-close:hover {
+            opacity: 1;
+            background-color: rgba(0, 0, 0, 0.06);
+        }
+
+        .auth-alert-close:active {
+            transform: scale(0.92);
+        }
+
+        .auth-alert-close i,
+        .auth-alert-close svg {
+            width: 14px !important;
+            height: 14px !important;
+            stroke-width: 2.2 !important;
+            display: block;
+            pointer-events: none;
+        }
+
+        /* Ambipar Technical Color System for Notifications */
+        .auth-alert-info {
+            color: #303700 !important;
+            border-color: rgba(206, 220, 0, 0.55) !important;
+            border-left: 3.5px solid #a6b500 !important;
+            background: rgba(251, 253, 230, 0.95) !important;
+        }
+        .auth-alert-info i,
+        .auth-alert-info svg {
+            color: #556000 !important;
+        }
+
+        .auth-alert-success {
+            color: #14532d !important;
+            border-color: #bbf7d0 !important;
+            border-left: 3.5px solid #16a34a !important;
+            background: rgba(240, 253, 244, 0.95) !important;
+        }
+        .auth-alert-success i,
+        .auth-alert-success svg {
+            color: #16a34a !important;
+        }
+
+        .auth-alert-warning {
+            color: #78350f !important;
+            border-color: #fde68a !important;
+            border-left: 3.5px solid #d97706 !important;
+            background: rgba(255, 251, 235, 0.95) !important;
+        }
+        .auth-alert-warning i,
+        .auth-alert-warning svg {
+            color: #d97706 !important;
+        }
+
+        .auth-alert-danger {
+            color: #7f1d1d !important;
+            border-color: #fecaca !important;
+            border-left: 3.5px solid #dc2626 !important;
+            background: rgba(254, 242, 242, 0.95) !important;
+        }
+        .auth-alert-danger i,
+        .auth-alert-danger svg {
+            color: #dc2626 !important;
+        }
+
+        .auth-card {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(226, 232, 240, 0.95);
+            border-radius: 8px;
+            box-shadow: 0 20px 45px -12px rgba(15, 23, 42, 0.08), 0 2px 6px rgba(15, 23, 42, 0.04);
+            overflow: hidden;
+        }
+
+        .auth-card-body {
+            padding: 28px 24px;
+        }
+
+        .auth-card-heading {
+            margin-bottom: 22px;
+        }
+
+        .auth-card-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+            letter-spacing: -0.02em;
+            text-transform: uppercase;
+            margin: 0 0 4px 0;
+        }
+
+        .auth-card-desc {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .cv-input-box {
+            display: flex;
+            align-items: center;
+            height: 42px;
+            border: 1px solid var(--border-hover);
+            border-radius: var(--radius);
+            background: var(--background-input);
+            transition: border-color 150ms ease, box-shadow 150ms ease;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .cv-input-box:focus-within {
+            border-color: #a3bd00 !important;
+            box-shadow: 0 0 0 3px rgba(206, 220, 0, 0.28) !important;
+        }
+
+        .cv-input-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 100%;
+            color: var(--text-muted);
+            flex-shrink: 0;
+            transition: color 150ms ease;
+        }
+
+        .cv-input-box:focus-within .cv-input-icon {
+            color: #484f00;
+        }
+
+        .cv-input-field {
+            flex: 1;
+            height: 100%;
+            border: none !important;
+            outline: none !important;
+            box-shadow: none !important;
+            padding: 0 14px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            background: transparent;
+        }
+
+        .cv-input-field::placeholder {
+            color: #94a3b8;
+            font-size: 0.8125rem;
+        }
+
+        .btn-toggle-pw {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 100%;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0;
+            flex-shrink: 0;
+            transition: color 150ms ease;
+        }
+
+        .btn-toggle-pw:hover {
+            color: var(--text-primary);
+        }
+
+        .btn-submit {
+            width: 100%;
+            height: 42px;
+            background: var(--lime);
+            color: #050505;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            font-weight: 700;
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: background-color 150ms ease, box-shadow 150ms ease, transform 100ms ease;
+            margin-top: 20px;
+            box-shadow: 0 2px 8px rgba(206, 220, 0, 0.3);
+        }
+
+        .btn-submit:hover {
+            background: var(--lime-hover);
+            box-shadow: 0 4px 16px rgba(206, 220, 0, 0.45);
+        }
+
+        .btn-submit:active {
+            transform: scale(0.99);
+        }
+
+        .auth-system-footer {
+            margin-top: 24px;
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+            line-height: 1.6;
+        }
+
+        .auth-system-footer strong {
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .auth-system-security {
+            margin-top: 6px;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        /* ===== CAVERE LOADING ANIMATION ===== */
+        #cavere-loader {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: #CEDC00;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            clip-path: circle(150% at 50% 50%);
+            transition: clip-path 1s cubic-bezier(0.76, 0, 0.24, 1);
+        }
+        #cavere-loader.fade-out {
+            clip-path: circle(0% at 50% 50%);
+            pointer-events: none;
+        }
+        #cavere-loader canvas { display: block; touch-action: none; }
+    </style>
+</head>
+<body>
+    <div id="shader-background" class="shader-canvas-container"></div>
+    <div class="shader-overlay"></div>
+
+    <!-- ===== CAVERE LOADING ANIMATION OVERLAY ===== -->
+    <div id="cavere-loader" aria-hidden="true">
+        <canvas id="cavere-loader-canvas"></canvas>
+    </div>
+    <script>
+    (function() {
+        const FLAG = 'cavere_loaded_session';
+        const loader = document.getElementById('cavere-loader');
+        const canvas = document.getElementById('cavere-loader-canvas');
+        if (!loader || !canvas) return;
+
+        if (sessionStorage.getItem(FLAG)) {
+            loader.style.display = 'none';
+            return;
+        }
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) { loader.style.display = 'none'; return; }
+
+        const W = Math.min(window.innerWidth * 0.88, 520);
+        const H = 120;
+        const DPR = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width  = Math.round(W * DPR);
+        canvas.height = Math.round(H * DPR);
+        canvas.style.width  = W + 'px';
+        canvas.style.height = H + 'px';
+        ctx.scale(DPR, DPR);
+
+        const COLOR = '#000000';
+        const FONT_SIZE = W < 380 ? 58 : 72;
+
+        function sampleText(text) {
+            const off = document.createElement('canvas');
+            off.width = W; off.height = H;
+            const oc = off.getContext('2d', { willReadFrequently: true });
+            let fStr = '900 ' + FONT_SIZE + 'px Inter, Arial, sans-serif';
+            oc.font = fStr;
+            if (oc.measureText(text).width < 30) {
+                fStr = '900 ' + FONT_SIZE + 'px Arial, sans-serif';
+                oc.font = fStr;
+            }
+            oc.fillStyle = '#000';
+            oc.textAlign = 'center';
+            oc.textBaseline = 'middle';
+            const chars = text.split('');
+            const gap   = chars.length > 1 ? 4 : 0;
+            const ws    = chars.map(c => oc.measureText(c).width);
+            const total = ws.reduce((a,b) => a+b, 0) + gap*(chars.length-1);
+            let sx = (W - total) / 2;
+            const cy = H / 2;
+            chars.forEach((c, i) => { oc.fillText(c, sx + ws[i]/2, cy); sx += ws[i] + gap; });
+            const data = oc.getImageData(0,0,W,H).data;
+            const pts  = [];
+            const step = 2;
+            const minY = Math.max(0, Math.floor(cy - FONT_SIZE * 0.55));
+            const maxY = Math.min(H-1, Math.ceil(cy + FONT_SIZE * 0.55));
+            for (let y = minY; y <= maxY; y += step)
+                for (let x = 0; x < W; x += step)
+                    if (data[(y*W+x)*4+3] > 70) pts.push({x, y});
+            return pts;
+        }
+
+        let parts = [];
+        function initParticles() {
+            const ptsCav = sampleText('CAVERE');
+            const ptsC   = sampleText('C');
+            const cCX = ptsC.reduce((a,b) => a+b.x, 0) / (ptsC.length || 1);
+            const cCY = ptsC.reduce((a,b) => a+b.y, 0) / (ptsC.length || 1);
+            parts = ptsCav.map((pCav, i) => {
+                const pC    = ptsC[i % ptsC.length];
+                const angle = Math.random() * Math.PI * 2;
+                const dist  = Math.random() * 65 + 25;
+                return {
+                    startX: cCX + Math.cos(angle) * dist,
+                    startY: cCY + Math.sin(angle) * dist,
+                    cX: pC.x, cY: pC.y,
+                    baseX: pCav.x, baseY: pCav.y,
+                    size:  Math.random() * 0.4 + 1.6,
+                    phase: Math.random() * Math.PI * 2
+                };
+            });
+        }
+
+        const T0 = 1300, T1 = 650, T2 = 1500, T3 = 600;
+        let phase = 0, phaseStart = null, raf = null, time = 0;
+
+        function lerp(a,b,t)  { return a + (b-a) * Math.min(1, Math.max(0, t)); }
+        function easeOut3(t)  { return 1 - Math.pow(1-t, 3); }
+        function easeInOut(t) { return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2; }
+
+        function exitLoader() {
+            cancelAnimationFrame(raf);
+            sessionStorage.setItem(FLAG, '1');
+
+            loader.classList.add('fade-out');
+            loader.addEventListener('transitionend', () => {
+                loader.style.display = 'none';
+            }, { once: true });
+            setTimeout(() => { loader.style.display = 'none'; }, 1200);
+        }
+
+        function draw(ts) {
+            if (!phaseStart) phaseStart = ts;
+            const elapsed = ts - phaseStart;
+            time += 0.025;
+            ctx.clearRect(0, 0, W, H);
+
+            if (phase === 0) {
+                const t = easeOut3(elapsed / T0);
+                for (const p of parts) {
+                    const idle = Math.sin(time + p.phase) * (1 - t) * 4;
+                    ctx.fillStyle = COLOR;
+                    ctx.fillRect(lerp(p.startX, p.cX, t), lerp(p.startY, p.cY, t) + idle, p.size, p.size);
+                }
+                if (elapsed >= T0) { phase = 1; phaseStart = ts; }
+            } else if (phase === 1) {
+                const idle = Math.sin(time * 1.4) * 0.35;
+                for (const p of parts) {
+                    ctx.fillStyle = COLOR;
+                    ctx.fillRect(p.cX, p.cY + idle * Math.sin(p.phase), p.size, p.size);
+                }
+                if (elapsed >= T1) { phase = 2; phaseStart = ts; }
+            } else if (phase === 2) {
+                const t = easeInOut(elapsed / T2);
+                for (const p of parts) {
+                    ctx.fillStyle = COLOR;
+                    ctx.fillRect(lerp(p.cX, p.baseX, t), lerp(p.cY, p.baseY, t), p.size, p.size);
+                }
+                if (elapsed >= T2) { phase = 3; phaseStart = ts; }
+            } else if (phase === 3) {
+                const idle = Math.sin(time) * 0.35;
+                for (const p of parts) {
+                    ctx.fillStyle = COLOR;
+                    ctx.fillRect(p.baseX, p.baseY + idle * Math.sin(p.phase), p.size, p.size);
+                }
+                if (elapsed >= T3) { exitLoader(); return; }
+            }
+            raf = requestAnimationFrame(draw);
+        }
+
+        function start() { initParticles(); raf = requestAnimationFrame(draw); }
+
+        if (document.fonts && document.fonts.load) {
+            document.fonts.load('900 ' + FONT_SIZE + 'px Inter').then(start).catch(start);
+        } else {
+            setTimeout(start, 80);
+        }
+    })();
+    </script>
+
+
+    <div class="auth-container">
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="auth-alerts">
+                {% for category, message in messages %}
+                <div class="auth-alert auth-alert-{{ category }} alert fade show" role="alert">
+                    {% if category == 'success' %}
+                        <i data-lucide="check-circle" class="flex-shrink-0" style="width:1.1rem; height:1.1rem;"></i>
+                    {% elif category == 'danger' %}
+                        <i data-lucide="alert-octagon" class="flex-shrink-0" style="width:1.1rem; height:1.1rem;"></i>
+                    {% elif category == 'warning' %}
+                        <i data-lucide="alert-triangle" class="flex-shrink-0" style="width:1.1rem; height:1.1rem;"></i>
+                    {% else %}
+                        <i data-lucide="info" class="flex-shrink-0" style="width:1.1rem; height:1.1rem;"></i>
+                    {% endif %}
+                    <span class="auth-alert-text">{{ message }}</span>
+                    <button type="button" class="auth-alert-close" data-bs-dismiss="alert" aria-label="Fechar" title="Fechar">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="auth-brand">
+            <h1 class="auth-logo-text">CAVERE</h1>
+            <div class="brand-meta">
+                <span class="pulse-live"></span>
+                <span class="brand-highlight">Ambipar Industrial</span>
+                <span>//</span>
+                <span>Sistema T.I</span>
+            </div>
+        </div>
+
+        <div class="auth-card">
+            <div class="auth-card-body">
+                <div class="auth-card-heading">
+                    <h2 class="auth-card-title">Acessar o Sistema</h2>
+                    <p class="auth-card-desc">Entre com suas credenciais operacionais para gerenciar cautelas e ativos</p>
+                </div>
+
+                <form action="/login{% if request.args.get('next') %}?next={{ request.args.get('next') }}{% endif %}" method="POST" id="formLogin">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="form-group">
+                        <label class="form-label" for="inputUsername">Usuário</label>
+                        <div class="cv-input-box">
+                            <input type="text" class="cv-input-field" id="inputUsername" name="username"
+                                   placeholder="Digite seu usuário corporativo" required autofocus autocomplete="username">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="inputSenha">Senha</label>
+                        <div class="cv-input-box">
+                            <input type="password" class="cv-input-field" id="inputSenha" name="senha"
+                                   placeholder="Digite sua senha de acesso" required autocomplete="current-password">
+                            <button type="button" class="btn-toggle-pw" id="toggleSenha" title="Exibir ou ocultar senha" tabindex="-1">
+                                <i data-lucide="eye" id="iconeSenha"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-submit" id="btnAcessar">
+                        <span>Acessar o Sistema</span>
+                        <i data-lucide="arrow-right" style="width:1.15rem; height:1.15rem;"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="auth-system-footer">
+            <div><strong>Cavere</strong> &bull; Gestão e Controle Patrimonial</div>
+            <div class="auth-system-security">
+                <span>Ambiente seguro com acesso restrito a colaboradores autorizados</span>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const toggleBtn = document.getElementById('toggleSenha');
+        const inputSenha = document.getElementById('inputSenha');
+
+        if (toggleBtn && inputSenha) {
+            toggleBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const icon = document.createElement('i');
+                icon.id = 'iconeSenha';
+                if (inputSenha.type === 'password') {
+                    inputSenha.type = 'text';
+                    icon.setAttribute('data-lucide', 'eye-off');
+                    toggleBtn.setAttribute('title', 'Ocultar senha');
+                } else {
+                    inputSenha.type = 'password';
+                    icon.setAttribute('data-lucide', 'eye');
+                    toggleBtn.setAttribute('title', 'Exibir senha');
+                }
+                toggleBtn.replaceChildren(icon);
+                if (window.lucide) {
+                    lucide.createIcons();
+                }
+            });
+        }
+
+        const formLogin = document.getElementById('formLogin');
+        const btnAcessar = document.getElementById('btnAcessar');
+        if (formLogin && btnAcessar) {
+            formLogin.addEventListener('submit', function() {
+                btnAcessar.disabled = true;
+                const spinner = document.createElement('span');
+                spinner.className = 'spinner-border spinner-border-sm';
+                spinner.setAttribute('role', 'status');
+                spinner.setAttribute('aria-hidden', 'true');
+                spinner.style.color = '#050505';
+                const label = document.createElement('span');
+                label.textContent = 'Validando credenciais...';
+                btnAcessar.replaceChildren(spinner, label);
+            });
+        }
+
+        document.addEventListener('click', function(e) {
+            const closeBtn = e.target.closest('.auth-alert-close');
+            if (closeBtn) {
+                const alertEl = closeBtn.closest('.alert');
+                if (alertEl) {
+                    alertEl.classList.remove('show');
+                    setTimeout(() => alertEl.remove(), 150);
+                }
+            }
+        });
+
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+    </script>
+
+    <!-- Logo estático CAVERE -->
+
+    
+
+    <!-- Paper Shaders WebGL Gradient Background (Ambipar Industrial Colors) -->
+    <script type="module">
+        import {
+            ShaderMount,
+            grainGradientFragmentShader,
+            getShaderColorFromString,
+            getShaderNoiseTexture,
+            ShaderFitOptions,
+            GrainGradientShapes
+        } from "/static/vendor/paper-shaders.js";
+
+        const container = document.getElementById("shader-background");
+
+        if (container) {
+            try {
+                // Pre-decode noise texture so WebGL texture upload never fails or throws
+                const noiseTexture = getShaderNoiseTexture();
+                if (noiseTexture) {
+                    if (noiseTexture.decode) {
+                        try { await noiseTexture.decode(); } catch (_) {}
+                    }
+                    if (!noiseTexture.complete || noiseTexture.naturalWidth === 0) {
+                        await new Promise((resolve) => {
+                            noiseTexture.onload = resolve;
+                            noiseTexture.onerror = resolve;
+                            setTimeout(resolve, 200);
+                        });
+                    }
+                }
+
+                // Ambipar Industrial Signature Colors & Grain Gradient Config
+                const uniforms = {
+                    u_colorBack: getShaderColorFromString("#ffffff"),
+                    u_colors: [
+                        getShaderColorFromString("#CEDC00"), // Ambipar Electric Lime
+                        getShaderColorFromString("#dcf35a"), // Luminous Lime Light
+                        getShaderColorFromString("#a8d904")  // Vibrant Green Lime
+                    ],
+                    u_colorsCount: 3,
+                    u_softness: 0.76,
+                    u_intensity: 0.45,
+                    u_noise: 0,
+                    u_shape: GrainGradientShapes.corners || 4,
+                    u_noiseTexture: noiseTexture,
+                    u_fit: ShaderFitOptions.cover !== undefined ? ShaderFitOptions.cover : 2,
+                    u_scale: 1,
+                    u_rotation: 0,
+                    u_offsetX: 0,
+                    u_offsetY: 0,
+                    u_originX: 0.5,
+                    u_originY: 0.5,
+                    u_worldWidth: 0,
+                    u_worldHeight: 0
+                };
+
+                const mount = new ShaderMount(
+                    container,
+                    grainGradientFragmentShader,
+                    uniforms,
+                    undefined,
+                    1
+                );
+
+                if (mount) {
+                    container.classList.add("loaded");
+                }
+            } catch (err) {
+                console.warn("Shader gradient initialization fallback to CSS:", err);
+            }
+        }
+    </script>
+</body>
+</html>

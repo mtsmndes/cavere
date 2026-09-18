@@ -1,0 +1,15 @@
+Cavere.db
+*.db
+*.pdf
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+env/
+.antigravity/
+scratch/
+marketing-campaign-management/
+metaware-logo-particles/
+shader-gradient-component/
+.env
+.secret_key

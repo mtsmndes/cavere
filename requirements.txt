@@ -1,0 +1,20 @@
+# Dependências do Sistema Cavere (Gestão e Controle de Cautelas)
+# Pinned versions para conformidade de supply-chain e build reproduzível (IEC 62443 / OWASP A06)
+
+# Framework Web e Autenticação
+Flask==3.1.3
+Flask-Login==0.6.3
+Werkzeug==3.1.8
+
+# Servidores WSGI de Produção Hardened
+waitress==3.0.2
+gunicorn==23.0.0
+
+# Validação Rígida de Esquema e Dados
+pydantic==2.10.6
+
+# Geração de Termos e Cautelas em PDF
+weasyprint==70.0
+
+# Testes Automatizados e Auditoria de Segurança
+pytest==8.3.4

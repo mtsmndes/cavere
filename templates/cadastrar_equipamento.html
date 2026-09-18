@@ -1,0 +1,421 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="max-width:620px; margin:0 auto;">
+
+    <div class="cv-breadcrumb">
+        <a href="/"><i data-lucide="layout-dashboard" class="me-1"></i>Painel Principal</a>
+        <span class="sep">/</span>
+        <span class="current">Novo Equipamento</span>
+    </div>
+
+    <div class="surface-card">
+        <div class="surface-card-header">
+            <div>
+                <div style="font-size:1rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.04em; color:var(--text-primary);">
+                    Cadastrar Novo Equipamento
+                </div>
+                <div style="font-size:0.8125rem; color:var(--text-muted); margin-top:2px;">
+                    Adicionar novo ativo físico ao inventário operacional da base
+                </div>
+            </div>
+        </div>
+
+        <div class="surface-card-body">
+            <form action="/salvar-equipamento" method="POST" id="formEquipamento">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <!-- Tipo do Equipamento -->
+                <div style="margin-bottom:var(--space-4);">
+                    <label class="form-label" for="tipo">Tipo de Equipamento <span style="color:var(--status-danger-text);">*</span></label>
+                    <select class="form-select" name="tipo" id="tipo" required onchange="verificarTipo()">
+                        <option value="" disabled selected>Selecione o tipo de equipamento...</option>
+                        <option value="Notebook">Notebook</option>
+                        <option value="Celular">Celular / Smartphone</option>
+                        <option value="Monitor">Monitor</option>
+                        <option value="Câmera">Câmera</option>
+                        <option value="Rádio Comunicador">Rádio Comunicador</option>
+                        <option value="Detector de Gás">Detector de Gás</option>
+                        <option value="Tablet">Tablet</option>
+                        <option value="Teclado">Teclado</option>
+                        <option value="Mouse">Mouse</option>
+                        <option value="Headset">Headset</option>
+                        <option value="Nobreak / Estabilizador">Nobreak / Estabilizador</option>
+                        <option value="Periféricos / Acessórios">Periféricos / Acessórios</option>
+                        <option value="Outro">Outro</option>
+                    </select>
+                </div>
+
+                <!-- Modelo do Equipamento -->
+                <div style="margin-bottom:var(--space-4);">
+                    <label class="form-label" for="modelo">Modelo do Equipamento <span style="color:var(--status-danger-text);">*</span></label>
+                    <input type="text" class="form-control" name="modelo" id="modelo"
+                        placeholder="Ex: Dell Latitude 3420, Samsung Galaxy A54, Kodak Pixpro FZ55, etc." required>
+                </div>
+
+                <!-- Número de Patrimônio / Serial (SN) - AGORA OPCIONAL -->
+                <div style="margin-bottom:var(--space-4);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                        <label class="form-label mb-0" for="patrimonio">
+                            Número de Patrimônio / Serial (SN)
+                        </label>
+                        <span style="font-size:0.72rem; color:var(--text-muted); font-weight:500;">
+                            (Opcional - caso não possua ou esteja apagado)
+                        </span>
+                    </div>
+                    <div class="input-group">
+                        <span class="input-group-text"><i data-lucide="barcode"></i></span>
+                        <input type="text" class="form-control" name="patrimonio" id="patrimonio"
+                            placeholder="Ex: SN12345678 (deixe em branco se não houver ou estiver apagado)">
+                    </div>
+                    <div class="form-text" style="font-size:0.75rem;">
+                        Caso o ativo não possua número de série visível ou a etiqueta esteja apagada, pode deixar este campo em branco.
+                    </div>
+                </div>
+
+                <!-- Base Operacional -->
+                <div style="margin-bottom:var(--space-4);">
+                    <label class="form-label" for="base">Base Operacional / Alocação do Ativo <span style="color:var(--status-danger-text);">*</span></label>
+                    <select class="form-select" name="base" id="base" required>
+                        <option value="Tank" selected>Tank (Base Niterói - C-Tank)</option>
+                        <option value="TDBR">TDBR (Macaé / Inspeções Técnicas)</option>
+                        <option value="Repair">Repair (Naval / Reparos Industriais)</option>
+                        <option value="Escritório Central">Escritório Central (Recepção / Administrativo)</option>
+                    </select>
+                    <div class="form-text">Define a qual base ou divisão o equipamento pertence no inventário.</div>
+                </div>
+
+                <!-- Aquisição / Propriedade do Ativo (Próprio vs Alugado) -->
+                <div style="margin-bottom:var(--space-4); background:var(--background); border:1px solid var(--border); border-radius:2px; padding:var(--space-4);">
+                    <label class="form-label" style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-3);">
+                        <i data-lucide="building-2" style="color:var(--lime);"></i>
+                        <span style="font-weight:700; font-family:var(--font-mono); text-transform:uppercase; font-size:0.8125rem; color:var(--text-primary);">
+                            Modalidade de Aquisição <span style="color:var(--status-danger-text);">*</span>
+                        </span>
+                    </label>
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--space-3); margin-bottom:var(--space-3);">
+                        <label class="cv-tipo-opcao" style="border:1px solid var(--border); border-radius:2px; padding:var(--space-3); cursor:pointer; display:flex; align-items:flex-start; gap:var(--space-2); background:var(--surface);">
+                            <input type="radio" name="alugado" value="0" id="radioProprio" checked onchange="alternarPropriedade()" style="margin-top:3px; cursor:pointer;">
+                            <div>
+                                <div style="font-weight:600; font-size:0.875rem; color:var(--text-primary);">Próprio Ambipar</div>
+                                <div style="font-size:0.75rem; color:var(--text-muted);">Ativo permanente próprio da companhia</div>
+                            </div>
+                        </label>
+
+                        <label class="cv-tipo-opcao" style="border:1px solid var(--border); border-radius:2px; padding:var(--space-3); cursor:pointer; display:flex; align-items:flex-start; gap:var(--space-2); background:var(--surface);">
+                            <input type="radio" name="alugado" value="1" id="radioAlugado" onchange="alternarPropriedade()" style="margin-top:3px; cursor:pointer;">
+                            <div>
+                                <div style="font-weight:600; font-size:0.875rem; color:var(--text-primary);">Alugado / Locado</div>
+                                <div style="font-size:0.75rem; color:var(--text-muted);">Equipamento sob contrato de locação</div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Campo da Empresa Locadora exibido quando for Alugado -->
+                    <div id="bloco-locadora" style="display:none; padding-top:var(--space-3); border-top:1px dashed var(--border);">
+                        <label class="form-label" for="empresa_locadora">Empresa Responsável pelo Aluguel (Locadora) <span style="color:var(--status-danger-text);">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i data-lucide="handshake"></i></span>
+                            <input type="text" class="form-control" name="empresa_locadora" id="empresa_locadora"
+                                placeholder="Ex: LocaMaxx, TechRent, Dell Financial, etc.">
+                        </div>
+                        <div class="form-text">Informe a fornecedora terceirizada ou locadora contratual deste ativo.</div>
+                    </div>
+                </div>
+
+                <!-- BLOCO CONDICIONAL: NOTEBOOK (Hardware & Sistema Operacional) -->
+                <div id="bloco-notebook" style="display:none; margin-bottom:var(--space-4);">
+                    <div style="background:var(--background); border:1px solid var(--border); border-radius:2px; padding:var(--space-4);">
+                        <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-3); padding-bottom:var(--space-2); border-bottom:1px solid var(--border);">
+                            <i data-lucide="laptop" style="color:var(--lime); width:18px; height:18px;"></i>
+                            <span style="font-size:0.8125rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; color:var(--text-primary);">
+                                Especificações de Hardware & Sistema Operacional (Notebook)
+                            </span>
+                        </div>
+
+                        <!-- Sistema Operacional -->
+                        <div style="margin-bottom:var(--space-3);">
+                            <label class="form-label" for="so_notebook">Sistema Operacional (OS)</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i data-lucide="cpu"></i></span>
+                                <input type="text" class="form-control" name="sistema_operacional" id="so_notebook"
+                                    list="lista_so" placeholder="Ex: Windows 11 Pro, Windows 10 Pro, Ubuntu Linux...">
+                            </div>
+                            <datalist id="lista_so">
+                                <option value="Windows 11 Pro">
+                                <option value="Windows 11 Home">
+                                <option value="Windows 10 Pro">
+                                <option value="Windows 10 Home">
+                                <option value="Ubuntu Linux 24.04 LTS">
+                                <option value="Ubuntu Linux 22.04 LTS">
+                                <option value="Debian GNU/Linux">
+                                <option value="macOS Sequoia">
+                                <option value="macOS Sonoma">
+                            </datalist>
+                        </div>
+
+                        <!-- Processador (CPU) -->
+                        <div style="margin-bottom:var(--space-3);">
+                            <label class="form-label" for="processador_notebook">Processador (CPU)</label>
+                            <input type="text" class="form-control" name="processador" id="processador_notebook"
+                                list="lista_cpu" placeholder="Ex: Intel Core i5 (11ª Gen), Intel Core i7, AMD Ryzen 5...">
+                            <datalist id="lista_cpu">
+                                <option value="Intel Core i5 (11ª Gen)">
+                                <option value="Intel Core i5 (12ª Gen)">
+                                <option value="Intel Core i5 (13ª Gen)">
+                                <option value="Intel Core i7 (11ª Gen)">
+                                <option value="Intel Core i7 (12ª Gen)">
+                                <option value="Intel Core i7 (13ª Gen)">
+                                <option value="Intel Core i3">
+                                <option value="AMD Ryzen 5">
+                                <option value="AMD Ryzen 7">
+                                <option value="Apple M1 / M2 / M3">
+                            </datalist>
+                        </div>
+
+                        <!-- Memória RAM e Armazenamento em Grid -->
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--space-3);">
+                            <div>
+                                <label class="form-label" for="ram_notebook">Memória RAM</label>
+                                <input type="text" class="form-control" name="memoria_ram" id="ram_notebook"
+                                    list="lista_ram" placeholder="Ex: 16 GB">
+                                <datalist id="lista_ram">
+                                    <option value="4 GB">
+                                    <option value="8 GB">
+                                    <option value="16 GB">
+                                    <option value="32 GB">
+                                    <option value="64 GB">
+                                </datalist>
+                            </div>
+                            <div>
+                                <label class="form-label" for="armazenamento_notebook">Armazenamento (SSD / HD)</label>
+                                <input type="text" class="form-control" name="armazenamento" id="armazenamento_notebook"
+                                    list="lista_armazenamento" placeholder="Ex: 512 GB SSD">
+                                <datalist id="lista_armazenamento">
+                                    <option value="128 GB SSD">
+                                    <option value="256 GB SSD">
+                                    <option value="512 GB SSD">
+                                    <option value="1 TB SSD">
+                                    <option value="2 TB SSD">
+                                    <option value="1 TB HD">
+                                </datalist>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BLOCO CONDICIONAL: CELULAR / SMARTPHONE (IMEI & Armazenamento) -->
+                <div id="bloco-celular" style="display:none; margin-bottom:var(--space-4);">
+                    <div style="background:var(--background); border:1px solid var(--border); border-radius:2px; padding:var(--space-4);">
+                        <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-3); padding-bottom:var(--space-2); border-bottom:1px solid var(--border);">
+                            <i data-lucide="smartphone" style="color:var(--lime); width:18px; height:18px;"></i>
+                            <span style="font-size:0.8125rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; color:var(--text-primary);">
+                                Informações do Dispositivo Móvel
+                            </span>
+                        </div>
+                        <div style="margin-bottom:var(--space-3);">
+                            <label class="form-label" for="imei1">IMEI 1</label>
+                            <input type="text" class="form-control" name="imei1" id="imei1" placeholder="Digite o IMEI principal (15 dígitos)">
+                        </div>
+                        <div style="margin-bottom:var(--space-3);">
+                            <label class="form-label" for="imei2">IMEI 2 <span style="color:var(--text-muted); font-weight:400;">(Opcional - Dual SIM)</span></label>
+                            <input type="text" class="form-control" name="imei2" id="imei2" placeholder="Digite o IMEI secundário se houver">
+                        </div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--space-3);">
+                            <div>
+                                <label class="form-label" for="so_celular">Sistema (OS)</label>
+                                <input type="text" class="form-control" name="so_celular_sugestao" id="so_celular"
+                                    list="lista_so_celular" placeholder="Ex: Android 14, iOS 17"
+                                    oninput="document.getElementById('so_notebook').value = this.value">
+                                <datalist id="lista_so_celular">
+                                    <option value="Android 14">
+                                    <option value="Android 13">
+                                    <option value="Android 12">
+                                    <option value="iOS 17">
+                                    <option value="iOS 18">
+                                </datalist>
+                            </div>
+                            <div>
+                                <label class="form-label" for="arm_celular">Capacidade</label>
+                                <input type="text" class="form-control" name="arm_celular_sugestao" id="arm_celular"
+                                    list="lista_arm_celular" placeholder="Ex: 128 GB"
+                                    oninput="document.getElementById('armazenamento_notebook').value = this.value">
+                                <datalist id="lista_arm_celular">
+                                    <option value="64 GB">
+                                    <option value="128 GB">
+                                    <option value="256 GB">
+                                    <option value="512 GB">
+                                </datalist>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BLOCO CONDICIONAL: MONITOR -->
+                <div id="bloco-monitor" style="display:none; margin-bottom:var(--space-4);">
+                    <div style="background:var(--background); border:1px solid var(--border); border-radius:2px; padding:var(--space-4);">
+                        <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-3); padding-bottom:var(--space-2); border-bottom:1px solid var(--border);">
+                            <i data-lucide="monitor" style="color:var(--lime); width:18px; height:18px;"></i>
+                            <span style="font-size:0.8125rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; color:var(--text-primary);">
+                                Especificações do Monitor
+                            </span>
+                        </div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--space-3);">
+                            <div>
+                                <label class="form-label" for="monitor_polegadas">Tamanho da Tela</label>
+                                <input type="text" class="form-control" name="monitor_polegadas" id="monitor_polegadas"
+                                    list="lista_polegadas" placeholder="Ex: 24 polegadas">
+                                <datalist id="lista_polegadas">
+                                    <option value="19 polegadas">
+                                    <option value="21.5 polegadas">
+                                    <option value="23.8 polegadas">
+                                    <option value="24 polegadas Full HD">
+                                    <option value="27 polegadas Full HD / 2K">
+                                    <option value="29 polegadas Ultrawide">
+                                    <option value="32 polegadas">
+                                </datalist>
+                            </div>
+                            <div>
+                                <label class="form-label" for="monitor_conexoes">Entradas de Vídeo</label>
+                                <input type="text" class="form-control" name="monitor_conexoes" id="monitor_conexoes"
+                                    list="lista_entradas" placeholder="Ex: HDMI + DisplayPort">
+                                <datalist id="lista_entradas">
+                                    <option value="HDMI + DisplayPort">
+                                    <option value="HDMI + VGA">
+                                    <option value="HDMI">
+                                    <option value="DisplayPort + USB-C">
+                                    <option value="HDMI + DP + VGA">
+                                </datalist>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BLOCO CONDICIONAL: RÁDIO COMUNICADOR -->
+                <div id="bloco-radio" style="display:none; margin-bottom:var(--space-4);">
+                    <div style="background:var(--background); border:1px solid var(--border); border-radius:2px; padding:var(--space-4);">
+                        <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-3); padding-bottom:var(--space-2); border-bottom:1px solid var(--border);">
+                            <i data-lucide="radio" style="color:var(--lime); width:18px; height:18px;"></i>
+                            <span style="font-size:0.8125rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; color:var(--text-primary);">
+                                Configurações do Rádio Comunicador
+                            </span>
+                        </div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--space-3);">
+                            <div>
+                                <label class="form-label" for="radio_faixa">Faixa / Frequência</label>
+                                <input type="text" class="form-control" name="radio_faixa" id="radio_faixa"
+                                    list="lista_faixa" placeholder="Ex: VHF (136-174 MHz)">
+                                <datalist id="lista_faixa">
+                                    <option value="VHF (136-174 MHz)">
+                                    <option value="UHF (400-470 MHz)">
+                                    <option value="Digital DMR">
+                                </datalist>
+                            </div>
+                            <div>
+                                <label class="form-label" for="radio_canais">Canais Programados</label>
+                                <input type="text" class="form-control" name="radio_canais" id="radio_canais"
+                                    placeholder="Ex: 16 Canais / Canal 1 Base Tank">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BLOCO CONDICIONAL: DETECTOR DE GÁS -->
+                <div id="bloco-gas" style="display:none; margin-bottom:var(--space-4);">
+                    <div style="background:var(--background); border:1px solid var(--border); border-radius:2px; padding:var(--space-4);">
+                        <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-3); padding-bottom:var(--space-2); border-bottom:1px solid var(--border);">
+                            <i data-lucide="activity" style="color:var(--lime); width:18px; height:18px;"></i>
+                            <span style="font-size:0.8125rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; color:var(--text-primary);">
+                                Sensores e Calibração (Detector de Gás)
+                            </span>
+                        </div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--space-3);">
+                            <div>
+                                <label class="form-label" for="gas_sensores">Gases Monitorados</label>
+                                <input type="text" class="form-control" name="gas_sensores" id="gas_sensores"
+                                    list="lista_gases" placeholder="Ex: 4 Gases (O2, LEL, CO, H2S)">
+                                <datalist id="lista_gases">
+                                    <option value="4 Gases (O2, LEL, CO, H2S)">
+                                    <option value="Monogás H2S">
+                                    <option value="Monogás O2">
+                                    <option value="Monogás CO">
+                                    <option value="Monogás LEL">
+                                </datalist>
+                            </div>
+                            <div>
+                                <label class="form-label" for="gas_calibracao">Validade da Calibração</label>
+                                <input type="text" class="form-control" name="gas_calibracao" id="gas_calibracao"
+                                    placeholder="Ex: Válido até 12/2026">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Observações e Acessórios Adicionais (Geral para qualquer equipamento) -->
+                <div style="margin-bottom:var(--space-4);">
+                    <label class="form-label" for="especificacoes">
+                        Observações / Acessórios Inclusos <span style="color:var(--text-muted); font-weight:400;">(Opcional)</span>
+                    </label>
+                    <input type="text" class="form-control" name="especificacoes" id="especificacoes"
+                        placeholder="Ex: Acompanha fonte original 65W, cabo HDMI, case acolchoada, etc.">
+                    <div class="form-text">Registre informações adicionais de acessórios ou estado de conservação do ativo.</div>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; padding-top:var(--space-4); border-top:1px solid var(--border);">
+                    <a href="/" class="btn btn-secondary btn-sm">Cancelar</a>
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i data-lucide="plus-circle"></i> Salvar Equipamento
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function verificarTipo() {
+        let tipo = (document.getElementById('tipo').value || '').trim().toLowerCase();
+        
+        let blocoNotebook = document.getElementById('bloco-notebook');
+        let blocoCelular = document.getElementById('bloco-celular');
+        let blocoMonitor = document.getElementById('bloco-monitor');
+        let blocoRadio = document.getElementById('bloco-radio');
+        let blocoGas = document.getElementById('bloco-gas');
+        
+        let isNotebook = tipo === 'notebook' || tipo.includes('notebook') || tipo.includes('laptop');
+        let isCelular = tipo === 'celular' || tipo.includes('celular') || tipo.includes('smartphone');
+        let isMonitor = tipo === 'monitor' || tipo.includes('monitor');
+        let isRadio = tipo.includes('rádio') || tipo.includes('radio');
+        let isGas = tipo.includes('gás') || tipo.includes('gas');
+        
+        blocoNotebook.style.display = isNotebook ? 'block' : 'none';
+        blocoCelular.style.display = isCelular ? 'block' : 'none';
+        blocoMonitor.style.display = isMonitor ? 'block' : 'none';
+        blocoRadio.style.display = isRadio ? 'block' : 'none';
+        blocoGas.style.display = isGas ? 'block' : 'none';
+
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+    }
+
+    function alternarPropriedade() {
+        let isAlugado = document.getElementById('radioAlugado').checked;
+        let blocoLocadora = document.getElementById('bloco-locadora');
+        let campoLocadora = document.getElementById('empresa_locadora');
+        if (isAlugado) {
+            blocoLocadora.style.display = 'block';
+            campoLocadora.required = true;
+            campoLocadora.focus();
+        } else {
+            blocoLocadora.style.display = 'none';
+            campoLocadora.required = false;
+            campoLocadora.value = '';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        verificarTipo();
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,657 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- Hero / Page Banner -->
+<div class="cv-page-banner">
+    <div>
+        <div class="cv-breadcrumb">
+            <a href="/"><i data-lucide="layout-dashboard" class="me-1"></i>Painel Principal</a>
+            <span class="sep">/</span>
+            <span class="current">Gestão de Equipamentos</span>
+        </div>
+        <h1 class="cv-page-title" style="margin-bottom:4px;">
+            Inventário Geral de <span style="color:var(--lime);">Equipamentos</span>
+        </h1>
+        <p class="cv-page-subtitle">
+            Controle de inventário de ativos físicos, alocações por base, modalidade de locação e disponibilidade
+        </p>
+    </div>
+    <div style="display:flex; gap:var(--space-2); flex-wrap:wrap; align-items:center;">
+        <a href="/novo-equipamento" class="btn btn-primary btn-sm" title="Cadastrar novo ativo físico na base">
+            <i data-lucide="plus-circle"></i> Novo Equipamento
+        </a>
+    </div>
+</div>
+
+<!-- Glance Metric Cards -->
+<div class="row g-3" style="margin-bottom:var(--space-5);">
+    <div class="col-sm-6 col-lg-2">
+        <div class="cv-glance-card" data-action="resetar-filtros" role="button" tabindex="0" title="Ver todos os equipamentos cadastrados">
+            <div class="cv-glance-header">
+                <span class="cv-glance-label">Total de Ativos</span>
+            </div>
+            <div class="cv-glance-value" id="cardTotalAtivos">{{ metricas.total }}</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-2">
+        <div class="cv-glance-card" data-action="filtro-notebook" role="button" tabindex="0" title="Clique para filtrar apenas Notebooks">
+            <div class="cv-glance-header">
+                <span class="cv-glance-label">Notebooks</span>
+            </div>
+            <div class="cv-glance-value" style="color:var(--text-primary);">{{ metricas.notebooks }}</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-2">
+        <div class="cv-glance-card" data-action="filtro-prop" data-prop="alugado" role="button" tabindex="0" title="Clique para ver equipamentos alugados">
+            <div class="cv-glance-header">
+                <span class="cv-glance-label">Alugados</span>
+            </div>
+            <div class="cv-glance-value" style="color:#7e22ce;">{{ metricas.alugados }}</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-2">
+        <div class="cv-glance-card" data-action="filtro-prop" data-prop="proprio" role="button" tabindex="0" title="Clique para ver equipamentos próprios">
+            <div class="cv-glance-header">
+                <span class="cv-glance-label">Próprios Ambipar</span>
+            </div>
+            <div class="cv-glance-value">{{ metricas.proprios }}</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-2">
+        <div class="cv-glance-card" data-action="filtro-status" data-status="Disponível" role="button" tabindex="0" title="Clique para ver equipamentos disponíveis na base">
+            <div class="cv-glance-header">
+                <span class="cv-glance-label">Na Base (Disponíveis)</span>
+            </div>
+            <div class="cv-glance-value" style="color:var(--status-success-text);">{{ metricas.disponiveis }}</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-2">
+        <div class="cv-glance-card" data-action="filtro-status" data-status="Em Operação" role="button" tabindex="0" title="Clique para ver equipamentos em campo/operação">
+            <div class="cv-glance-header">
+                <span class="cv-glance-label">Em Operação</span>
+            </div>
+            <div class="cv-glance-value" style="color:var(--status-info-text);">{{ metricas.em_operacao }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Painel Principal de Inventário e Filtros -->
+<div class="surface-card" style="margin-bottom:var(--space-5);">
+    <div class="surface-card-header" style="padding:18px 20px; flex-wrap:wrap; gap:var(--space-3);">
+        <div>
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
+                <span style="font-size:0.875rem; font-weight:700; color:var(--text-primary); text-transform:uppercase; letter-spacing:0.05em; font-family:var(--font-mono); line-height:1.2;">
+                    Tabela de Ativos e Equipamentos
+                </span>
+                <span class="badge-notion badge-notion-gray" id="badgeContadorFiltrado" style="font-size:0.75rem; padding:2px 8px; font-weight:600;">
+                    {{ equipamentos|length }} ativos
+                </span>
+            </div>
+            <div style="font-size:0.8125rem; color:var(--text-muted);">
+                Filtre por tipo de equipamento, alocação operacional, número de série ou empresa locadora
+            </div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:var(--space-2);">
+            {% if current_user.role == 'admin' %}
+            <div class="btn-group btn-group-sm">
+                <button type="button" class="btn btn-primary btn-sm" data-action="exportar" data-formato="csv" title="Exportar equipamentos filtrados para planilha executiva CSV">
+                    <i data-lucide="download"></i> Exportar Dados
+                </button>
+                <button type="button" class="btn btn-primary btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false" title="Formatos de exportação">
+                    <span class="visually-hidden">Opções</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="font-size:0.8125rem;">
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center gap-2" href="javascript:void(0)" data-action="exportar" data-formato="csv">
+                            <i data-lucide="file-spreadsheet" class="text-success" style="width:14px;height:14px;"></i>
+                            <span>Planilha Executiva (.csv)</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center gap-2" href="javascript:void(0)" data-action="exportar" data-formato="xlsx">
+                            <i data-lucide="file-check" class="text-primary" style="width:14px;height:14px;"></i>
+                            <span>Planilha Excel (.xlsx)</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            {% endif %}
+            <button type="button" class="btn btn-outline-secondary btn-sm" data-action="resetar-filtros" title="Limpar todos os filtros">
+                <i data-lucide="rotate-ccw"></i> Limpar Filtros
+            </button>
+        </div>
+    </div>
+
+    <!-- Barra de Filtros Avançados -->
+    <div style="background:#f8fafc; border-bottom:1px solid var(--border); padding:var(--space-4);">
+        <div class="row g-2 align-items-center">
+            <!-- Busca Geral -->
+            <div class="col-12 col-md-4">
+                <label class="form-label" style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px;">
+                    Buscar Modelo / Serial (SN) / Locadora
+                </label>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text"><i data-lucide="search"></i></span>
+                    <input type="text" id="filtroTextoEquip" class="form-control"
+                           placeholder="Digite modelo, serial, base ou locadora..."
+                           onkeyup="aplicarFiltrosEquipamentos()">
+                    <button class="btn btn-outline-secondary" type="button" id="btnLimparTextoEquip" data-action="limpar-texto" style="display:none;">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filtro de Tipo -->
+            <div class="col-6 col-md-2">
+                <label class="form-label" style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px;">
+                    Tipo
+                </label>
+                <select class="form-select form-select-sm" id="selectTipoEquip" onchange="aplicarFiltrosEquipamentos()">
+                    <option value="todos" selected>Todos os Tipos</option>
+                    <option value="notebook">Notebooks</option>
+                    <option value="celular">Celulares</option>
+                    <option value="camera">Câmeras</option>
+                    <option value="monitor">Monitores</option>
+                    <option value="teclado">Teclados</option>
+                    <option value="mouse">Mouses</option>
+                    <option value="headset">Headsets</option>
+                    <option value="radio">Rádios</option>
+                    <option value="tablet">Tablets</option>
+                    <option value="outro">Outros</option>
+                </select>
+            </div>
+
+            <!-- Filtro de Base -->
+            <div class="col-6 col-md-2">
+                <label class="form-label" style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px;">
+                    Base Operacional
+                </label>
+                <select class="form-select form-select-sm" id="selectBaseEquip" onchange="aplicarFiltrosEquipamentos()">
+                    <option value="todas" selected>Todas as Bases</option>
+                    <option value="Tank">Tank (Niterói)</option>
+                    <option value="TDBR">TDBR (Macaé)</option>
+                    <option value="Repair">Repair (Naval)</option>
+                    <option value="Escritório Central">Escritório Central</option>
+                </select>
+            </div>
+
+            <!-- Filtro de Aquisição (Próprio vs Alugado) -->
+            <div class="col-6 col-md-2">
+                <label class="form-label" style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px;">
+                    Propriedade
+                </label>
+                <select class="form-select form-select-sm" id="selectPropriedadeEquip" onchange="aplicarFiltrosEquipamentos()">
+                    <option value="todas" selected>Todas Modalidades</option>
+                    <option value="proprio">Próprio Ambipar</option>
+                    <option value="alugado">Alugado (Locação)</option>
+                </select>
+            </div>
+
+            <!-- Filtro de Status -->
+            <div class="col-6 col-md-2">
+                <label class="form-label" style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px;">
+                    Status
+                </label>
+                <select class="form-select form-select-sm" id="selectStatusEquip" onchange="aplicarFiltrosEquipamentos()">
+                    <option value="todos" selected>Todos os Status</option>
+                    <option value="Disponível">Disponível na Base</option>
+                    <option value="Em Operação">Em Operação (Campo)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabela de Inventário -->
+    <div style="overflow-x:auto;">
+        {% if equipamentos %}
+        <table class="table table-hover align-middle table-enterprise cv-table-uniform mb-0" id="tabelaListaEquipamentos">
+            <thead>
+                <tr>
+                    <th class="ps-4" style="width:70px;">ID</th>
+                    <th>Equipamento</th>
+                    <th>Patrimônio / Serial (SN)</th>
+                    <th>Base Operacional</th>
+                    <th>Status</th>
+                    <th class="text-center pe-4" style="min-width:130px;">Ação</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for eq in equipamentos %}
+                <tr class="linha-equipamento"
+                    data-id="{{ eq.id }}"
+                    data-tipo="{{ eq.categoria }}"
+                    data-tipo-nome="{{ eq.tipo }}"
+                    data-modelo="{{ eq.modelo|replace('"', '&quot;') }}"
+                    data-sn="{{ eq.patrimonio_sn or '' }}"
+                    data-is-notebook="{{ '1' if eq.is_notebook else '0' }}"
+                    data-base="{{ eq.base }}"
+                    data-propriedade="{{ 'alugado' if eq.alugado else 'proprio' }}"
+                    data-propriedade-nome="{{ 'Alugado' if eq.alugado else 'Próprio Ambipar' }}"
+                    data-locadora="{{ eq.empresa_locadora or '' }}"
+                    data-status="{{ eq.status }}"
+                    data-so="{{ eq.sistema_operacional or '' }}"
+                    data-cpu="{{ eq.processador or '' }}"
+                    data-ram="{{ eq.memoria_ram or '' }}"
+                    data-disco="{{ eq.armazenamento or '' }}"
+                    data-imei1="{{ eq.imei_1 or '' }}"
+                    data-imei2="{{ eq.imei_2 or '' }}"
+                    data-obs="{{ eq.especificacoes or '' }}"
+                    data-busca="{{ eq.id }} {{ eq.tipo }} {{ eq.modelo }} {{ eq.patrimonio_sn or '' }} {{ eq.base }} {{ eq.status }} {{ eq.empresa_locadora }} {{ eq.imei_1 or '' }} {{ eq.imei_2 or '' }} {{ eq.processador or '' }} {{ eq.memoria_ram or '' }} {{ eq.armazenamento or '' }} {{ eq.sistema_operacional or '' }} {{ eq.especificacoes or '' }}">
+                    
+                    <td class="ps-4">
+                        <code style="font-size:0.8125rem; font-weight:700; color:var(--text-muted);">#{{ eq.id }}</code>
+                    </td>
+
+                    <td>
+                        <div>
+                            <div style="font-weight:600; font-size:0.875rem; color:var(--text-primary);">
+                                {{ eq.modelo }}
+                            </div>
+                            <div style="font-size:0.75rem; color:var(--text-muted); margin-top:1px;">
+                                <span style="font-weight:500;">{{ eq.tipo }}</span>
+                                {% if eq.sistema_operacional or eq.processador or eq.memoria_ram or eq.armazenamento %}
+                                <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:4px;">
+                                    {% if eq.sistema_operacional %}
+                                    <span class="badge-notion badge-notion-blue" style="font-size:0.68rem; padding:1px 6px;">
+                                        <i data-lucide="cpu" style="width:11px; height:11px; margin-right:3px;"></i>{{ eq.sistema_operacional }}
+                                    </span>
+                                    {% endif %}
+                                    {% if eq.processador %}
+                                    <span class="badge-notion badge-notion-gray" style="font-size:0.68rem; padding:1px 6px;">
+                                        {{ eq.processador }}
+                                    </span>
+                                    {% endif %}
+                                    {% if eq.memoria_ram %}
+                                    <span class="badge-notion badge-notion-gray" style="font-size:0.68rem; padding:1px 6px;">
+                                        {{ eq.memoria_ram }} RAM
+                                    </span>
+                                    {% endif %}
+                                    {% if eq.armazenamento %}
+                                    <span class="badge-notion badge-notion-gray" style="font-size:0.68rem; padding:1px 6px;">
+                                        {{ eq.armazenamento }}
+                                    </span>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                                {% if eq.especificacoes %}
+                                <div style="font-size:0.72rem; color:var(--text-muted); margin-top:3px; display:flex; align-items:center; gap:4px;">
+                                    <i data-lucide="info" style="width:12px; height:12px; flex-shrink:0;"></i>
+                                    <span>{{ eq.especificacoes }}</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+
+                    <td>
+                        <div style="display:flex; flex-direction:column; gap:2px;">
+                            <div>
+                                {% if eq.patrimonio_sn %}
+                                <code style="font-size:0.8125rem; font-weight:700; color:var(--text-primary); background:rgba(0,0,0,0.04); padding:2px 6px; border-radius:2px; border:1px solid var(--border);">
+                                    {{ eq.patrimonio_sn }}
+                                </code>
+                                {% else %}
+                                <span class="badge-notion badge-notion-gray" style="font-size:0.75rem; padding:2px 6px; font-weight:500;">
+                                    <i data-lucide="hash" style="width:11px; height:11px; margin-right:3px;"></i>Sem Serial / Apagado
+                                </span>
+                                {% endif %}
+                            </div>
+                            {% if eq.imei_1 %}
+                            <div style="font-size:0.72rem; color:var(--text-muted); font-family:var(--font-mono); margin-top:2px;">
+                                IMEI 1: {{ eq.imei_1 }} {% if eq.imei_2 %}| IMEI 2: {{ eq.imei_2 }}{% endif %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </td>
+
+                    <td>
+                        {% if eq.base == 'Tank' %}
+                        <span class="badge-notion badge-notion-blue">
+                            <i data-lucide="map-pin" style="width:12px; height:12px; margin-right:3px;"></i>Tank
+                        </span>
+                        {% elif eq.base == 'TDBR' %}
+                        <span class="badge-notion badge-notion-purple">
+                            <i data-lucide="map-pin" style="width:12px; height:12px; margin-right:3px;"></i>TDBR
+                        </span>
+                        {% elif eq.base == 'Repair' %}
+                        <span class="badge-notion badge-notion-orange">
+                            <i data-lucide="wrench" style="width:12px; height:12px; margin-right:3px;"></i>Repair
+                        </span>
+                        {% elif 'Central' in eq.base %}
+                        <span class="badge-notion badge-notion-gray">
+                            <i data-lucide="building" style="width:12px; height:12px; margin-right:3px;"></i>Central
+                        </span>
+                        {% else %}
+                        <span class="badge-notion badge-notion-gray">
+                            <i data-lucide="map-pin" style="width:12px; height:12px; margin-right:3px;"></i>{{ eq.base }}
+                        </span>
+                        {% endif %}
+                        {% if eq.alugado %}
+                        <div style="margin-top:2px;">
+                            <span class="badge-notion badge-notion-purple" style="font-size:0.68rem; padding:1px 5px;" title="Locadora: {{ eq.empresa_locadora }}">
+                                <i data-lucide="handshake" style="width:10px; height:10px; margin-right:2px;"></i>Alugado
+                            </span>
+                        </div>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if eq.status in ('Disponível', 'Disponivel') %}
+                        <span class="badge-notion badge-notion-green">
+                            <i data-lucide="check-circle" class="me-1"></i>Disponível na Base
+                        </span>
+                        {% elif eq.status in ('Em Operação', 'Em Operacao') %}
+                        <span class="badge-notion badge-notion-blue">
+                            <i data-lucide="radio" class="me-1"></i>Em Operação
+                        </span>
+                        {% else %}
+                        <span class="badge-notion badge-notion-gray">{{ eq.status }}</span>
+                        {% endif %}
+                    </td>
+
+                    <td class="text-center pe-4">
+                        {% if eq.status in ('Em Operação', 'Em Operacao') %}
+                        <form method="POST" action="/devolver/{{ eq.id }}" style="display:inline-block; margin:0;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="cv-btn-action cv-btn-action-secondary" style="height:28px; font-size:0.75rem; padding:0 8px; cursor:pointer;" title="Registrar devolução do equipamento para a base">
+                                <i data-lucide="corner-up-left" class="text-danger"></i> Devolver
+                            </button>
+                        </form>
+                        {% else %}
+                        <span style="font-size:0.8125rem; color:var(--text-muted); display:inline-flex; align-items:center; gap:4px;">
+                            <i data-lucide="check" class="text-success me-1"></i> No Estoque
+                        </span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+
+                <tr id="linhaVaziaEquipamentos" class="d-none">
+                    <td colspan="6" class="text-center py-5 text-muted">
+                        <div style="max-width:320px; margin:0 auto;">
+                            <i data-lucide="search-x" style="width:36px; height:36px; stroke-width:1.5; color:var(--text-muted); margin-bottom:8px;"></i>
+                            <div style="font-weight:600; color:var(--text-primary); font-size:0.9375rem;">Nenhum equipamento encontrado</div>
+                            <div style="font-size:0.8125rem; color:var(--text-muted); margin-top:4px;">Tente ajustar os filtros ou os termos de busca digitados.</div>
+                            <button type="button" class="btn btn-secondary btn-sm mt-3" data-action="resetar-filtros">
+                                Limpar Todos os Filtros
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        {% else %}
+        <div class="text-center py-5">
+            <i data-lucide="server" style="width:48px; height:48px; stroke-width:1.5; color:var(--text-muted); margin-bottom:12px;"></i>
+            <h5 style="font-weight:600; color:var(--text-primary);">Nenhum equipamento cadastrado</h5>
+            <p style="color:var(--text-muted); font-size:0.875rem;">Comece adicionando ativos ao inventário do sistema Cavere.</p>
+            <a href="/novo-equipamento" class="btn btn-primary btn-sm mt-2">
+                <i data-lucide="plus"></i> Cadastrar Primeiro Equipamento
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="surface-card-footer" style="padding:14px 20px; background:#fafafa; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--space-2);">
+        <span style="font-size:0.8125rem; color:var(--text-muted); font-family:var(--font-mono);" id="infoRodapeContagem">
+            Mostrando <strong>{{ equipamentos|length }}</strong> de <strong>{{ equipamentos|length }}</strong> equipamentos cadastrados.
+        </span>
+        <div style="display:flex; gap:var(--space-2);">
+            <a href="/novo-equipamento" class="btn btn-primary btn-sm">
+                <i data-lucide="plus"></i> Novo Equipamento
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    function aplicarFiltrosEquipamentos() {
+        const termo = document.getElementById('filtroTextoEquip').value.toLowerCase().trim();
+        const tipoSel = document.getElementById('selectTipoEquip').value.toLowerCase();
+        const baseSel = document.getElementById('selectBaseEquip').value;
+        const propSel = document.getElementById('selectPropriedadeEquip').value;
+        const statusSel = document.getElementById('selectStatusEquip').value;
+
+        const btnLimpar = document.getElementById('btnLimparTextoEquip');
+        if (btnLimpar) {
+            btnLimpar.style.display = termo ? 'inline-block' : 'none';
+        }
+
+        const linhas = document.querySelectorAll('.linha-equipamento');
+        let visiveis = 0;
+
+        linhas.forEach(function(linha) {
+            const busca = (linha.getAttribute('data-busca') || '').toLowerCase();
+            const tipo = (linha.getAttribute('data-tipo') || '').toLowerCase();
+            const isNotebook = linha.getAttribute('data-is-notebook') === '1';
+            const base = linha.getAttribute('data-base') || '';
+            const propriedade = linha.getAttribute('data-propriedade') || '';
+            const status = linha.getAttribute('data-status') || '';
+
+            let condTexto = (!termo || busca.includes(termo));
+            let condTipo = (tipoSel === 'todos' || tipo === tipoSel || (tipoSel === 'notebook' && isNotebook));
+            let condBase = (baseSel === 'todas' || base === baseSel || (baseSel === 'Central' && base.includes('Central')));
+            let condProp = (propSel === 'todas' || propriedade === propSel);
+            let condStatus = (statusSel === 'todos' || status.toLowerCase().includes(statusSel.toLowerCase()));
+
+            if (condTexto && condTipo && condBase && condProp && condStatus) {
+                linha.style.display = '';
+                visiveis++;
+            } else {
+                linha.style.display = 'none';
+            }
+        });
+
+        const linhaVazia = document.getElementById('linhaVaziaEquipamentos');
+        if (linhaVazia) {
+            if (visiveis === 0 && linhas.length > 0) {
+                linhaVazia.classList.remove('d-none');
+            } else {
+                linhaVazia.classList.add('d-none');
+            }
+        }
+
+        const badgeContador = document.getElementById('badgeContadorFiltrado');
+        if (badgeContador) {
+            badgeContador.textContent = `${visiveis} ativo(s) filtrado(s)`;
+        }
+
+        const infoRodape = document.getElementById('infoRodapeContagem');
+        if (infoRodape) {
+            const strongVis = document.createElement('strong');
+            strongVis.textContent = String(visiveis);
+            const strongTot = document.createElement('strong');
+            strongTot.textContent = String(linhas.length);
+            infoRodape.replaceChildren(
+                document.createTextNode('Mostrando '),
+                strongVis,
+                document.createTextNode(' de '),
+                strongTot,
+                document.createTextNode(' equipamentos cadastrados.')
+            );
+        }
+    }
+
+    function ativarFiltroNotebookCard() {
+        document.getElementById('selectTipoEquip').value = 'notebook';
+        aplicarFiltrosEquipamentos();
+    }
+
+    function filtrarPorPropriedadeRapida(prop) {
+        document.getElementById('selectPropriedadeEquip').value = prop;
+        aplicarFiltrosEquipamentos();
+    }
+
+    function filtrarPorStatusRapido(status) {
+        document.getElementById('selectStatusEquip').value = status;
+        aplicarFiltrosEquipamentos();
+    }
+
+    function limparTextoEquip() {
+        document.getElementById('filtroTextoEquip').value = '';
+        aplicarFiltrosEquipamentos();
+    }
+
+    function resetarFiltrosEquip() {
+        document.getElementById('filtroTextoEquip').value = '';
+        document.getElementById('selectTipoEquip').value = 'todos';
+        document.getElementById('selectBaseEquip').value = 'todas';
+        document.getElementById('selectPropriedadeEquip').value = 'todas';
+        document.getElementById('selectStatusEquip').value = 'todos';
+        aplicarFiltrosEquipamentos();
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+    });
+
+    // Exportação Executiva e Auditável do Inventário de Equipamentos
+    function exportarEquipamentos(formato) {
+        formato = formato || 'csv';
+        const linhas = document.querySelectorAll('.linha-equipamento');
+        const linhasVisiveis = [];
+        let qtdDisponivel = 0;
+        let qtdEmOperacao = 0;
+        let qtdProprios = 0;
+        let qtdAlugados = 0;
+
+        linhas.forEach(function(linha) {
+            if (linha.style.display !== 'none') {
+                const itemNum = String(linhasVisiveis.length + 1).padStart(2, '0');
+                const idRaw = linha.getAttribute('data-id') || '';
+                const idEq = window.formatarCodigoId('EQ', idRaw);
+                const tipo = linha.getAttribute('data-tipo-nome') || linha.getAttribute('data-tipo') || '--';
+                const modelo = linha.getAttribute('data-modelo') || '--';
+                const sn = linha.getAttribute('data-sn') || 'Sem Serial / Apagado';
+                const base = linha.getAttribute('data-base') || '--';
+                const statusRaw = linha.getAttribute('data-status') || '';
+                const status = statusRaw.toUpperCase();
+                const modalidade = (linha.getAttribute('data-propriedade-nome') || '').toUpperCase();
+                const locadora = linha.getAttribute('data-locadora') || '--';
+                const so = linha.getAttribute('data-so') || '--';
+                const cpu = linha.getAttribute('data-cpu') || '--';
+                const ram = linha.getAttribute('data-ram') || '--';
+                const disco = linha.getAttribute('data-disco') || '--';
+                const imei1 = linha.getAttribute('data-imei1') || '--';
+                const imei2 = linha.getAttribute('data-imei2') || '--';
+                const obs = linha.getAttribute('data-obs') || '--';
+
+                if (status.includes('DISPON')) {
+                    qtdDisponivel++;
+                } else if (status.includes('OPERA')) {
+                    qtdEmOperacao++;
+                }
+
+                if (modalidade.includes('ALUGAD') || modalidade.includes('LOCA')) {
+                    qtdAlugados++;
+                } else {
+                    qtdProprios++;
+                }
+
+                linhasVisiveis.push([
+                    itemNum,
+                    idEq,
+                    tipo,
+                    modelo,
+                    sn,
+                    base,
+                    status,
+                    modalidade,
+                    locadora,
+                    so,
+                    cpu,
+                    ram,
+                    disco,
+                    imei1,
+                    imei2,
+                    obs
+                ]);
+            }
+        });
+
+        // Monta resumo dos filtros ativos aplicados em tela
+        const partesFiltros = [];
+        const tipoSel = document.getElementById('selectTipoEquip')?.value || 'todos';
+        if (tipoSel !== 'todos') partesFiltros.push(`Tipo: ${tipoSel}`);
+
+        const baseSel = document.getElementById('selectBaseEquip')?.value || 'todas';
+        if (baseSel !== 'todas') partesFiltros.push(`Base: ${baseSel}`);
+
+        const propSel = document.getElementById('selectPropriedadeEquip')?.value || 'todas';
+        if (propSel !== 'todas') partesFiltros.push(`Modalidade: ${propSel === 'proprio' ? 'Próprio' : 'Alugado'}`);
+
+        const statusSel = document.getElementById('selectStatusEquip')?.value || 'todos';
+        if (statusSel !== 'todos') partesFiltros.push(`Status: ${statusSel}`);
+
+        const buscaTexto = (document.getElementById('filtroTextoEquip')?.value || '').trim();
+        if (buscaTexto) partesFiltros.push(`Busca por Texto/Serial: "${buscaTexto}"`);
+
+        const filtrosDescricao = partesFiltros.length > 0 ? partesFiltros.join(' | ') : 'Nenhum filtro aplicado (Exibindo todos os ativos)';
+
+        const cabecalhos = [
+            'ITEM',
+            'ID ATIVO',
+            'CATEGORIA',
+            'MODELO DO EQUIPAMENTO',
+            'PATRIMÔNIO / SERIAL (SN)',
+            'BASE OPERACIONAL',
+            'STATUS OPERACIONAL',
+            'MODALIDADE DE AQUISIÇÃO',
+            'EMPRESA LOCADORA',
+            'SISTEMA OPERACIONAL',
+            'PROCESSADOR',
+            'MEMÓRIA RAM',
+            'ARMAZENAMENTO',
+            'IMEI 1',
+            'IMEI 2',
+            'ESPECIFICAÇÕES / OBSERVAÇÕES'
+        ];
+
+        window.exportarRelatorioExecutivo({
+            nomeArquivo: 'inventario_equipamentos',
+            tituloModulo: 'Inventário Geral de Ativos e Equipamentos',
+            operador: '{{ current_user.username }} (Administrador)',
+            filtrosDescricao: filtrosDescricao,
+            cabecalhos: cabecalhos,
+            linhasDados: linhasVisiveis,
+            resumoKpis: [
+                { rotulo: 'Total de Equipamentos Listados:', valor: `${linhasVisiveis.length} ativo(s)` },
+                { rotulo: 'Disponíveis na Base:', valor: `${qtdDisponivel} ativo(s)` },
+                { rotulo: 'Em Operação (Campo):', valor: `${qtdEmOperacao} ativo(s)` },
+                { rotulo: 'Ativos Próprios Ambipar:', valor: `${qtdProprios} ativo(s)` },
+                { rotulo: 'Ativos Locados (Terceiros):', valor: `${qtdAlugados} ativo(s)` }
+            ],
+            formato: formato
+        });
+    }
+
+    // Alias retrocompatível
+    function exportarEquipamentosCSV() {
+        exportarEquipamentos('csv');
+    }
+
+    // Centralized Event Delegation for data-action in Equipamentos
+    document.addEventListener('click', function(e) {
+        const el = e.target.closest('[data-action]');
+        if (!el) return;
+        const action = el.getAttribute('data-action');
+        if (action === 'resetar-filtros') {
+            resetarFiltrosEquip();
+        } else if (action === 'filtro-status') {
+            filtrarStatusEquip(el.getAttribute('data-status'));
+        } else if (action === 'filtro-notebook') {
+            alternarFiltroNotebooks();
+        } else if (action === 'filtro-prop') {
+            filtrarPropriedadeEquip(el.getAttribute('data-prop'), el);
+        } else if (action === 'limpar-texto') {
+            limparBuscaTextoEquip();
+        } else if (action === 'exportar') {
+            exportarEquipamentos(el.getAttribute('data-formato') || 'csv');
+        }
+    });
+
+</script>
+{% endblock %}

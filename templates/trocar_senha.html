@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Cavere — Primeiro Acesso e Redefinição de Senha Administrativa. Ambipar Industrial.">
+    <title>Definir Nova Senha • Cavere Ambipar</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js">
+        document.addEventListener('click', function(e) {
+            const pwBtn = e.target.closest('[data-action="toggle-pw"]');
+            if (pwBtn) {
+                const targetId = pwBtn.getAttribute('data-target');
+                if (targetId) toggleSenhaVisibilidade(targetId, pwBtn);
+            }
+        });
+    
+    </script>
+    <style>
+        :root {
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+
+            /* Paleta Ambipar Industrial Light */
+            --background: #f8fafc;
+            --background-card: #ffffff;
+            --background-input: #ffffff;
+            --border: #e2e8f0;
+            --border-hover: #cbd5e1;
+            --border-focus: #CEDC00;
+
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+
+            --lime: #CEDC00;
+            --lime-hover: #b8c500;
+            --lime-dark: #484f00;
+            --lime-glow: rgba(206, 220, 0, 0.45);
+            --lime-surface: rgba(206, 220, 0, 0.12);
+
+            --radius: 4px;
+        }
+
+        i[data-lucide], svg.lucide {
+            width: 1.125rem;
+            height: 1.125rem;
+            stroke-width: 1.75;
+            vertical-align: -0.125em;
+            display: inline-block;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            min-height: 100%;
+            margin: 0;
+            padding: 0;
+            background-color: var(--background);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 24px 16px;
+            background-color: #f8fafc;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(206, 220, 0, 0.18) 0%, transparent 48%),
+                radial-gradient(circle at 85% 90%, rgba(226, 232, 240, 0.7) 0%, transparent 40%);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .shader-canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+            opacity: 1;
+        }
+
+        .shader-canvas-container.loaded {
+            opacity: 1;
+        }
+
+        .shader-canvas-container canvas {
+            width: 100% !important;
+            height: 100% !important;
+            display: block;
+        }
+
+        .shader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+            pointer-events: none;
+            background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.35) 0%, rgba(248, 250, 252, 0.6) 100%);
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 440px;
+            margin: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        .auth-brand {
+            text-align: center;
+            margin-bottom: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .auth-logo-particles-wrap {
+            width: 100%;
+            max-width: 380px;
+            height: 84px;
+            margin: 0 auto 6px auto;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .cavere-particles-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            touch-action: none;
+            user-select: none;
+        }
+
+        .brand-meta {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .brand-highlight {
+            color: #484f00;
+            font-weight: 700;
+        }
+
+        .pulse-live {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--lime);
+            box-shadow: 0 0 8px rgba(206, 220, 0, 0.9);
+            animation: pulseGlow 2s infinite ease-in-out;
+            display: inline-block;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.85); }
+        }
+
+        .auth-alerts {
+            width: 100%;
+            margin-bottom: 16px;
+        }
+
+        .auth-alert {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 11px 14px;
+            border-radius: var(--radius);
+            font-size: 0.8125rem;
+            font-family: var(--font-mono);
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 16px -4px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+            position: relative;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .auth-alert-text {
+            flex: 1;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
+        .auth-alert-close {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+            padding: 3px;
+            margin: 0;
+            color: currentColor;
+            opacity: 0.6;
+            cursor: pointer;
+            border-radius: 4px;
+            line-height: 1;
+            flex-shrink: 0;
+            transition: opacity 150ms ease, background-color 150ms ease, transform 100ms ease;
+        }
+
+        .auth-alert-close:hover {
+            opacity: 1;
+            background-color: rgba(0, 0, 0, 0.08);
+        }
+
+        .auth-alert-close:active {
+            transform: scale(0.92);
+        }
+
+        .auth-alert-close i,
+        .auth-alert-close svg {
+            width: 14px !important;
+            height: 14px !important;
+            stroke-width: 2.2 !important;
+            display: block;
+            pointer-events: none;
+        }
+
+        /* Ambipar Technical Color System for Notifications */
+        .auth-alert-info {
+            color: #303700 !important;
+            border-color: rgba(206, 220, 0, 0.55) !important;
+            border-left: 3.5px solid #a6b500 !important;
+            background: rgba(251, 253, 230, 0.95) !important;
+        }
+        .auth-alert-info i,
+        .auth-alert-info svg {
+            color: #556000 !important;
+        }
+
+        .auth-alert-success {
+            color: #14532d !important;
+            border-color: #bbf7d0 !important;
+            border-left: 3.5px solid #16a34a !important;
+            background: rgba(240, 253, 244, 0.95) !important;
+        }
+        .auth-alert-success i,
+        .auth-alert-success svg {
+            color: #16a34a !important;
+        }
+
+        .auth-alert-warning {
+            color: #78350f !important;
+            border-color: #fde68a !important;
+            border-left: 3.5px solid #d97706 !important;
+            background: rgba(255, 251, 235, 0.95) !important;
+        }
+        .auth-alert-warning i,
+        .auth-alert-warning svg {
+            color: #d97706 !important;
+        }
+
+        .auth-alert-danger {
+            color: #7f1d1d !important;
+            border-color: #fecaca !important;
+            border-left: 3.5px solid #dc2626 !important;
+            background: rgba(254, 242, 242, 0.95) !important;
+        }
+        .auth-alert-danger i,
+        .auth-alert-danger svg {
+            color: #dc2626 !important;
+        }
+
+        .auth-card {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(226, 232, 240, 0.95);
+            border-radius: 8px;
+            box-shadow: 0 20px 45px -12px rgba(15, 23, 42, 0.08), 0 2px 6px rgba(15, 23, 42, 0.04);
+            overflow: hidden;
+        }
+
+        .auth-card-body {
+            padding: 28px 24px;
+        }
+
+        .auth-card-heading {
+            margin-bottom: 16px;
+        }
+
+        .auth-card-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+            letter-spacing: -0.02em;
+            text-transform: uppercase;
+            margin: 0 0 4px 0;
+        }
+
+        .auth-card-desc {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .policy-callout {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px 12px;
+            background: #fffbeb;
+            border: 1px solid #fef08a;
+            border-radius: var(--radius);
+            color: #92400e;
+            font-size: 0.775rem;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .cv-input-box {
+            display: flex;
+            align-items: center;
+            height: 42px;
+            border: 1px solid var(--border-hover);
+            border-radius: var(--radius);
+            background: var(--background-input);
+            transition: border-color 150ms ease, box-shadow 150ms ease;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .cv-input-box:focus-within {
+            border-color: #a3bd00 !important;
+            box-shadow: 0 0 0 3px rgba(206, 220, 0, 0.28) !important;
+        }
+
+        .cv-input-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 100%;
+            color: var(--text-muted);
+            flex-shrink: 0;
+            transition: color 150ms ease;
+        }
+
+        .cv-input-box:focus-within .cv-input-icon {
+            color: #484f00;
+        }
+
+        .cv-input-field {
+            flex: 1;
+            height: 100%;
+            border: none !important;
+            outline: none !important;
+            box-shadow: none !important;
+            padding: 0 12px 0 0;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            background: transparent;
+        }
+
+        .cv-input-field::placeholder {
+            color: #94a3b8;
+            font-size: 0.8125rem;
+        }
+
+        .btn-toggle-pw {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 100%;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0;
+            flex-shrink: 0;
+            transition: color 150ms ease;
+        }
+
+        .btn-toggle-pw:hover {
+            color: var(--text-primary);
+        }
+
+        .password-checklist {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-top: 6px;
+        }
+
+        .password-checklist-item {
+            font-size: 0.725rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-family: var(--font-mono);
+        }
+
+        .btn-submit {
+            width: 100%;
+            height: 42px;
+            background: var(--lime);
+            color: #050505;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            font-weight: 700;
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: background-color 150ms ease, box-shadow 150ms ease, transform 100ms ease;
+            margin-top: 20px;
+            box-shadow: 0 2px 8px rgba(206, 220, 0, 0.3);
+        }
+
+        .btn-submit:hover {
+            background: var(--lime-hover);
+            box-shadow: 0 4px 16px rgba(206, 220, 0, 0.45);
+        }
+
+        .btn-submit:active {
+            transform: scale(0.99);
+        }
+
+        .auth-card-footer {
+            padding: 12px 24px;
+            background: #f8fafc;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            font-family: var(--font-mono);
+        }
+
+        .auth-system-footer {
+            margin-top: 24px;
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+            line-height: 1.6;
+        }
+
+        .auth-system-footer strong {
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div id="shader-background" class="shader-canvas-container"></div>
+    <div class="shader-overlay"></div>
+
+    <div class="auth-container">
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="auth-alerts">
+                {% for category, message in messages %}
+                <div class="auth-alert auth-alert-{{ category }} alert fade show" role="alert">
+                    {% if category == 'success' %}
+                        <i data-lucide="check-circle" class="flex-shrink-0" style="width:1.1rem; height:1.1rem;"></i>
+                    {% elif category == 'danger' %}
+                        <i data-lucide="alert-octagon" class="flex-shrink-0" style="width:1.1rem; height:1.1rem;"></i>
+                    {% elif category == 'warning' %}
+                        <i data-lucide="alert-triangle" class="flex-shrink-0" style="width:1.1rem; height:1.1rem;"></i>
+                    {% else %}
+                        <i data-lucide="info" class="flex-shrink-0" style="width:1.1rem; height:1.1rem;"></i>
+                    {% endif %}
+                    <span class="auth-alert-text">{{ message }}</span>
+                    <button type="button" class="auth-alert-close" data-bs-dismiss="alert" aria-label="Fechar" title="Fechar">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="auth-brand">
+            <div class="auth-logo-particles-wrap" id="cavereLogoWrap">
+                <canvas id="cavereLogoCanvas" class="cavere-particles-canvas" aria-label="CAVERE"></canvas>
+                <h1 class="visually-hidden">CAVERE</h1>
+            </div>
+            <div class="brand-meta">
+                <span class="pulse-live"></span>
+                <span class="brand-highlight">Ambipar Industrial</span>
+                <span>//</span>
+                <span>Sistema T.I</span>
+            </div>
+        </div>
+
+        <div class="auth-card">
+            <div class="auth-card-body">
+                <div class="auth-card-heading">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        {% if current_user.role == 'admin' %}
+                        <span class="badge" style="background:#f3e8ff; color:#7e22ce; border:1px solid #e9d5ff; font-size:0.75rem; font-weight:600; font-family:var(--font-mono);">
+                            <i data-lucide="shield" class="me-1" style="width:0.8rem; height:0.8rem;"></i>Admin: <strong>{{ current_user.username }}</strong>
+                        </span>
+                        {% else %}
+                        <span class="badge" style="background:#f1f5f9; color:#0f172a; border:1px solid #e2e8f0; font-size:0.75rem; font-weight:600; font-family:var(--font-mono);">
+                            <i data-lucide="badge-check" class="me-1" style="width:0.8rem; height:0.8rem; color:#484f00;"></i>Coordenador: <strong>{{ current_user.username }}</strong>
+                        </span>
+                        {% endif %}
+                        <span class="badge" style="background:#fef3c7; color:#b45309; border:1px solid #fde68a; font-size:0.7rem; font-weight:700; font-family:var(--font-mono);">
+                            1º ACESSO OBRIGATÓRIO
+                        </span>
+                    </div>
+                    <h2 class="auth-card-title">Redefinir Senha de Acesso</h2>
+                    <p class="auth-card-desc">Substitua a credencial padrão temporária antes de acessar o sistema operacional.</p>
+                </div>
+
+                <div class="policy-callout">
+                    <i data-lucide="shield-alert" class="flex-shrink-0 mt-1" style="width:1.1rem; height:1.1rem;"></i>
+                    <div>
+                        <strong>Diretriz de Segurança:</strong> Novos usuários devem cadastrar uma senha pessoal definitiva para liberar o acesso ao sistema.
+                    </div>
+                </div>
+
+                <form action="/trocar-senha" method="POST" id="formTrocarSenha">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <div class="form-group">
+                        <label class="form-label" for="inputSenhaAtual">Senha Temporária Atual</label>
+                        <div class="cv-input-box">
+                            <span class="cv-input-icon"><i data-lucide="key"></i></span>
+                            <input type="password" class="cv-input-field" id="inputSenhaAtual" name="senha_atual"
+                                   placeholder="Senha temporária fornecida pelo administrador" required autofocus autocomplete="current-password">
+                            <button type="button" class="btn-toggle-pw" data-action="toggle-pw" data-target="inputSenhaAtual" title="Exibir ou ocultar senha" tabindex="-1">
+                                <i data-lucide="eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="inputNovaSenha">Nova Senha Definitiva</label>
+                        <div class="cv-input-box">
+                            <span class="cv-input-icon"><i data-lucide="lock"></i></span>
+                            <input type="password" class="cv-input-field" id="inputNovaSenha" name="nova_senha"
+                                   placeholder="Digite sua nova senha segura" required autocomplete="new-password">
+                            <button type="button" class="btn-toggle-pw" data-action="toggle-pw" data-target="inputNovaSenha" title="Exibir ou ocultar senha" tabindex="-1">
+                                <i data-lucide="eye"></i>
+                            </button>
+                        </div>
+                        <div class="password-checklist">
+                            <span class="password-checklist-item"><i data-lucide="check" style="width:0.75rem; height:0.75rem; color:#484f00;"></i> Mínimo de 4 caracteres</span>
+                            <span class="password-checklist-item"><i data-lucide="check" style="width:0.75rem; height:0.75rem; color:#484f00;"></i> Diferente da senha temporária</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="inputConfirmarSenha">Confirmar Nova Senha</label>
+                        <div class="cv-input-box">
+                            <span class="cv-input-icon"><i data-lucide="check-circle"></i></span>
+                            <input type="password" class="cv-input-field" id="inputConfirmarSenha" name="confirmar_senha"
+                                   placeholder="Repita exatamente a nova senha" required autocomplete="new-password">
+                            <button type="button" class="btn-toggle-pw" data-action="toggle-pw" data-target="inputConfirmarSenha" title="Exibir ou ocultar senha" tabindex="-1">
+                                <i data-lucide="eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-submit" id="btnSalvarSenha">
+                        <span>Salvar Nova Senha &amp; Liberar Acesso</span>
+                        <i data-lucide="arrow-right" style="width:1.15rem; height:1.15rem;"></i>
+                    </button>
+                </form>
+            </div>
+
+            <div class="auth-card-footer">
+                <span style="color:var(--text-muted);">Suporte:</span>
+                <a href="/logout" style="color:var(--text-secondary); text-decoration:none; font-weight:600; display:inline-flex; align-items:center; gap:4px;">
+                    <i data-lucide="log-out" style="width:0.9rem; height:0.9rem;"></i> Sair da conta
+                </a>
+            </div>
+        </div>
+
+        <div class="auth-system-footer">
+            <div><strong>Cavere</strong> &bull; Gestão e Controle Patrimonial</div>
+            <div style="font-size:0.7rem; color:var(--text-muted); margin-top:4px;">
+                Ambiente seguro com acesso restrito a colaboradores autorizados
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+        document.addEventListener('click', function(e) {
+            const pwBtn = e.target.closest('[data-action="toggle-pw"]');
+            if (pwBtn) {
+                const targetId = pwBtn.getAttribute('data-target');
+                if (targetId) toggleSenhaVisibilidade(targetId, pwBtn);
+            }
+        });
+    
+    </script>
+    <script>
+        function toggleSenhaVisibilidade(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if (input && btn) {
+                const icon = document.createElement('i');
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.setAttribute('data-lucide', 'eye-off');
+                    btn.setAttribute('title', 'Ocultar senha');
+                } else {
+                    input.type = 'password';
+                    icon.setAttribute('data-lucide', 'eye');
+                    btn.setAttribute('title', 'Exibir senha');
+                }
+                btn.replaceChildren(icon);
+                if (window.lucide) {
+                    lucide.createIcons();
+                }
+            }
+        }
+
+        const formTrocar = document.getElementById('formTrocarSenha');
+        const btnSalvar = document.getElementById('btnSalvarSenha');
+        if (formTrocar && btnSalvar) {
+            formTrocar.addEventListener('submit', function() {
+                btnSalvar.disabled = true;
+                const spinner = document.createElement('span');
+                spinner.className = 'spinner-border spinner-border-sm';
+                spinner.setAttribute('role', 'status');
+                spinner.setAttribute('aria-hidden', 'true');
+                spinner.style.color = '#050505';
+                const label = document.createElement('span');
+                label.textContent = 'Salvando nova credencial...';
+                btnSalvar.replaceChildren(spinner, label);
+            });
+        }
+
+        document.addEventListener('click', function(e) {
+            const closeBtn = e.target.closest('.auth-alert-close');
+            if (closeBtn) {
+                const alertEl = closeBtn.closest('.alert');
+                if (alertEl) {
+                    alertEl.classList.remove('show');
+                    setTimeout(() => alertEl.remove(), 150);
+                }
+            }
+        });
+
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+    
+        document.addEventListener('click', function(e) {
+            const pwBtn = e.target.closest('[data-action="toggle-pw"]');
+            if (pwBtn) {
+                const targetId = pwBtn.getAttribute('data-target');
+                if (targetId) toggleSenhaVisibilidade(targetId, pwBtn);
+            }
+        });
+    
+    </script>
+
+    <!-- CAVERE Interactive Particle Logo (Metaware Style & Ambipar Colors) -->
+    <script>
+        (function() {
+            const canvas = document.getElementById('cavereLogoCanvas');
+            const wrap = document.getElementById('cavereLogoWrap');
+            if (!canvas || !wrap) return;
+
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+
+            let particles = [];
+            let animationFrameId = null;
+            let logicalWidth = 380;
+            let logicalHeight = 84;
+            let time = 0;
+            const mouse = { x: -9999, y: -9999, active: false };
+
+            function setupCanvas() {
+                const rect = wrap.getBoundingClientRect();
+                logicalWidth = Math.min(380, Math.max(280, Math.round(rect.width || 380)));
+                logicalHeight = 84;
+
+                const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                canvas.width = Math.round(logicalWidth * dpr);
+                canvas.height = Math.round(logicalHeight * dpr);
+                canvas.style.width = logicalWidth + 'px';
+                canvas.style.height = logicalHeight + 'px';
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
+                ctx.scale(dpr, dpr);
+
+                createParticles();
+            }
+
+            function createParticles() {
+                const off = document.createElement('canvas');
+                off.width = logicalWidth;
+                off.height = logicalHeight;
+                const offCtx = off.getContext('2d', { willReadFrequently: true });
+                if (!offCtx) return;
+
+                const fontSize = logicalWidth < 340 ? 44 : 50;
+                offCtx.fillStyle = '#000000';
+                offCtx.textAlign = 'center';
+                offCtx.textBaseline = 'middle';
+
+                // Strictly valid CSS font string for Canvas 2D
+                let fontStr = '900 ' + fontSize + 'px Inter, Arial, sans-serif';
+                offCtx.font = fontStr;
+
+                // Fallback verification: Canvas silently defaults to 10px if font string fails
+                let m = offCtx.measureText('CAVERE');
+                if (m.width < 140) {
+                    fontStr = '900 ' + fontSize + 'px Arial, sans-serif';
+                    offCtx.font = fontStr;
+                    m = offCtx.measureText('CAVERE');
+                }
+                if (m.width < 140) {
+                    fontStr = 'bold ' + fontSize + 'px sans-serif';
+                    offCtx.font = fontStr;
+                }
+
+                // Render each letter individually with exact gap - eliminates Chromium letterSpacing baseline dash artifacts
+                const chars = ['C', 'A', 'V', 'E', 'R', 'E'];
+                const letterGap = 4; // Letters joined closer together
+                const charWidths = chars.map(c => offCtx.measureText(c).width);
+                const totalTextWidth = charWidths.reduce((a, b) => a + b, 0) + letterGap * (chars.length - 1);
+
+                let startX = (logicalWidth - totalTextWidth) / 2;
+                const centerY = logicalHeight / 2;
+
+                for (let i = 0; i < chars.length; i++) {
+                    const c = chars[i];
+                    const w = charWidths[i];
+                    offCtx.fillText(c, startX + w / 2, centerY);
+                    startX += w + letterGap;
+                }
+
+                const imgData = offCtx.getImageData(0, 0, logicalWidth, logicalHeight).data;
+                particles = [];
+                // Step 2 joins the points closer together for a cohesive, dense feel
+                const step = 2;
+
+                // Strictly restrict vertical sampling to letter bounds - guarantees zero bottom artifacts
+                const minY = Math.max(0, Math.floor(centerY - fontSize * 0.52));
+                const maxY = Math.min(logicalHeight - 1, Math.ceil(centerY + fontSize * 0.52));
+
+                for (let y = minY; y <= maxY; y += step) {
+                    for (let x = 0; x < logicalWidth; x += step) {
+                        const index = (y * logicalWidth + x) * 4;
+                        if (imgData[index + 3] > 70) {
+                            const initAngle = Math.random() * Math.PI * 2;
+                            const initDist = Math.random() * 25 + 8;
+
+                            particles.push({
+                                x: x + Math.cos(initAngle) * initDist,
+                                y: y + Math.sin(initAngle) * initDist,
+                                baseX: x,
+                                baseY: y,
+                                size: Math.random() * 0.3 + 1.65, // Dense, tightly joined points
+                                color: '#000000',
+                                scatteredColor: '#262626',
+                                phase: Math.random() * Math.PI * 2
+                            });
+                        }
+                    }
+                }
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, logicalWidth, logicalHeight);
+                time += 0.025;
+                const maxDist = 60;
+
+                for (let i = 0; i < particles.length; i++) {
+                    const p = particles[i];
+                    const dx = mouse.x - p.x;
+                    const dy = mouse.y - p.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (mouse.active && dist < maxDist) {
+                        const force = (maxDist - dist) / maxDist;
+                        const angle = Math.atan2(dy, dx);
+                        const moveX = Math.cos(angle) * force * 35;
+                        const moveY = Math.sin(angle) * force * 35;
+
+                        p.x = p.baseX - moveX;
+                        p.y = p.baseY - moveY;
+
+                        ctx.fillStyle = p.scatteredColor;
+                    } else {
+                        const idle = Math.sin(time + p.phase) * 0.35;
+                        p.x += (p.baseX - p.x) * 0.12;
+                        p.y += (p.baseY + idle - p.y) * 0.12;
+
+                        ctx.fillStyle = p.color;
+                    }
+
+                    ctx.fillRect(p.x, p.y, p.size, p.size);
+                }
+
+                animationFrameId = requestAnimationFrame(animate);
+            }
+
+            function updatePos(clientX, clientY) {
+                const rect = canvas.getBoundingClientRect();
+                mouse.x = clientX - rect.left;
+                mouse.y = clientY - rect.top;
+                mouse.active = true;
+            }
+
+            wrap.addEventListener('mousemove', (e) => updatePos(e.clientX, e.clientY));
+            wrap.addEventListener('mouseleave', () => {
+                mouse.active = false;
+                mouse.x = -9999;
+                mouse.y = -9999;
+            });
+
+            wrap.addEventListener('touchstart', (e) => {
+                if (e.touches.length > 0) {
+                    updatePos(e.touches[0].clientX, e.touches[0].clientY);
+                }
+            }, { passive: true });
+
+            wrap.addEventListener('touchmove', (e) => {
+                if (e.touches.length > 0) {
+                    updatePos(e.touches[0].clientX, e.touches[0].clientY);
+                }
+            }, { passive: true });
+
+            wrap.addEventListener('touchend', () => {
+                mouse.active = false;
+                mouse.x = -9999;
+                mouse.y = -9999;
+            });
+
+            window.addEventListener('resize', () => {
+                setupCanvas();
+            });
+
+            // Initial immediate setup
+            setupCanvas();
+            if (!animationFrameId) animate();
+
+            // Font ready re-sampling to guarantee crisp Inter 900
+            if (document.fonts) {
+                if (document.fonts.load) {
+                    document.fonts.load('900 50px Inter').then(() => {
+                        createParticles();
+                    }).catch(() => {});
+                }
+                if (document.fonts.ready) {
+                    document.fonts.ready.then(() => {
+                        createParticles();
+                    });
+                }
+            }
+        })();
+    
+        document.addEventListener('click', function(e) {
+            const pwBtn = e.target.closest('[data-action="toggle-pw"]');
+            if (pwBtn) {
+                const targetId = pwBtn.getAttribute('data-target');
+                if (targetId) toggleSenhaVisibilidade(targetId, pwBtn);
+            }
+        });
+    
+    </script>
+
+    <!-- Paper Shaders WebGL Gradient Background (Ambipar Industrial Colors) -->
+    <script type="module">
+        import {
+            ShaderMount,
+            grainGradientFragmentShader,
+            getShaderColorFromString,
+            getShaderNoiseTexture,
+            ShaderFitOptions,
+            GrainGradientShapes
+        } from "/static/vendor/paper-shaders.js";
+
+        const container = document.getElementById("shader-background");
+
+        if (container) {
+            try {
+                // Pre-decode noise texture so WebGL texture upload never fails or throws
+                const noiseTexture = getShaderNoiseTexture();
+                if (noiseTexture) {
+                    if (noiseTexture.decode) {
+                        try { await noiseTexture.decode(); } catch (_) {}
+                    }
+                    if (!noiseTexture.complete || noiseTexture.naturalWidth === 0) {
+                        await new Promise((resolve) => {
+                            noiseTexture.onload = resolve;
+                            noiseTexture.onerror = resolve;
+                            setTimeout(resolve, 200);
+                        });
+                    }
+                }
+
+                // Ambipar Industrial Signature Colors & Grain Gradient Config
+                const uniforms = {
+                    u_colorBack: getShaderColorFromString("#ffffff"),
+                    u_colors: [
+                        getShaderColorFromString("#CEDC00"), // Ambipar Electric Lime
+                        getShaderColorFromString("#dcf35a"), // Luminous Lime Light
+                        getShaderColorFromString("#a8d904")  // Vibrant Green Lime
+                    ],
+                    u_colorsCount: 3,
+                    u_softness: 0.76,
+                    u_intensity: 0.45,
+                    u_noise: 0,
+                    u_shape: GrainGradientShapes.corners || 4,
+                    u_noiseTexture: noiseTexture,
+                    u_fit: ShaderFitOptions.cover !== undefined ? ShaderFitOptions.cover : 2,
+                    u_scale: 1,
+                    u_rotation: 0,
+                    u_offsetX: 0,
+                    u_offsetY: 0,
+                    u_originX: 0.5,
+                    u_originY: 0.5,
+                    u_worldWidth: 0,
+                    u_worldHeight: 0
+                };
+
+                const mount = new ShaderMount(
+                    container,
+                    grainGradientFragmentShader,
+                    uniforms,
+                    undefined,
+                    1
+                );
+
+                if (mount) {
+                    container.classList.add("loaded");
+                }
+            } catch (err) {
+                console.warn("Shader gradient initialization fallback to CSS:", err);
+            }
+        }
+    
+        document.addEventListener('click', function(e) {
+            const pwBtn = e.target.closest('[data-action="toggle-pw"]');
+            if (pwBtn) {
+                const targetId = pwBtn.getAttribute('data-target');
+                if (targetId) toggleSenhaVisibilidade(targetId, pwBtn);
+            }
+        });
+    
+    </script>
+</body>
+</html>

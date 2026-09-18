@@ -1,0 +1,1710 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- Hero / Command Banner -->
+<div class="cv-page-banner">
+    <div>
+        <h1 class="cv-page-title" style="margin-bottom:4px;">
+            Painel de <span style="color:var(--lime);">Operações</span>
+        </h1>
+        <p class="cv-page-subtitle">
+            Visão integrada de chamados operacionais, controle de ativos e termo de cautela
+        </p>
+    </div>
+    <div style="display:flex; gap:var(--space-2); flex-wrap:wrap; align-items:center;">
+        <button type="button" class="btn btn-outline btn-sm" data-action="abrir-cautela-avulsa"
+            title="Emitir termo de cautela avulso (sem chamado vinculado)">
+            Cautela rápida
+        </button>
+        <a href="/equipamentos" class="btn btn-secondary btn-sm"
+            title="Ver lista detalhada de equipamentos e filtros avançados">
+            <i data-lucide="laptop"></i> Equipamentos [{{ equipamentos|length }}]
+        </a>
+        <a href="/colaboradores" class="btn btn-secondary btn-sm" title="Ver lista de colaboradores e coordenadores">
+            <i data-lucide="users"></i> Colaboradores [{{ coordenadores|length }}]
+        </a>
+        <a href="/novo-equipamento" class="btn btn-outline btn-sm" title="Cadastrar novo ativo físico">
+            <i data-lucide="plus"></i> Equipamento
+        </a>
+        <a href="/cadastrar-usuario" class="btn btn-primary btn-sm"
+            title="Cadastrar novo usuário ou perfil de coordenador">
+            <i data-lucide="user-plus"></i> Novo Usuário
+        </a>
+    </div>
+</div>
+
+<!-- 4 Glance Cards (AETHER Command Style) -->
+<div class="row g-3" style="margin-bottom:var(--space-5);">
+    <div class="col-sm-6 col-lg-3">
+        <div class="cv-glance-card" data-action="filtrar-chamados" data-filtro="abertos"
+            title="Clique para filtrar apenas chamados em aberto" role="button" tabindex="0">
+            <div class="cv-glance-header">
+                <span class="cv-glance-label">Chamados em Aberto</span>
+            </div>
+            {% set abertos = solicitacoes|rejectattr('status', 'in', ['Finalizada', 'Concluído', 'Concluido',
+            'Finalizado', 'Devolvido'])|list|length %}
+            <div class="cv-glance-value">{{ abertos }}</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="cv-glance-card" data-bs-toggle="modal" data-bs-target="#modalInventarioAtivos"
+            title="Clique para ver equipamentos na base" role="button" tabindex="0">
+            <div class="cv-glance-header">
+                <span class="cv-glance-label">Ativos na Base</span>
+            </div>
+            {% set na_base = equipamentos|selectattr('status', 'in', ['Disponível', 'Disponivel'])|list|length %}
+            <div class="cv-glance-value">{{ na_base }}</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="cv-glance-card" data-bs-toggle="modal" data-bs-target="#modalInventarioAtivos"
+            title="Clique para ver equipamentos em operação" role="button" tabindex="0">
+            <div class="cv-glance-header">
+                <span class="cv-glance-label">Ativos em Campo</span>
+            </div>
+            {% set em_campo = equipamentos|selectattr('status', 'in', ['Em Operação', 'Em Operacao'])|list|length %}
+            <div class="cv-glance-value">{{ em_campo }}</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="cv-glance-card" data-action="navegar-historico"
+            title="Clique para abrir o Histórico Geral de Cautelas" role="button" tabindex="0">
+            <div class="cv-glance-header">
+                <span class="cv-glance-label">Termos Emitidos</span>
+            </div>
+            <div class="cv-glance-value">{{ cautelas|length }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Fila de Solicitações Operacionais (Feed Card) -->
+<div class="surface-card" style="margin-bottom:var(--space-5);" id="secaoSolicitacoes">
+    <!-- Barra Superior: Título à esquerda e Ações/Exportar à direita -->
+    <div class="surface-card-header"
+        style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--space-3); padding:16px 20px; border-bottom:1px solid var(--border-subtle);">
+        <div>
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
+                <span
+                    style="font-size:0.875rem; font-weight:700; color:var(--text-primary); text-transform:uppercase; letter-spacing:0.05em; font-family:var(--font-mono); line-height:1.2;">
+                    Fila de Solicitações Operacionais
+                </span>
+                <span class="badge-notion badge-notion-gray"
+                    style="font-size:0.75rem; padding:2px 8px; font-weight:600;">{{ solicitacoes|length }}</span>
+            </div>
+            <div style="font-size:0.8125rem; color:var(--text-muted); line-height:1.4;">Chamados de equipamentos abertos
+                pelos coordenadores de campo</div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:var(--space-2);">
+            {% if current_user.role == 'admin' %}
+            <div class="btn-group btn-group-sm">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-action="exportar-chamados"
+                    data-formato="csv" title="Exportar chamados filtrados para planilha executiva CSV">
+                    <i data-lucide="download"></i> Exportar Dados
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle dropdown-toggle-split"
+                    data-bs-toggle="dropdown" data-bs-boundary="viewport" aria-expanded="false"
+                    title="Opções de exportação e visualização">
+                    <span class="visually-hidden">Opções</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="font-size:0.8125rem; min-width:230px;">
+                    <li>
+                        <h6 class="dropdown-header text-uppercase"
+                            style="font-size:0.6875rem; letter-spacing:0.05em; font-weight:700; color:var(--text-muted);">
+                            Relatórios de Dados</h6>
+                    </li>
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center gap-2" href="javascript:void(0)"
+                            data-action="exportar-chamados" data-formato="csv">
+                            <i data-lucide="file-spreadsheet" class="text-success" style="width:14px;height:14px;"></i>
+                            <span>Planilha Executiva (.csv)</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center gap-2" href="javascript:void(0)"
+                            data-action="exportar-chamados" data-formato="xlsx">
+                            <i data-lucide="file-check" class="text-primary" style="width:14px;height:14px;"></i>
+                            <span>Planilha Excel (.xlsx)</span>
+                        </a>
+                    </li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li>
+                        <h6 class="dropdown-header text-uppercase"
+                            style="font-size:0.6875rem; letter-spacing:0.05em; font-weight:700; color:var(--text-muted);">
+                            Visualização da Fila</h6>
+                    </li>
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center gap-2" href="javascript:void(0)"
+                            data-action="toggle-finalizados" id="itemMenuToggleFinalizados">
+                            <i data-lucide="eye-off" class="text-muted" style="width:14px;height:14px;"></i>
+                            <span id="textoItemToggleFinalizados">Ocultar Finalizados</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center gap-2" href="javascript:void(0)"
+                            data-action="reabrir-finalizados">
+                            <i data-lucide="eye" class="text-muted" style="width:14px;height:14px;"></i>
+                            <span>Reexibir Todos os Chamados</span>
+                        </a>
+                    </li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center gap-2" href="/historico">
+                            <i data-lucide="history" class="text-muted" style="width:14px;height:14px;"></i>
+                            <span>Ir para Histórico Geral de Cautelas</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Barra de Filtros e Pesquisa da Fila: Espaçosa, responsiva e imune a quebras forçadas de layout -->
+    <div class="fila-controles-bar"
+        style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--space-2); padding:12px 20px; background:var(--bg-subtle, rgba(255,255,255,0.02)); border-bottom:1px solid var(--border-subtle);">
+        <div style="display:flex; align-items:center; gap:var(--space-2); flex-wrap:wrap; flex:1; min-width:280px;">
+            <div class="input-group input-group-sm" style="min-width:210px; max-width:290px;">
+                <span class="input-group-text"><i data-lucide="search"></i></span>
+                <input type="text" id="buscaSolicitacoesAdmin" class="form-control"
+                    placeholder="Buscar chamado, coord, base..." value="{{ request.args.get('busca', '') }}">
+                <button class="btn btn-outline-secondary {% if not request.args.get('busca') %}d-none{% endif %}"
+                    type="button" id="btnLimparBuscaSolAdmin" data-action="limpar-busca-solicitacoes"
+                    title="Limpar busca">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <div class="btn-group btn-group-sm" role="group" id="grupoFiltroSolicitacoes">
+                <button type="button" class="btn btn-secondary active" id="filtroSol-todos"
+                    data-action="filtrar-chamados" data-filtro="todos">
+                    Todos [{{ solicitacoes|length }}]
+                </button>
+                <button type="button" class="btn btn-secondary" id="filtroSol-abertos" data-action="filtrar-chamados"
+                    data-filtro="abertos">
+                    Em Aberto
+                </button>
+                <button type="button" class="btn btn-secondary" id="filtroSol-finalizados"
+                    data-action="filtrar-chamados" data-filtro="finalizados">
+                    Finalizados
+                </button>
+            </div>
+        </div>
+
+        <div class="btn-group btn-group-sm d-none d-md-inline-flex" role="group" id="grupoFiltroBaseAdmin"
+            title="Filtrar chamados por Base">
+            <button type="button" class="btn btn-secondary active" data-action="filtrar-chamados-base"
+                data-base="todas">
+                Todas Bases
+            </button>
+            <button type="button" class="btn btn-secondary" data-action="filtrar-chamados-base" data-base="Tank">
+                Tank
+            </button>
+            <button type="button" class="btn btn-secondary" data-action="filtrar-chamados-base" data-base="TDBR">
+                TDBR
+            </button>
+            <button type="button" class="btn btn-secondary" data-action="filtrar-chamados-base" data-base="Repair">
+                Repair
+            </button>
+            <button type="button" class="btn btn-secondary" data-action="filtrar-chamados-base" data-base="Operação">
+                Operação
+            </button>
+        </div>
+    </div>
+
+    <div style="overflow-x:auto;">
+        {% if solicitacoes %}
+        <table class="table table-hover align-middle table-enterprise cv-table-uniform mb-0">
+            <thead>
+                <tr>
+                    <th class="ps-4">Protocolo</th>
+                    <th>Coordenador</th>
+                    <th>Equipamento Solicitado</th>
+                    <th>Atendimento</th>
+                    <th>Destinatário &amp; Destino</th>
+                    <th>RDO</th>
+                    <th class="text-center pe-4" style="min-width:165px; width:165px;">Ação</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in solicitacoes %}
+                <tr class="linha-solicitacao {% if s.prioridade == 'Urgente' %}is-urgent{% endif %}"
+                    data-id="{{ s.id }}" data-protocolo="#SOL-{{ s.id }}" data-data="{{ s.data_criacao }}"
+                    data-prioridade="{{ s.prioridade }}" data-coordenador="{{ s.nome_coord }}"
+                    data-setor="{{ s.setor or 'Operações' }}" data-equipamento="{{ s.tipo_equipamento }}"
+                    data-qtd-total="{{ s.quantidade_total }}" data-qtd-emitida="{{ s.qtd_emitida }}"
+                    data-status="{{ s.status }}" data-tipo-uso="{{ s.tipo_uso or 'Base' }}"
+                    data-destino="{{ s.plataforma or s.base or '' }}" data-destinatario="{{ s.destinatario or '' }}"
+                    data-rdo="{{ s.rdo or '-' }}"
+                    data-itens="{% if s.itens_emitidos %}{% for it in s.itens_emitidos %}{{ it.modelo or it.tipo }} [{{ it.patrimonio_sn }}]{% if not loop.last %} | {% endif %}{% endfor %}{% else %}-{% endif %}"
+                    data-base="{{ s.base }}"
+                    data-finalizada="{{ '1' if s.status in ('Finalizada', 'Concluído', 'Concluido', 'Finalizado', 'Devolvido') else '0' }}"
+                    data-busca="{{ s.id }} {{ s.nome_coord }} {{ s.setor or '' }} {{ s.base or '' }} {{ s.tipo_uso or '' }} {{ s.tipo_equipamento }} {{ s.destinatario }} {{ s.plataforma }} {{ s.rdo }} {{ s.status }}">
+
+                    <td class="ps-4">
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <span
+                                style="font-weight:700; color:var(--lime); font-family:var(--font-mono); font-size:0.8125rem;">#SOL-{{
+                                s.id }}</span>
+                            {% if s.prioridade == 'Urgente' %}
+                            <span class="badge-notion badge-notion-red" style="font-size:0.65rem; padding:1px 5px;"
+                                title="Prioridade Urgente">URGENTE</span>
+                            {% endif %}
+                        </div>
+                        <div
+                            style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono); margin-top:2px;">
+                            {{ s.data_criacao[:10] if s.data_criacao else '' }}
+                        </div>
+                    </td>
+
+                    <td>
+                        <div>
+                            <span style="font-weight:500; font-size:0.875rem; color:var(--text-primary);">{{
+                                s.nome_coord }}</span>
+                            <div style="font-size:0.75rem; margin-top:2px;">
+                                <span class="badge-notion badge-notion-gray"
+                                    style="font-size:0.68rem; padding:0 5px;">{{ s.setor or 'Operações' }}</span>
+                            </div>
+                        </div>
+                    </td>
+
+                    <td>
+                        <div style="display:flex; align-items:center; gap:var(--space-2);">
+                            <span class="badge-notion badge-notion-green" style="font-size:0.75rem; font-weight:700;">{{
+                                s.quantidade_total }}x</span>
+                            <span style="font-weight:600; font-size:0.875rem; color:var(--text-primary);">{{
+                                s.tipo_equipamento }}</span>
+                        </div>
+                    </td>
+
+                    <td style="min-width:180px;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <div class="progress cv-progress flex-grow-1" style="min-width:70px;">
+                                <div class="progress-bar {% if not s.concluida %}is-pending{% endif %}"
+                                    role="progressbar"
+                                    data-width="{{ (s.qtd_emitida / s.quantidade_total * 100)|round|int if s.quantidade_total > 0 else 0 }}"
+                                    aria-valuenow="{{ (s.qtd_emitida / s.quantidade_total * 100)|round|int if s.quantidade_total > 0 else 0 }}"
+                                    aria-valuemin="0" aria-valuemax="100">
+                                </div>
+                            </div>
+                            <span
+                                style="font-size:0.75rem; font-weight:600; color:var(--text-secondary); font-family:var(--font-mono); white-space:nowrap; min-width:26px; text-align:right;">
+                                {{ s.qtd_emitida }}/{{ s.quantidade_total }}
+                            </span>
+                            {% if s.itens_emitidos or s.itens_devolvidos %}
+                            <button type="button" class="cv-btn-detail" data-bs-toggle="popover" data-bs-trigger="focus"
+                                data-bs-placement="top" data-bs-html="true"
+                                data-bs-title="Ativos Vinculados (#SOL-{{ s.id }})"
+                                data-bs-content="{% if s.itens_emitidos %}{% for it in s.itens_emitidos %}<div class='py-1 border-bottom d-flex justify-content-between gap-3'><span>{{ it.modelo or it.tipo }}</span><code class='text-muted'>{{ it.patrimonio_sn }}</code></div>{% endfor %}{% endif %}{% if s.itens_devolvidos %}{% for it in s.itens_devolvidos %}<div class='py-1 border-bottom d-flex justify-content-between gap-3 text-muted'><span class='text-decoration-line-through'>{{ it.modelo or it.tipo }}</span><span class='badge-notion badge-notion-gray' style='font-size:0.65rem;'>Devolvido</span></div>{% endfor %}{% endif %}"
+                                title="Ver detalhes dos equipamentos emitidos"
+                                aria-label="Ver detalhes dos equipamentos vinculados" tabindex="0">
+                                <i data-lucide="info"></i>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </td>
+
+                    <td>
+                        <div style="display:flex; align-items:center; gap:5px; margin-bottom:3px; flex-wrap:wrap;">
+                            {% if s.tipo_uso == 'Base' %}
+                            {% if s.base == 'Tank' or 'tank' in (s.plataforma|lower) %}
+                            <span class="badge-notion badge-notion-blue"
+                                style="font-size:0.65rem; padding:1px 6px;">Tank</span>
+                            {% elif s.base == 'TDBR' or 'tdbr' in (s.plataforma|lower) %}
+                            <span class="badge-notion badge-notion-orange"
+                                style="font-size:0.65rem; padding:1px 6px;">TDBR</span>
+                            {% elif s.base == 'Repair' or 'repair' in (s.plataforma|lower) %}
+                            <span class="badge-notion badge-notion-green"
+                                style="font-size:0.65rem; padding:1px 6px;">Repair</span>
+                            {% elif 'central' in (s.plataforma|lower) %}
+                            <span class="badge-notion badge-notion-gray"
+                                style="font-size:0.65rem; padding:1px 6px;">Central</span>
+                            {% else %}
+                            <span class="badge-notion badge-notion-purple"
+                                style="font-size:0.65rem; padding:1px 6px;"><i data-lucide="building-2" class="me-1"
+                                    style="width:11px;height:11px;"></i>Base</span>
+                            {% endif %}
+                            {% else %}
+                            <span class="badge-notion badge-notion-blue" style="font-size:0.65rem; padding:1px 6px;"><i
+                                    data-lucide="anchor" class="me-1"
+                                    style="width:11px;height:11px;"></i>Operação</span>
+                            {% endif %}
+                        </div>
+                        <div style="font-size:0.875rem; color:var(--text-primary);"><i data-lucide="user"
+                                class="text-muted me-1" style="width:14px;height:14px;"></i>{{ s.destinatario }}</div>
+                        <div style="font-size:0.8125rem; color:var(--text-muted);"><i data-lucide="map-pin" class="me-1"
+                                style="width:14px;height:14px;"></i>{{ s.plataforma }}</div>
+                    </td>
+
+                    <td>
+                        {% if s.tipo_uso == 'Base' or not s.rdo or s.rdo == '-' or s.rdo == 'N/A' %}
+                        <span class="badge-notion badge-notion-gray" style="font-size:0.68rem; padding:1px 6px;">Base
+                            (Interno)</span>
+                        {% else %}
+                        <code>{{ s.rdo }}</code>
+                        {% endif %}
+                    </td>
+
+                    <td class="text-center pe-4" style="min-width:165px; width:165px; white-space:nowrap;">
+                        {% if s.status in ('Pendente', 'Em Atendimento') %}
+                        <button type="button" class="cv-btn-action cv-btn-action-primary"
+                            style="width:100%; min-width:140px; white-space:nowrap;" data-id="{{ s.id }}"
+                            data-coord-id="{{ s.id_coordenador }}" data-rdo="{{ s.rdo }}"
+                            data-tipo-uso="{{ s.tipo_uso }}" data-base="{{ s.base }}"
+                            data-tipo="{{ s.tipo_equipamento }}" data-coord-nome="{{ s.nome_coord }}"
+                            data-item-atual="{{ s.qtd_emitida + 1 }}" data-total-itens="{{ s.quantidade_total }}"
+                            data-categoria="{{ s.categoria }}" data-action="atender-chamado"
+                            title="Emitir termo de cautela para o item {{ s.qtd_emitida + 1 }} de {{ s.quantidade_total }}">
+                            <i data-lucide="corner-down-right"></i>
+                            <span>Atender ({{ s.qtd_emitida + 1 }}/{{ s.quantidade_total }})</span>
+                        </button>
+                        {% elif s.status == 'Esperando Entrega' %}
+                        <form method="POST" action="/solicitacao/entregar/{{ s.id }}" style="display:block; margin:0;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="cv-btn-action cv-btn-action-primary"
+                                style="width:100%; min-width:140px; white-space:nowrap; cursor:pointer;"
+                                title="Confirmar entrega de todos os itens e finalizar chamado">
+                                <i data-lucide="package"></i>
+                                <span>Entregar</span>
+                            </button>
+                        </form>
+                        {% else %}
+                        <button type="button" class="cv-btn-action cv-btn-action-done"
+                            style="width:100%; min-width:140px; white-space:nowrap;" data-action="fechar-chamado-linha"
+                            title="Ocultar este chamado finalizado da visão de trabalho">
+                            <i data-lucide="eye-off"></i>
+                            <span>Ocultar</span>
+                        </button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                <tr id="linhaVaziaSolicitacoesAdmin" class="d-none">
+                    <td colspan="8" class="text-center py-4 text-muted" style="font-size:0.875rem;">
+                        Nenhuma solicitação encontrada para os termos ou base filtrada.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Banner de Chamados Finalizados Ocultos -->
+        <div id="avisoFinalizadosOcultos" class="d-none"
+            style="padding:var(--space-3) var(--space-4); background:var(--background-card); border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; font-size:0.8125rem; color:var(--text-muted);">
+            <div style="display:flex; align-items:center; gap:var(--space-2);">
+                <i data-lucide="check-circle" class="text-success me-1" style="width:16px;height:16px;"></i>
+                <span><strong id="contadorFinalizadosOcultos">0</strong> chamado(s) finalizado(s) estão ocultos nesta
+                    visão.</span>
+            </div>
+            <button type="button" class="btn btn-link btn-sm p-0" data-action="reabrir-finalizados"
+                style="font-size:0.8125rem; text-decoration:none; font-weight:600; color:var(--lime); cursor:pointer;">
+                <i data-lucide="eye" class="me-1" style="width:14px;height:14px;"></i>Reexibir todos
+            </button>
+        </div>
+        {% else %}
+        <div class="cv-empty-state">
+            <div class="cv-empty-icon"><i data-lucide="inbox"></i></div>
+            <div class="cv-empty-title">Nenhuma solicitação no momento</div>
+            <div class="cv-empty-text">As solicitações abertas pelos coordenadores de operações aparecerão aqui.</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Seção: Lista de Equipamentos & Inventário da Base no Dashboard do Administrador -->
+<div class="surface-card" style="margin-bottom:var(--space-5);" id="secaoInventarioAdmin">
+    <div class="surface-card-header"
+        style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--space-3); padding:18px 20px;">
+        <div>
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
+                <span
+                    style="font-size:0.875rem; font-weight:700; color:var(--text-primary); text-transform:uppercase; letter-spacing:0.05em; font-family:var(--font-mono); line-height:1.2;">
+                    Inventário de Equipamentos na Base
+                </span>
+                <span class="badge-notion badge-notion-gray" id="badgeContadorEquipDash"
+                    style="font-size:0.75rem; padding:2px 8px; font-weight:600;">{{ equipamentos|length }} ativos</span>
+            </div>
+            <div style="font-size:0.8125rem; color:var(--text-muted); line-height:1.4;">
+                Visão rápida de estoque, notebooks, ativos alugados e devoluções imediatas
+            </div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:var(--space-2); flex-wrap:wrap;">
+            <div class="input-group input-group-sm" style="min-width:210px; max-width:270px;">
+                <span class="input-group-text"><i data-lucide="search"></i></span>
+                <input type="text" id="buscaEquipAdminDash" class="form-control"
+                    placeholder="Buscar modelo, SN, base..." onkeyup="filtrarEquipamentosAdminDash()">
+                <button class="btn btn-outline-secondary" type="button" id="btnLimparBuscaEquipDash"
+                    data-action="limpar-busca-equip" style="display:none;" title="Limpar busca">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <button type="button" class="btn btn-secondary btn-sm" id="btnToggleNotebookDash"
+                data-action="toggle-notebooks" title="Filtrar apenas notebooks">
+                <i data-lucide="laptop"></i> <span id="textoToggleNotebookDash">Notebooks</span>
+            </button>
+
+            <div class="btn-group btn-group-sm" role="group" id="grupoFiltroBaseEquipDash" title="Filtrar por Base">
+                <button type="button" class="btn btn-secondary active" data-action="filtrar-equip-base"
+                    data-base="todas">Todas</button>
+                <button type="button" class="btn btn-secondary" data-action="filtrar-equip-base"
+                    data-base="Tank">Tank</button>
+                <button type="button" class="btn btn-secondary" data-action="filtrar-equip-base"
+                    data-base="TDBR">TDBR</button>
+                <button type="button" class="btn btn-secondary" data-action="filtrar-equip-base"
+                    data-base="Repair">Repair</button>
+                <button type="button" class="btn btn-secondary" data-action="filtrar-equip-base"
+                    data-base="Central">Central</button>
+            </div>
+
+            {% if current_user.role == 'admin' %}
+            <div class="btn-group btn-group-sm">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-action="exportar-equip"
+                    data-formato="csv" title="Exportar resumo de ativos filtrados para planilha executiva CSV">
+                    <i data-lucide="download"></i> Exportar
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle dropdown-toggle-split"
+                    data-bs-toggle="dropdown" aria-expanded="false" title="Formatos de exportação">
+                    <span class="visually-hidden">Opções</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="font-size:0.8125rem;">
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center gap-2" href="javascript:void(0)"
+                            data-action="exportar-equip" data-formato="csv">
+                            <i data-lucide="file-spreadsheet" class="text-success" style="width:14px;height:14px;"></i>
+                            <span>Planilha Executiva (.csv)</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center gap-2" href="javascript:void(0)"
+                            data-action="exportar-equip" data-formato="xlsx">
+                            <i data-lucide="file-check" class="text-primary" style="width:14px;height:14px;"></i>
+                            <span>Planilha Excel (.xlsx)</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            {% endif %}
+
+            <a href="/equipamentos" class="btn btn-outline-secondary btn-sm"
+                title="Abrir página completa com todos os filtros avançados">
+                <i data-lucide="external-link"></i> Painel Completo
+            </a>
+        </div>
+    </div>
+
+    <div style="overflow-x:auto;">
+        {% if equipamentos %}
+        <table class="table table-hover align-middle table-enterprise cv-table-uniform mb-0"
+            id="tabelaEquipamentosAdminDash">
+            <thead>
+                <tr>
+                    <th class="ps-4">ID</th>
+                    <th>Equipamento</th>
+                    <th>Patrimônio / SN</th>
+                    <th>Status</th>
+                    <th class="text-center pe-4" style="min-width:130px;">Ação</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for eq in equipamentos %}
+                <tr class="linha-equip-dash" data-id="{{ eq.id }}" data-tipo="{{ eq.tipo }}"
+                    data-modelo="{{ eq.modelo|replace('"', ' &quot;') }}"
+                    data-sn="{{ eq.patrimonio_sn or 'Sem Serial' }}" data-base="{{ eq.base }}"
+                    data-status="{{ eq.status }}" data-is-notebook="{{ '1' if eq.is_notebook else '0' }}"
+                    data-propriedade="{{ 'alugado' if eq.alugado else 'proprio' }}"
+                    data-busca="{{ eq.id }} {{ eq.tipo }} {{ eq.modelo }} {{ eq.patrimonio_sn }} {{ eq.base }} {{ eq.status }} {{ eq.empresa_locadora }}">
+
+                    <td class="ps-4"><code style="font-size:0.8rem;">#{{ eq.id }}</code></td>
+
+                    <td>
+                        <div>
+                            <span style="font-weight:600; font-size:0.875rem; color:var(--text-primary);">{{ eq.modelo
+                                }}</span>
+                            <div style="font-size:0.75rem; color:var(--text-muted);">
+                                {{ eq.tipo }}
+                            </div>
+                        </div>
+                    </td>
+
+                    <td>
+                        {% if eq.patrimonio_sn %}
+                        <code
+                            style="font-size:0.8125rem; font-weight:700; color:var(--text-primary); background:rgba(0,0,0,0.04); padding:2px 6px; border-radius:2px; border:1px solid var(--border);">
+                            {{ eq.patrimonio_sn }}
+                        </code>
+                        {% else %}
+                        <span class="badge-notion badge-notion-gray" style="font-size:0.75rem; padding:2px 6px;">
+                            Sem Serial
+                        </span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if eq.status in ('Disponível', 'Disponivel') %}
+                        <span class="badge-notion badge-notion-green"><i data-lucide="check"
+                                class="me-1"></i>Disponível</span>
+                        {% elif eq.status in ('Em Operação', 'Em Operacao') %}
+                        <span class="badge-notion badge-notion-blue"><i data-lucide="radio" class="me-1"></i>Em
+                            Operação</span>
+                        {% else %}
+                        <span class="badge-notion badge-notion-gray">{{ eq.status }}</span>
+                        {% endif %}
+                    </td>
+
+                    <td class="text-center pe-4">
+                        {% if eq.status in ('Em Operação', 'Em Operacao') %}
+                        <form method="POST" action="/devolver/{{ eq.id }}" style="display:inline-block; margin:0;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="cv-btn-action cv-btn-action-secondary"
+                                style="height:28px; font-size:0.75rem; padding:0 8px; cursor:pointer;"
+                                title="Registrar devolução de equipamento">
+                                <i data-lucide="corner-up-left" class="text-danger"></i> Devolver
+                            </button>
+                        </form>
+                        {% else %}
+                        <span
+                            style="font-size:0.8125rem; color:var(--text-muted); display:inline-flex; align-items:center; gap:4px;">
+                            <i data-lucide="check" class="text-success me-1"></i> Na Base
+                        </span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                <tr id="linhaVaziaEquipDash" class="d-none">
+                    <td colspan="7" class="text-center py-4 text-muted" style="font-size:0.875rem;">
+                        Nenhum equipamento encontrado para os filtros selecionados.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        {% else %}
+        <div class="cv-empty-state py-4">
+            <div class="cv-empty-icon"><i data-lucide="server"></i></div>
+            <div class="cv-empty-title">Nenhum equipamento cadastrado</div>
+            <div class="cv-empty-text"><a href="/novo-equipamento" style="color:var(--lime); font-weight:600;">Cadastre
+                    um equipamento</a> para alimentar a base.</div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="surface-card-footer"
+        style="padding:10px 20px; background:#fafafa; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; font-size:0.8125rem;">
+        <span class="text-muted" id="infoRodapeEquipDash">
+            Total de <strong>{{ equipamentos|length }}</strong> equipamentos cadastrados na base.
+        </span>
+        <a href="/equipamentos"
+            style="color:var(--text-primary); text-decoration:none; font-weight:600; display:inline-flex; align-items:center; gap:4px;">
+            Ver inventário com filtros completos <i data-lucide="arrow-right" style="width:14px;height:14px;"></i>
+        </a>
+    </div>
+</div>
+
+<!-- Card Contextual de Histórico de Cautelas -->
+<div class="surface-card"
+    style="display:flex; align-items:center; justify-content:space-between; padding:var(--space-4) var(--space-5);">
+    <div>
+        <div
+            style="font-size:0.9375rem; font-weight:700; color:var(--text-primary); font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.04em;">
+            Histórico Geral de Cautelas &amp; Auditoria
+        </div>
+        <div style="font-size:0.8125rem; color:var(--text-muted); margin-top:2px;">
+            Consulte todos os {{ cautelas|length }} termos emitidos, realize buscas avançadas e acesse os PDFs
+            assinados.
+        </div>
+    </div>
+    <a href="/historico" class="btn btn-secondary btn-sm">
+        <i data-lucide="history"></i> Acessar Histórico Completo
+    </a>
+</div>
+
+<!-- Modal Emitir Cautela -->
+<div class="modal fade" id="modalEmitirCautela" tabindex="-1" aria-labelledby="modalEmitirCautelaLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:540px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h5 class="modal-title" id="modalEmitirCautelaLabel"
+                        style="font-size:1rem; font-weight:700; color:var(--text-primary); font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.04em;">
+                        Emitir Termo de Cautela
+                    </h5>
+                    <div id="subtituloModalCautela"
+                        style="font-size:0.8125rem; color:var(--text-muted); margin-top:2px;">
+                        Vinculação de ativo e geração de PDF
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+
+            <form action="/gerar" method="POST" id="formCautelaModal">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="id_solicitacao" id="campoIdSolicitacaoModal" value="">
+                <input type="hidden" name="origem" id="campoOrigemModal" value="home">
+
+                <div class="modal-body" style="padding:var(--space-5);">
+                    <div id="bannerAtendimentoModal"
+                        class="alert alert-info py-2 px-3 small d-none mb-3 align-items-center justify-content-between"
+                        style="border-radius:2px; font-family:var(--font-mono);">
+                        <div style="display:flex; align-items:center; gap:var(--space-2);">
+                            <i data-lucide="link" class="fs-5"></i>
+                            <div id="textoBannerAtendimentoModal">Atendendo Chamado</div>
+                        </div>
+                        <button type="button" class="btn btn-secondary btn-sm py-0 px-2"
+                            data-action="limpar-atendimento">Desvincular</button>
+                    </div>
+
+                    <div id="avisoFiltroEquipamentoModal" class="d-none"></div>
+
+                    <div style="margin-bottom:var(--space-4);">
+                        <label class="form-label" for="campoIdEquipamentoModal">
+                            Equipamento para Cautela <span style="color:var(--status-danger-text);">*</span>
+                        </label>
+                        <select class="form-select" name="id_equipamento" id="campoIdEquipamentoModal" required>
+                            <option value="" disabled selected>Selecione um equipamento...</option>
+                            {% for eq in equipamentos %}
+                            <option value="{{ eq.id }}" data-categoria="{{ eq.categoria }}" data-tipo="{{ eq.tipo }}"
+                                data-modelo="{{ eq.modelo }}" data-sn="{{ eq.patrimonio_sn or '' }}"
+                                data-base="{{ eq.base }}" data-status="{{ eq.status }}" {% if eq.status not in
+                                ('Disponível', 'Disponivel' ) %}disabled style="color:var(--text-muted);" {% endif %}>
+                                #{{ eq.id }} - {{ eq.tipo }} ({{ eq.modelo }}{% if eq.patrimonio_sn %} | SN: {{
+                                eq.patrimonio_sn }}{% else %} | Sem SN{% endif %}{% if eq.sistema_operacional %} | {{
+                                eq.sistema_operacional }}{% endif %}{% if eq.memoria_ram %} | {{ eq.memoria_ram }}{%
+                                endif %}) &bull; [{{ eq.base }}] [{{ eq.status }}]
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text" id="ajudaEquipamentoModal">
+                            Ao atender um chamado, apenas equipamentos compatíveis e disponíveis serão exibidos.
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom:var(--space-4);">
+                        <label class="form-label" for="campoIdCoordenadorModal">
+                            Coordenador Responsável <span style="color:var(--status-danger-text);">*</span>
+                        </label>
+                        <select class="form-select" name="id_coordenador" id="campoIdCoordenadorModal" required>
+                            <option value="" disabled selected>Selecione o coordenador...</option>
+                            {% for coord in coordenadores %}
+                            <option value="{{ coord.id }}">
+                                #{{ coord.id }} - {{ coord.nome_completo }} ({{ coord.cpf_matricula }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div style="margin-bottom:var(--space-2);">
+                        <label class="form-label" for="campoRdoModal">
+                            Número do RDO / Projeto <span style="color:var(--status-danger-text);">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i data-lucide="file-text"></i></span>
+                            <input type="text" class="form-control" name="rdo" id="campoRdoModal"
+                                placeholder="Ex: RDO-2026-0905" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer"
+                    style="padding:var(--space-4) var(--space-5); display:flex; justify-content:space-between;">
+                    <button type="button" class="btn btn-outline btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary btn-sm" id="btnSubmitModalCautela">
+                        <i data-lucide="check-circle"></i>
+                        Confirmar Saída &amp; Gerar PDF
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Inventário de Ativos -->
+<div class="modal fade" id="modalInventarioAtivos" tabindex="-1" aria-labelledby="modalInventarioLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h5 class="modal-title" id="modalInventarioLabel"
+                        style="font-size:1rem; font-weight:700; color:var(--text-primary); font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.04em;">
+                        Inventário da Base de Equipamentos
+                    </h5>
+                    <div style="font-size:0.8125rem; color:var(--text-muted); margin-top:2px;">
+                        Consulta rápida de disponibilidade e devolução de ativos
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+
+            <div class="modal-body" style="padding:var(--space-4);">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                    <div class="input-group input-group-sm" style="flex:1; min-width:220px;">
+                        <span class="input-group-text"><i data-lucide="search"></i></span>
+                        <input type="text" id="buscaModalInventario" class="form-control"
+                            placeholder="Filtrar ativo por tipo, modelo, SN ou base...">
+                        <button class="btn btn-outline-secondary" type="button" id="btnLimparBuscaInventario"
+                            data-action="limpar-busca-inv-modal" style="display:none;" title="Limpar">
+                            <i data-lucide="x"></i>
+                        </button>
+                    </div>
+                    <div class="btn-group btn-group-sm" id="grupoFiltroBaseInventario" role="group"
+                        title="Filtrar inventário por Base">
+                        <button type="button" class="btn btn-secondary active" data-action="filtrar-inv-base"
+                            data-base="todas">Todas Bases</button>
+                        <button type="button" class="btn btn-secondary" data-action="filtrar-inv-base"
+                            data-base="Tank">Tank</button>
+                        <button type="button" class="btn btn-secondary" data-action="filtrar-inv-base"
+                            data-base="TDBR">TDBR</button>
+                        <button type="button" class="btn btn-secondary" data-action="filtrar-inv-base"
+                            data-base="Repair">Repair</button>
+                        <button type="button" class="btn btn-secondary" data-action="filtrar-inv-base"
+                            data-base="Central">Central</button>
+                    </div>
+                </div>
+
+                <div style="overflow-x:auto; max-height:360px; overflow-y:auto;">
+                    <table class="table table-hover align-middle table-enterprise mb-0" id="tabelaModalInventario">
+                        <thead>
+                            <tr>
+                                <th class="ps-4">ID</th>
+                                <th>Tipo / Modelo</th>
+                                <th>Patrimônio / SN</th>
+                                <th>Base</th>
+                                <th>Aquisição</th>
+                                <th>Status</th>
+                                <th class="text-center pe-4">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for eq in equipamentos %}
+                            <tr class="linha-inventario-modal" data-base="{{ eq.base }}"
+                                data-busca="{{ eq.id }} {{ eq.tipo }} {{ eq.modelo }} {{ eq.patrimonio_sn or '' }} {{ eq.base }} {{ eq.status }} {{ eq.empresa_locadora }} {{ eq.processador or '' }} {{ eq.memoria_ram or '' }} {{ eq.sistema_operacional or '' }}">
+                                <td class="ps-4"><code style="font-size:0.8rem;">#{{ eq.id }}</code></td>
+                                <td>
+                                    <div style="font-weight:600; font-size:0.875rem; color:var(--text-primary);">{{
+                                        eq.tipo }}</div>
+                                    <div style="font-size:0.8125rem; color:var(--text-muted);">{{ eq.modelo }}</div>
+                                </td>
+                                <td>
+                                    {% if eq.patrimonio_sn %}
+                                    <code style="font-size:0.8rem;">{{ eq.patrimonio_sn }}</code>
+                                    {% else %}
+                                    <span class="badge-notion badge-notion-gray"
+                                        style="font-size:0.75rem; padding:2px 6px;">Sem Serial</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if eq.base == 'Tank' %}
+                                    <span class="badge-notion badge-notion-blue"><i data-lucide="map-pin"
+                                            class="me-1"></i>Tank</span>
+                                    {% elif eq.base == 'TDBR' %}
+                                    <span class="badge-notion badge-notion-purple"><i data-lucide="map-pin"
+                                            class="me-1"></i>TDBR</span>
+                                    {% elif eq.base == 'Repair' %}
+                                    <span class="badge-notion badge-notion-orange"><i data-lucide="wrench"
+                                            class="me-1"></i>Repair</span>
+                                    {% elif 'Central' in eq.base %}
+                                    <span class="badge-notion badge-notion-gray"><i data-lucide="building"
+                                            class="me-1"></i>Central</span>
+                                    {% else %}
+                                    <span class="badge-notion badge-notion-gray">{{ eq.base }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if eq.alugado %}
+                                    <span class="badge-notion badge-notion-purple"
+                                        title="Locadora: {{ eq.empresa_locadora }}">
+                                        <i data-lucide="handshake" class="me-1"></i>Alugado: {{ eq.empresa_locadora or
+                                        'Locadora' }}
+                                    </span>
+                                    {% else %}
+                                    <span class="badge-notion badge-notion-gray">
+                                        <i data-lucide="shield-check" class="me-1 text-success"></i>Próprio
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if eq.status in ('Disponível', 'Disponivel') %}
+                                    <span class="badge-notion badge-notion-green"><i data-lucide="check"
+                                            class="me-1"></i>Disponível</span>
+                                    {% elif eq.status in ('Em Operação', 'Em Operacao') %}
+                                    <span class="badge-notion badge-notion-blue"><i data-lucide="radio"
+                                            class="me-1"></i>Em Operação</span>
+                                    {% else %}
+                                    <span class="badge-notion badge-notion-gray">{{ eq.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center pe-4">
+                                    {% if eq.status in ('Em Operação', 'Em Operacao') %}
+                                    <form method="POST" action="/devolver/{{ eq.id }}"
+                                        style="display:inline-block; margin:0;">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="cv-btn-action cv-btn-action-secondary"
+                                            style="height:28px; font-size:0.75rem; padding:0 8px; cursor:pointer;"
+                                            title="Registrar devolução de equipamento">
+                                            <i data-lucide="corner-up-left" class="text-danger"></i> Devolver
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <span
+                                        style="font-size:0.8125rem; color:var(--text-muted); display:inline-flex; align-items:center; gap:4px;"><i
+                                            data-lucide="check" class="text-success me-1"></i> Na Base</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            <tr id="linhaVaziaInventarioModal" class="d-none">
+                                <td colspan="7" class="text-center py-4 text-muted" style="font-size:0.875rem;">
+                                    Nenhum ativo encontrado para os filtros selecionados.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="modal-footer"
+                style="padding:var(--space-3) var(--space-4); display:flex; justify-content:space-between;">
+                <span style="font-size:0.8125rem; color:var(--text-muted); font-family:var(--font-mono);">
+                    Total de <strong>{{ equipamentos|length }}</strong> equipamentos cadastrados.
+                </span>
+                <div style="display:flex; gap:var(--space-2);">
+                    <a href="/novo-equipamento" class="btn btn-primary btn-sm">
+                        <i data-lucide="plus"></i> Novo Equipamento
+                    </a>
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let categoriaFiltroAtivo = null;
+    let tipoSolicitadoAtivo = null;
+    let bsModalCautela = null;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const elModal = document.getElementById('modalEmitirCautela');
+        if (elModal) {
+            bsModalCautela = new bootstrap.Modal(elModal);
+        }
+
+        document.querySelectorAll('.progress-bar[data-width]').forEach(function (bar) {
+            bar.style.width = (bar.getAttribute('data-width') || '0') + '%';
+        });
+
+        // Leitura e aplicação de busca vinda da URL (ex: clique em "Chamados" no quadro de colaboradores)
+        const urlParams = new URLSearchParams(window.location.search);
+        const termoUrl = urlParams.get('busca');
+        const inputBusca = document.getElementById('buscaSolicitacoesAdmin');
+
+        if (termoUrl) {
+            if (inputBusca) {
+                inputBusca.value = termoUrl;
+            }
+            finalizadosFechadosAdmin = false;
+            filtroChamadosAtivo = 'todos';
+            document.querySelectorAll('#grupoFiltroSolicitacoes button').forEach(function (b) {
+                b.classList.remove('active');
+            });
+            const btnTodos = document.getElementById('filtroSol-todos');
+            if (btnTodos) btnTodos.classList.add('active');
+            document.querySelectorAll('.linha-solicitacao').forEach(function (row) {
+                row.removeAttribute('data-fechada-individual');
+            });
+        } else if (localStorage.getItem('cavere_finalizados_fechados_admin') === '1') {
+            finalizadosFechadosAdmin = true;
+        }
+
+        aplicarVisibilidadeChamados();
+
+        if (termoUrl) {
+            const secao = document.getElementById('secaoSolicitacoes');
+            if (secao) {
+                setTimeout(function () {
+                    secao.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 150);
+            }
+        }
+
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+    });
+
+    function abrirModalAtendimentoDoBotao(btn) {
+        if (!btn) return;
+        const idSol = btn.getAttribute('data-id') || '';
+        const idCoord = btn.getAttribute('data-coord-id') || '';
+        const rdo = btn.getAttribute('data-rdo') || '';
+        const tipoUso = btn.getAttribute('data-tipo-uso') || 'Operação';
+        const tipoEq = btn.getAttribute('data-tipo') || '';
+        const nomeCoord = btn.getAttribute('data-coord-nome') || '';
+        const itemAtual = btn.getAttribute('data-item-atual') || '1';
+        const totalItens = btn.getAttribute('data-total-itens') || '1';
+        const categoriaEq = btn.getAttribute('data-categoria') || '';
+        abrirModalAtendimento(idSol, idCoord, rdo, tipoEq, nomeCoord, itemAtual, totalItens, categoriaEq, tipoUso);
+    }
+
+    function abrirModalAtendimento(idSol, idCoord, rdo, tipoEq, nomeCoord, itemAtual, totalItens, categoriaEq, tipoUso) {
+        document.getElementById('campoIdSolicitacaoModal').value = idSol || '';
+        const campoOrigem = document.getElementById('campoOrigemModal');
+        if (campoOrigem) campoOrigem.value = 'home';
+        categoriaFiltroAtivo = categoriaEq || null;
+        tipoSolicitadoAtivo = tipoEq || '';
+
+        if (idCoord && idCoord !== 'None') {
+            const selectCoord = document.getElementById('campoIdCoordenadorModal');
+            for (let i = 0; i < selectCoord.options.length; i++) {
+                if (selectCoord.options[i].value == idCoord) {
+                    selectCoord.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+
+        if (tipoUso === 'Base' || !rdo || rdo === 'None' || rdo === 'N/A' || rdo === '-') {
+            document.getElementById('campoRdoModal').value = (tipoUso === 'Base') ? 'Base (Uso Interno)' : '';
+        } else {
+            document.getElementById('campoRdoModal').value = rdo;
+        }
+
+        aplicarFiltroEquipamentosModal(categoriaEq, tipoEq);
+
+        const banner = document.getElementById('bannerAtendimentoModal');
+        const texto = document.getElementById('textoBannerAtendimentoModal');
+        const subtitulo = document.getElementById('subtituloModalCautela');
+
+        if (banner && texto) {
+            texto.textContent = '';
+            const st1 = document.createElement('strong');
+            st1.textContent = `Chamado #SOL-${idSol}`;
+            const sep = document.createTextNode(' • Item ');
+            const st2 = document.createElement('strong');
+            st2.textContent = `${itemAtual || 1} de ${totalItens || 1}`;
+            const tip = document.createTextNode(` (${tipoEq})`);
+            texto.append(st1, sep, st2, tip);
+            banner.classList.remove('d-none');
+            banner.classList.add('d-flex');
+        }
+        if (subtitulo) {
+            subtitulo.textContent = `Atendendo solicitação do coordenador ${nomeCoord}`;
+        }
+
+        if (bsModalCautela) bsModalCautela.show();
+    }
+
+    function abrirModalCautelaAvulsa() {
+        limparAtendimentoModal();
+        const campoOrigem = document.getElementById('campoOrigemModal');
+        if (campoOrigem) campoOrigem.value = 'historico';
+        const subtitulo = document.getElementById('subtituloModalCautela');
+        if (subtitulo) {
+            subtitulo.textContent = 'Emissão avulsa direta (sem chamado vinculado)';
+        }
+        if (bsModalCautela) bsModalCautela.show();
+    }
+
+    function limparAtendimentoModal() {
+        document.getElementById('campoIdSolicitacaoModal').value = '';
+        categoriaFiltroAtivo = null;
+        tipoSolicitadoAtivo = null;
+        const banner = document.getElementById('bannerAtendimentoModal');
+        if (banner) {
+            banner.classList.add('d-none');
+            banner.classList.remove('d-flex');
+        }
+        aplicarFiltroEquipamentosModal('todos');
+    }
+
+    function aplicarFiltroEquipamentosModal(categoria, tipoTexto) {
+        const selectEq = document.getElementById('campoIdEquipamentoModal');
+        const avisoFiltro = document.getElementById('avisoFiltroEquipamentoModal');
+        let totalCompativeis = 0;
+        let totalDisponiveis = 0;
+        let primeiroDisponivelIndex = -1;
+
+        if (!categoria || categoria === 'todos') {
+            for (let i = 0; i < selectEq.options.length; i++) {
+                const opt = selectEq.options[i];
+                const st = (opt.getAttribute('data-status') || '').toLowerCase();
+                const isDisp = st.includes('dispon');
+                opt.hidden = false;
+                if (i > 0) opt.disabled = !isDisp;
+            }
+            if (avisoFiltro) { avisoFiltro.className = 'd-none'; avisoFiltro.replaceChildren(); }
+            return;
+        }
+
+        selectEq.selectedIndex = 0;
+
+        for (let i = 1; i < selectEq.options.length; i++) {
+            const opt = selectEq.options[i];
+            const catOpt = opt.getAttribute('data-categoria') || '';
+            const statusOpt = (opt.getAttribute('data-status') || '').toLowerCase();
+            const isDisponivel = statusOpt.includes('dispon');
+
+            if (catOpt === categoria) {
+                opt.hidden = false;
+                opt.disabled = !isDisponivel;
+                totalCompativeis++;
+                if (isDisponivel) {
+                    totalDisponiveis++;
+                    if (primeiroDisponivelIndex === -1) primeiroDisponivelIndex = i;
+                }
+            } else {
+                opt.hidden = true;
+                opt.disabled = true;
+            }
+        }
+
+        if (primeiroDisponivelIndex !== -1) selectEq.selectedIndex = primeiroDisponivelIndex;
+
+        if (avisoFiltro) {
+            avisoFiltro.classList.remove('d-none');
+            avisoFiltro.replaceChildren();
+            const icon = document.createElement('i');
+            icon.className = 'me-1';
+            if (totalCompativeis === 0) {
+                avisoFiltro.className = 'alert alert-danger py-2 px-3 small mb-3';
+                icon.setAttribute('data-lucide', 'x-circle');
+                const strong = document.createElement('strong');
+                strong.textContent = 'Nenhum equipamento';
+                avisoFiltro.append(icon, document.createTextNode(' '), strong, document.createTextNode(" do tipo '" + tipoTexto + "' cadastrado no estoque."));
+            } else if (totalDisponiveis === 0) {
+                avisoFiltro.className = 'alert alert-warning py-2 px-3 small mb-3';
+                icon.setAttribute('data-lucide', 'alert-triangle');
+                const strong = document.createElement('strong');
+                strong.textContent = 'nenhum disponível';
+                avisoFiltro.append(icon, document.createTextNode(" " + String(totalCompativeis) + " equipamento(s) compatível(is), mas "), strong, document.createTextNode(' no momento (todos em operação).'));
+            } else {
+                avisoFiltro.className = 'alert alert-success py-2 px-3 small mb-3';
+                icon.setAttribute('data-lucide', 'shield-check');
+                const strong = document.createElement('strong');
+                strong.textContent = 'Filtro Ativo:';
+                avisoFiltro.append(icon, document.createTextNode(' '), strong, document.createTextNode(" " + String(totalDisponiveis) + " item(ns) disponível(is) para '" + tipoTexto + "'."));
+            }
+            if (window.lucide) lucide.createIcons();
+        }
+    }
+
+    document.getElementById('formCautelaModal').addEventListener('submit', function (e) {
+        const selectEq = document.getElementById('campoIdEquipamentoModal');
+        const idSol = document.getElementById('campoIdSolicitacaoModal').value;
+
+        if (selectEq.selectedIndex <= 0) {
+            e.preventDefault();
+            alert('Por favor, selecione um equipamento válido na lista.');
+            selectEq.focus();
+            return false;
+        }
+
+        const opt = selectEq.options[selectEq.selectedIndex];
+        if (opt.disabled) {
+            e.preventDefault();
+            alert('O equipamento selecionado está em operação ou indisponível.');
+            return false;
+        }
+
+        if (idSol && categoriaFiltroAtivo) {
+            const catSelecionada = opt.getAttribute('data-categoria');
+            if (catSelecionada !== categoriaFiltroAtivo) {
+                e.preventDefault();
+                alert('Operação bloqueada! O chamado exige "' + tipoSolicitadoAtivo + '", mas você selecionou um equipamento incompatível.');
+                return false;
+            }
+        }
+    });
+
+    let filtroBaseInventarioAtivo = 'todas';
+
+    function filtrarInventarioPorBase(base, btn) {
+        filtroBaseInventarioAtivo = base;
+        const grupo = document.getElementById('grupoFiltroBaseInventario');
+        if (grupo) {
+            grupo.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+        }
+        if (btn) btn.classList.add('active');
+        filtrarTabelaInventarioModal();
+    }
+
+    function limparBuscaInventarioModal() {
+        const campo = document.getElementById('buscaModalInventario');
+        if (campo) {
+            campo.value = '';
+            campo.focus();
+        }
+        filtrarTabelaInventarioModal();
+    }
+
+    function filtrarTabelaInventarioModal() {
+        const termo = (document.getElementById('buscaModalInventario')?.value || '').toLowerCase().trim();
+        const btnLimpar = document.getElementById('btnLimparBuscaInventario');
+        if (btnLimpar) {
+            btnLimpar.style.display = termo ? 'block' : 'none';
+        }
+
+        const linhas = document.querySelectorAll('.linha-inventario-modal');
+        let visiveis = 0;
+        linhas.forEach(function (linha) {
+            const dados = (linha.getAttribute('data-busca') || '').toLowerCase();
+            const baseRow = (linha.getAttribute('data-base') || '').toLowerCase();
+
+            let coincideTexto = (!termo || dados.includes(termo));
+            let coincideBase = true;
+            if (filtroBaseInventarioAtivo !== 'todas') {
+                const bFiltro = filtroBaseInventarioAtivo.toLowerCase();
+                coincideBase = baseRow.includes(bFiltro) || dados.includes(bFiltro);
+            }
+
+            const visivel = coincideTexto && coincideBase;
+            linha.style.display = visivel ? '' : 'none';
+            if (visivel) visiveis++;
+        });
+
+        const linhaVazia = document.getElementById('linhaVaziaInventarioModal');
+        if (linhaVazia) {
+            linhaVazia.classList.toggle('d-none', visiveis > 0);
+        }
+        if (window.lucide) lucide.createIcons();
+    }
+
+    let finalizadosFechadosAdmin = false;
+    let filtroChamadosAtivo = 'todos';
+    let filtroBaseAdminAtivo = 'todas';
+
+    function filtrarChamadosPorBaseAdmin(base, btn) {
+        filtroBaseAdminAtivo = base;
+        const grupo = document.getElementById('grupoFiltroBaseAdmin');
+        if (grupo) {
+            grupo.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+        }
+        if (btn) btn.classList.add('active');
+        aplicarVisibilidadeChamados();
+    }
+
+    function limparBuscaSolicitacoesAdmin() {
+        const campo = document.getElementById('buscaSolicitacoesAdmin');
+        if (campo) {
+            campo.value = '';
+            campo.focus();
+        }
+        if (window.history && window.history.replaceState) {
+            const url = new URL(window.location);
+            if (url.searchParams.has('busca')) {
+                url.searchParams.delete('busca');
+                const novaUrl = url.pathname + (url.searchParams.toString() ? '?' + url.searchParams.toString() : '') + url.hash;
+                window.history.replaceState(null, '', novaUrl);
+            }
+        }
+        aplicarVisibilidadeChamados();
+    }
+
+    function aplicarVisibilidadeChamados() {
+        const inputBusca = document.getElementById('buscaSolicitacoesAdmin');
+        const termoBusca = (inputBusca?.value || '').trim();
+        const btnLimpar = document.getElementById('btnLimparBuscaSolAdmin');
+        if (btnLimpar) {
+            btnLimpar.style.display = termoBusca ? 'block' : 'none';
+        }
+
+        const normalizar = (str) => (str || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+        const tokensBusca = normalizar(termoBusca).split(/\s+/).filter(Boolean);
+
+        const linhas = document.querySelectorAll('.linha-solicitacao');
+        let totalFinalizadas = 0;
+        let finalizadasOcultas = 0;
+        let visibleIndex = 0;
+        let totalExibidas = 0;
+
+        linhas.forEach(function (row) {
+            const isFinalizada = row.getAttribute('data-finalizada') === '1';
+            const individualmenteFechada = row.getAttribute('data-fechada-individual') === '1';
+            const baseRow = row.getAttribute('data-base') || '';
+            const tipoUsoRow = row.getAttribute('data-tipo-uso') || '';
+            const buscaRow = normalizar(row.getAttribute('data-busca') || '');
+
+            if (isFinalizada) totalFinalizadas++;
+
+            let deveExibir = true;
+
+            // Filtro de Busca por Texto (tokens múltiplos com suporte a acentuação)
+            if (tokensBusca.length > 0) {
+                const matchTokens = tokensBusca.every(token => buscaRow.includes(token));
+                if (!matchTokens) {
+                    deveExibir = false;
+                }
+            }
+
+            // Filtro de Status
+            if (deveExibir) {
+                if (filtroChamadosAtivo === 'abertos') {
+                    deveExibir = !isFinalizada;
+                } else if (filtroChamadosAtivo === 'finalizados') {
+                    deveExibir = isFinalizada;
+                } else {
+                    if (!termoBusca) {
+                        if (finalizadosFechadosAdmin && isFinalizada) {
+                            deveExibir = false;
+                        } else if (individualmenteFechada) {
+                            deveExibir = false;
+                        }
+                    }
+                }
+            }
+
+            // Filtro de Base (Tank, TDBR, Repair, Operação)
+            if (deveExibir && filtroBaseAdminAtivo !== 'todas') {
+                if (filtroBaseAdminAtivo === 'Operação') {
+                    if (tipoUsoRow !== 'Operação' && baseRow !== 'Operação') {
+                        deveExibir = false;
+                    }
+                } else {
+                    const baseFiltroLower = normalizar(filtroBaseAdminAtivo);
+                    if (!normalizar(baseRow).includes(baseFiltroLower) && !buscaRow.includes(baseFiltroLower)) {
+                        deveExibir = false;
+                    }
+                }
+            }
+
+            if (!deveExibir) {
+                row.style.display = 'none';
+                row.style.opacity = '';
+                row.style.transform = '';
+                row.style.transition = '';
+                if (isFinalizada) finalizadasOcultas++;
+            } else {
+                totalExibidas++;
+                const delay = visibleIndex < 8 ? visibleIndex * 25 : 0;
+                row.style.display = '';
+                row.style.opacity = '0';
+                row.style.transform = 'translateY(4px)';
+                row.style.transition = 'none';
+                requestAnimationFrame(function () {
+                    row.style.transition = 'opacity 200ms cubic-bezier(0.4,0,0.2,1) ' + delay + 'ms, transform 200ms cubic-bezier(0.16,1,0.3,1) ' + delay + 'ms';
+                    row.style.opacity = '1';
+                    row.style.transform = 'translateY(0)';
+                });
+                visibleIndex++;
+            }
+        });
+
+        const linhaVaziaSol = document.getElementById('linhaVaziaSolicitacoesAdmin');
+        if (linhaVaziaSol) {
+            linhaVaziaSol.classList.toggle('d-none', totalExibidas > 0);
+        }
+
+        const textoMenu = document.getElementById('textoItemToggleFinalizados');
+        if (textoMenu) {
+            textoMenu.textContent = (finalizadosFechadosAdmin || finalizadasOcultas > 0) ? 'Reexibir Finalizados' : 'Ocultar Finalizados';
+        }
+
+        const aviso = document.getElementById('avisoFinalizadosOcultos');
+        const contador = document.getElementById('contadorFinalizadosOcultos');
+
+        if (aviso && contador) {
+            if (finalizadasOcultas > 0) {
+                aviso.classList.remove('d-none');
+                aviso.classList.add('d-flex');
+                contador.textContent = finalizadasOcultas;
+            } else {
+                aviso.classList.add('d-none');
+                aviso.classList.remove('d-flex');
+            }
+        }
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+    }
+
+    function reabrirTodosFinalizados() {
+        finalizadosFechadosAdmin = false;
+        localStorage.setItem('cavere_finalizados_fechados_admin', '0');
+        document.querySelectorAll('.linha-solicitacao').forEach(function (row) {
+            row.removeAttribute('data-fechada-individual');
+        });
+        filtrarChamadosAdmin('todos');
+    }
+
+    function toggleFinalizadosAdmin(forcarEstado) {
+        if (typeof forcarEstado === 'boolean') {
+            finalizadosFechadosAdmin = forcarEstado;
+        } else {
+            const temOcultas = document.querySelectorAll('.linha-solicitacao[data-fechada-individual]').length > 0;
+            if (finalizadosFechadosAdmin || temOcultas) {
+                finalizadosFechadosAdmin = false;
+            } else {
+                finalizadosFechadosAdmin = true;
+            }
+        }
+
+        if (!finalizadosFechadosAdmin) {
+            document.querySelectorAll('.linha-solicitacao').forEach(function (row) {
+                row.removeAttribute('data-fechada-individual');
+            });
+            localStorage.setItem('cavere_finalizados_fechados_admin', '0');
+            filtrarChamadosAdmin('todos');
+            return;
+        } else {
+            localStorage.setItem('cavere_finalizados_fechados_admin', '1');
+            if (filtroChamadosAtivo === 'finalizados') {
+                filtrarChamadosAdmin('todos');
+                return;
+            }
+        }
+        aplicarVisibilidadeChamados();
+    }
+
+    function filtrarChamadosAdmin(tipo) {
+        filtroChamadosAtivo = tipo;
+        document.querySelectorAll('#grupoFiltroSolicitacoes button').forEach(function (b) {
+            b.classList.remove('active');
+        });
+        const btn = document.getElementById('filtroSol-' + tipo);
+        if (btn) btn.classList.add('active');
+
+        if (tipo === 'abertos') {
+            finalizadosFechadosAdmin = true;
+        } else if (tipo === 'finalizados') {
+            finalizadosFechadosAdmin = false;
+        } else if (tipo === 'todos') {
+            finalizadosFechadosAdmin = false;
+            localStorage.setItem('cavere_finalizados_fechados_admin', '0');
+            document.querySelectorAll('.linha-solicitacao').forEach(function (row) {
+                row.removeAttribute('data-fechada-individual');
+            });
+        }
+        aplicarVisibilidadeChamados();
+    }
+
+    function fecharLinhaIndividual(btn) {
+        const row = btn.closest('tr');
+        if (row) {
+            row.setAttribute('data-fechada-individual', '1');
+            aplicarVisibilidadeChamados();
+        }
+    }
+
+    // --- FILTROS DE EQUIPAMENTOS NO DASHBOARD DO ADMINISTRADOR ---
+    let apenasNotebooksDashAtivo = false;
+    let baseEquipDashAtiva = 'todas';
+
+    function filtrarEquipamentosAdminDash() {
+        const termo = (document.getElementById('buscaEquipAdminDash') ? document.getElementById('buscaEquipAdminDash').value : '').toLowerCase().trim();
+        const btnLimpar = document.getElementById('btnLimparBuscaEquipDash');
+        if (btnLimpar) {
+            btnLimpar.style.display = termo ? 'inline-block' : 'none';
+        }
+
+        const linhas = document.querySelectorAll('.linha-equip-dash');
+        let visiveis = 0;
+
+        linhas.forEach(function (linha) {
+            const busca = (linha.getAttribute('data-busca') || '').toLowerCase();
+            const isNotebook = linha.getAttribute('data-is-notebook') === '1';
+            const base = linha.getAttribute('data-base') || '';
+
+            let condTexto = (!termo || busca.includes(termo));
+            let condNotebook = (!apenasNotebooksDashAtivo || isNotebook);
+            let condBase = (baseEquipDashAtiva === 'todas' || base === baseEquipDashAtiva || (baseEquipDashAtiva === 'Central' && base.includes('Central')));
+
+            if (condTexto && condNotebook && condBase) {
+                linha.style.display = '';
+                visiveis++;
+            } else {
+                linha.style.display = 'none';
+            }
+        });
+
+        const linhaVazia = document.getElementById('linhaVaziaEquipDash');
+        if (linhaVazia) {
+            if (visiveis === 0 && linhas.length > 0) {
+                linhaVazia.classList.remove('d-none');
+            } else {
+                linhaVazia.classList.add('d-none');
+            }
+        }
+
+        const badgeContador = document.getElementById('badgeContadorEquipDash');
+        if (badgeContador) {
+            badgeContador.textContent = `${visiveis} ativos`;
+        }
+
+        const infoRodape = document.getElementById('infoRodapeEquipDash');
+        if (infoRodape) {
+            const strongVis = document.createElement('strong');
+            strongVis.textContent = String(visiveis);
+            const strongTot = document.createElement('strong');
+            strongTot.textContent = String(linhas.length);
+            infoRodape.replaceChildren(
+                document.createTextNode('Exibindo '),
+                strongVis,
+                document.createTextNode(' de '),
+                strongTot,
+                document.createTextNode(' equipamentos cadastrados na base.')
+            );
+        }
+    }
+
+    function alternarNotebooksDash() {
+        apenasNotebooksDashAtivo = !apenasNotebooksDashAtivo;
+        const btn = document.getElementById('btnToggleNotebookDash');
+        const txt = document.getElementById('textoToggleNotebookDash');
+        if (apenasNotebooksDashAtivo) {
+            btn.classList.remove('btn-secondary');
+            btn.classList.add('btn-primary');
+            txt.textContent = 'Apenas Notebooks';
+        } else {
+            btn.classList.remove('btn-primary');
+            btn.classList.add('btn-secondary');
+            txt.textContent = 'Notebooks';
+        }
+        filtrarEquipamentosAdminDash();
+    }
+
+    function filtrarEquipPorBaseDash(base, btn) {
+        baseEquipDashAtiva = base;
+        document.querySelectorAll('#grupoFiltroBaseEquipDash button').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+        filtrarEquipamentosAdminDash();
+    }
+
+    function limparBuscaEquipDash() {
+        const input = document.getElementById('buscaEquipAdminDash');
+        if (input) input.value = '';
+        filtrarEquipamentosAdminDash();
+    }
+
+    // Exportação de Solicitações / Chamados para CSV / Excel
+    // Exportação Executiva e Auditável de Solicitações / Chamados
+    function exportarChamadosAdmin(formato) {
+        formato = formato || 'csv';
+        const linhas = document.querySelectorAll('.linha-solicitacao');
+        const linhasVisiveis = [];
+        let qtdFinalizados = 0;
+        let qtdAbertos = 0;
+        let qtdUrgentes = 0;
+
+        linhas.forEach(function (linha) {
+            if (linha.style.display !== 'none') {
+                const itemNum = String(linhasVisiveis.length + 1).padStart(2, '0');
+                const idRaw = linha.getAttribute('data-id') || '';
+                const protocolo = window.formatarCodigoId('SOL', idRaw);
+                const dataCriacao = window.formatarDataHoraBR(linha.getAttribute('data-data'));
+                const prioridadeRaw = linha.getAttribute('data-prioridade') || 'Normal';
+                const prioridade = prioridadeRaw.toUpperCase();
+                const coord = linha.getAttribute('data-coordenador') || '--';
+                const setor = linha.getAttribute('data-setor') || 'Operações';
+                const equipamento = linha.getAttribute('data-equipamento') || '--';
+                const qtdTotal = linha.getAttribute('data-qtd-total') || '1';
+                const qtdEmitida = linha.getAttribute('data-qtd-emitida') || '0';
+                const statusRaw = linha.getAttribute('data-status') || '';
+                const status = statusRaw.toUpperCase();
+                const tipoUso = (linha.getAttribute('data-tipo-uso') || 'Base').toUpperCase();
+                const destino = linha.getAttribute('data-destino') || '--';
+                const destinatario = linha.getAttribute('data-destinatario') || '--';
+                const rdo = linha.getAttribute('data-rdo') || '--';
+                const itens = linha.getAttribute('data-itens') || '--';
+
+                if (prioridade.includes('URGENT')) qtdUrgentes++;
+                const isFinalizada = linha.getAttribute('data-finalizada') === '1';
+                if (isFinalizada) {
+                    qtdFinalizados++;
+                } else {
+                    qtdAbertos++;
+                }
+
+                linhasVisiveis.push([
+                    itemNum,
+                    protocolo,
+                    dataCriacao,
+                    prioridade,
+                    coord,
+                    setor,
+                    equipamento,
+                    qtdTotal,
+                    qtdEmitida,
+                    status,
+                    tipoUso,
+                    destino,
+                    destinatario,
+                    rdo,
+                    itens
+                ]);
+            }
+        });
+
+        // Monta resumo dos filtros ativos aplicados em tela
+        const partesFiltros = [];
+        if (filtroChamadosAtivo !== 'todos') partesFiltros.push(`Filtro Status: ${filtroChamadosAtivo === 'abertos' ? 'Em Aberto' : 'Finalizados'}`);
+        if (filtroBaseAdminAtivo !== 'todas') partesFiltros.push(`Base: ${filtroBaseAdminAtivo}`);
+        if (finalizadosFechadosAdmin) partesFiltros.push('Finalizados: Ocultados individualmente');
+
+        const inputBusca = document.getElementById('buscaSolicitacoesAdmin');
+        const termoBusca = (inputBusca?.value || '').trim();
+        if (termoBusca) partesFiltros.push(`Busca por Termo: "${termoBusca}"`);
+
+        const filtrosDescricao = partesFiltros.length > 0 ? partesFiltros.join(' | ') : 'Nenhum filtro aplicado (Exibindo todos os chamados da fila)';
+
+        const cabecalhos = [
+            'ITEM',
+            'PROTOCOLO',
+            'DATA DE ABERTURA',
+            'GRAU DE PRIORIDADE',
+            'COORDENADOR SOLICITANTE',
+            'SETOR / DEPARTAMENTO',
+            'EQUIPAMENTO SOLICITADO',
+            'QTD REQUISITADA',
+            'QTD ATENDIDA',
+            'STATUS DO CHAMADO',
+            'FINALIDADE / TIPO DE USO',
+            'BASE / DESTINO OPERACIONAL',
+            'DESTINATÁRIO FINAL',
+            'RDO / PROTOCOLO',
+            'EQUIPAMENTOS ATRELADOS (MODELO E SERIAL)'
+        ];
+
+        window.exportarRelatorioExecutivo({
+            nomeArquivo: 'fila_chamados_solicitacoes',
+            tituloModulo: 'Fila de Chamados e Solicitações de Ativos',
+            operador: '{{ current_user.username }} (Administrador)',
+            filtrosDescricao: filtrosDescricao,
+            cabecalhos: cabecalhos,
+            linhasDados: linhasVisiveis,
+            resumoKpis: [
+                { rotulo: 'Total de Chamados Listados:', valor: `${linhasVisiveis.length} requisição(ões)` },
+                { rotulo: 'Chamados em Aberto:', valor: `${qtdAbertos} requisição(ões)` },
+                { rotulo: 'Chamados Finalizados:', valor: `${qtdFinalizados} requisição(ões)` },
+                { rotulo: 'Chamados Prioridade Urgente:', valor: `${qtdUrgentes} requisição(ões)` }
+            ],
+            formato: formato
+        });
+    }
+
+    // Exportação Executiva e Auditável do Resumo de Equipamentos da Dashboard
+    function exportarEquipamentosDash(formato) {
+        formato = formato || 'csv';
+        const linhas = document.querySelectorAll('.linha-equip-dash');
+        const linhasVisiveis = [];
+
+        linhas.forEach(function (linha) {
+            if (linha.style.display !== 'none') {
+                const itemNum = String(linhasVisiveis.length + 1).padStart(2, '0');
+                const idRaw = linha.getAttribute('data-id') || '';
+                const idEq = window.formatarCodigoId('EQ', idRaw);
+                const tipo = linha.getAttribute('data-tipo') || '--';
+                const modelo = linha.getAttribute('data-modelo') || '--';
+                const sn = linha.getAttribute('data-sn') || 'Sem Serial';
+                const base = linha.getAttribute('data-base') || '--';
+                const status = (linha.getAttribute('data-status') || '').toUpperCase();
+
+                linhasVisiveis.push([
+                    itemNum,
+                    idEq,
+                    tipo,
+                    modelo,
+                    sn,
+                    base,
+                    status
+                ]);
+            }
+        });
+
+        const partesFiltros = [];
+        if (baseEquipDashAtiva !== 'todas') partesFiltros.push(`Base: ${baseEquipDashAtiva}`);
+        if (apenasNotebooksDashAtivo) partesFiltros.push('Categoria: Apenas Notebooks');
+        const buscaEquip = (document.getElementById('buscaEquipAdminDash')?.value || '').trim();
+        if (buscaEquip) partesFiltros.push(`Busca: "${buscaEquip}"`);
+
+        const filtrosDescricao = partesFiltros.length > 0 ? partesFiltros.join(' | ') : 'Nenhum filtro aplicado (Listagem completa do resumo)';
+
+        const cabecalhos = [
+            'ITEM',
+            'ID ATIVO',
+            'CATEGORIA',
+            'MODELO DO EQUIPAMENTO',
+            'PATRIMÔNIO / SERIAL (SN)',
+            'BASE OPERACIONAL',
+            'STATUS OPERACIONAL'
+        ];
+
+        window.exportarRelatorioExecutivo({
+            nomeArquivo: 'equipamentos_resumo_painel',
+            tituloModulo: 'Resumo Operacional de Equipamentos (Painel Principal)',
+            operador: '{{ current_user.username }} (Administrador)',
+            filtrosDescricao: filtrosDescricao,
+            cabecalhos: cabecalhos,
+            linhasDados: linhasVisiveis,
+            resumoKpis: [
+                { rotulo: 'Total de Ativos no Resumo:', valor: `${linhasVisiveis.length} equipamento(s)` }
+            ],
+            formato: formato
+        });
+    }
+
+    // Aliases retrocompatíveis
+    function exportarChamadosAdminCSV() {
+        exportarChamadosAdmin('csv');
+    }
+
+    function exportarEquipamentosDashCSV() {
+        exportarEquipamentosDash('csv');
+    }
+
+    // Centralized Event Delegation for data-action in Index Dashboard
+    document.addEventListener('click', function (e) {
+        const el = e.target.closest('[data-action]');
+        if (!el) return;
+        const action = el.getAttribute('data-action');
+        if (action === 'abrir-cautela-avulsa') {
+            abrirModalCautelaAvulsa();
+        } else if (action === 'navegar-historico') {
+            window.location.href = '/historico';
+        } else if (action === 'limpar-busca-solicitacoes') {
+            limparBuscaSolicitacoesAdmin();
+        } else if (action === 'filtrar-chamados') {
+            filtrarChamadosAdmin(el.getAttribute('data-filtro'));
+        } else if (action === 'filtrar-chamados-base') {
+            filtrarChamadosPorBaseAdmin(el.getAttribute('data-base'), el);
+        } else if (action === 'exportar-chamados') {
+            exportarChamadosAdmin(el.getAttribute('data-formato') || 'csv');
+        } else if (action === 'toggle-finalizados') {
+            toggleFinalizadosAdmin();
+        } else if (action === 'reabrir-finalizados') {
+            reabrirTodosFinalizados();
+        } else if (action === 'atender-chamado') {
+            abrirModalAtendimentoDoBotao(el);
+        } else if (action === 'fechar-chamado-linha') {
+            fecharLinhaIndividual(el);
+        } else if (action === 'limpar-busca-equip') {
+            limparBuscaEquipDash();
+        } else if (action === 'toggle-notebooks') {
+            alternarNotebooksDash();
+        } else if (action === 'filtrar-equip-base') {
+            filtrarEquipPorBaseDash(el.getAttribute('data-base'), el);
+        } else if (action === 'exportar-equip') {
+            exportarEquipamentosDash(el.getAttribute('data-formato') || 'csv');
+        } else if (action === 'limpar-atendimento') {
+            limparAtendimentoModal();
+        } else if (action === 'limpar-busca-inv-modal') {
+            limparBuscaInventarioModal();
+        } else if (action === 'filtrar-inv-base') {
+            filtrarInventarioPorBase(el.getAttribute('data-base'), el);
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const inputBuscaAdmin = document.getElementById('buscaSolicitacoesAdmin');
+        if (inputBuscaAdmin) {
+            inputBuscaAdmin.addEventListener('input', aplicarVisibilidadeChamados);
+            inputBuscaAdmin.addEventListener('keyup', aplicarVisibilidadeChamados);
+        }
+    });
+
+</script>
+{% endblock %}
