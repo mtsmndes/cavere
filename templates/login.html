@@ -449,6 +449,89 @@
             gap: 6px;
         }
 
+        /* ===== CAVERE AUTH REFINEMENT ===== */
+        :root { --radius: 9px; }
+        body {
+            background-color: #f5f6f2;
+            background-image:
+                radial-gradient(circle at 20% 10%, rgba(206, 220, 0, 0.13), transparent 28rem),
+                radial-gradient(circle at 85% 90%, rgba(214, 219, 208, 0.55), transparent 34rem);
+        }
+        .shader-canvas-container { opacity: 0.38; }
+        .shader-canvas-container.loaded { opacity: 0.38; }
+        .shader-overlay {
+            background: linear-gradient(135deg, rgba(245, 246, 242, 0.48), rgba(245, 246, 242, 0.78));
+        }
+        .auth-container { max-width: 430px; }
+        .auth-brand { margin-bottom: 28px; }
+        .auth-logo-text {
+            font-size: clamp(2.8rem, 9vw, 3.65rem);
+            font-weight: 800;
+            letter-spacing: -0.055em;
+        }
+        .brand-meta {
+            font-family: var(--font-sans);
+            text-transform: none;
+            letter-spacing: 0;
+            font-weight: 500;
+        }
+        .pulse-live { box-shadow: none; }
+        .auth-card {
+            background: rgba(255, 255, 255, 0.86);
+            border-color: rgba(221, 225, 215, 0.95);
+            border-radius: 14px;
+            box-shadow: 0 22px 55px -24px rgba(23, 26, 22, 0.22), 0 2px 8px rgba(23, 26, 22, 0.035);
+        }
+        .auth-card-body { padding: 32px; }
+        .auth-card-title {
+            font-family: var(--font-sans);
+            font-size: 1.3rem;
+            font-weight: 680;
+            text-transform: none;
+            letter-spacing: -0.035em;
+        }
+        .auth-card-desc { font-size: 0.84rem; line-height: 1.55; }
+        .form-label {
+            font-family: var(--font-sans);
+            text-transform: none;
+            letter-spacing: 0;
+        }
+        .cv-input-box {
+            height: 44px;
+            border-color: #d6dbd0;
+            border-radius: 9px;
+            transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+        }
+        .cv-input-box:focus-within { box-shadow: 0 0 0 3px rgba(206, 220, 0, 0.16) !important; }
+        .btn-submit {
+            height: 44px;
+            border-radius: 9px;
+            font-family: var(--font-sans);
+            text-transform: none;
+            letter-spacing: 0;
+            box-shadow: none;
+            transition: background-color 180ms ease, box-shadow 180ms ease, transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .btn-submit:hover {
+            box-shadow: 0 9px 22px rgba(130, 140, 0, 0.18);
+            transform: translateY(-1px);
+        }
+        .auth-system-footer { font-family: var(--font-sans); }
+        @keyframes auth-enter {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .auth-brand { animation: auth-enter 520ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+        .auth-card { animation: auth-enter 560ms 70ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+        .auth-system-footer { animation: auth-enter 560ms 130ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+        @media (max-width: 480px) {
+            .auth-card-body { padding: 26px 20px; }
+            .brand-meta span:nth-last-child(-n+2) { display: none; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .auth-brand, .auth-card, .auth-system-footer { animation: none !important; }
+        }
+
         /* ===== CAVERE LOADING ANIMATION ===== */
         #cavere-loader {
             position: fixed;
@@ -459,14 +542,27 @@
             align-items: center;
             justify-content: center;
             overflow: hidden;
+            opacity: 1;
             clip-path: circle(150% at 50% 50%);
-            transition: clip-path 1s cubic-bezier(0.76, 0, 0.24, 1);
+            will-change: clip-path, opacity;
+            transition:
+                clip-path 900ms cubic-bezier(0.65, 0, 0.15, 1),
+                opacity 420ms ease 420ms;
         }
         #cavere-loader.fade-out {
-            clip-path: circle(0% at 50% 50%);
+            opacity: 0;
+            clip-path: circle(0% at 50% 48%);
             pointer-events: none;
         }
-        #cavere-loader canvas { display: block; touch-action: none; }
+        #cavere-loader canvas {
+            display: block;
+            touch-action: none;
+            transform: scale(1);
+            opacity: 1;
+            will-change: transform, opacity;
+            transition: transform 600ms cubic-bezier(0.4, 0, 1, 1), opacity 280ms ease;
+        }
+        #cavere-loader.fade-out canvas { transform: scale(1.06); opacity: 0; }
     </style>
 </head>
 <body>
@@ -485,6 +581,12 @@
         if (!loader || !canvas) return;
 
         if (sessionStorage.getItem(FLAG)) {
+            loader.style.display = 'none';
+            return;
+        }
+
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            sessionStorage.setItem(FLAG, '1');
             loader.style.display = 'none';
             return;
         }
@@ -556,58 +658,61 @@
             });
         }
 
-        const T0 = 1300, T1 = 650, T2 = 1500, T3 = 600;
-        let phase = 0, phaseStart = null, raf = null, time = 0;
+        const T0 = 1000, T1 = 260, T2 = 1050, T3 = 380;
+        let phase = 0, phaseStart = null, raf = null, time = 0, lastTs = null;
 
         function lerp(a,b,t)  { return a + (b-a) * Math.min(1, Math.max(0, t)); }
         function easeOut3(t)  { return 1 - Math.pow(1-t, 3); }
         function easeInOut(t) { return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2; }
+        function paint(getPosition) {
+            ctx.beginPath();
+            for (const p of parts) {
+                const pos = getPosition(p);
+                ctx.rect(pos.x, pos.y, p.size, p.size);
+            }
+            ctx.fillStyle = COLOR;
+            ctx.fill();
+        }
 
         function exitLoader() {
             cancelAnimationFrame(raf);
             sessionStorage.setItem(FLAG, '1');
 
-            loader.classList.add('fade-out');
-            loader.addEventListener('transitionend', () => {
-                loader.style.display = 'none';
-            }, { once: true });
-            setTimeout(() => { loader.style.display = 'none'; }, 1200);
+            requestAnimationFrame(() => loader.classList.add('fade-out'));
+            loader.addEventListener('transitionend', (event) => {
+                if (event.target === loader && event.propertyName === 'clip-path') {
+                    loader.style.display = 'none';
+                }
+            });
+            setTimeout(() => { loader.style.display = 'none'; }, 1000);
         }
 
         function draw(ts) {
             if (!phaseStart) phaseStart = ts;
             const elapsed = ts - phaseStart;
-            time += 0.025;
+            const delta = lastTs === null ? 16.67 : Math.min(ts - lastTs, 50);
+            lastTs = ts;
+            time += delta * 0.0015;
             ctx.clearRect(0, 0, W, H);
 
             if (phase === 0) {
                 const t = easeOut3(elapsed / T0);
-                for (const p of parts) {
+                paint(p => {
                     const idle = Math.sin(time + p.phase) * (1 - t) * 4;
-                    ctx.fillStyle = COLOR;
-                    ctx.fillRect(lerp(p.startX, p.cX, t), lerp(p.startY, p.cY, t) + idle, p.size, p.size);
-                }
+                    return { x: lerp(p.startX, p.cX, t), y: lerp(p.startY, p.cY, t) + idle };
+                });
                 if (elapsed >= T0) { phase = 1; phaseStart = ts; }
             } else if (phase === 1) {
                 const idle = Math.sin(time * 1.4) * 0.35;
-                for (const p of parts) {
-                    ctx.fillStyle = COLOR;
-                    ctx.fillRect(p.cX, p.cY + idle * Math.sin(p.phase), p.size, p.size);
-                }
+                paint(p => ({ x: p.cX, y: p.cY + idle * Math.sin(p.phase) }));
                 if (elapsed >= T1) { phase = 2; phaseStart = ts; }
             } else if (phase === 2) {
                 const t = easeInOut(elapsed / T2);
-                for (const p of parts) {
-                    ctx.fillStyle = COLOR;
-                    ctx.fillRect(lerp(p.cX, p.baseX, t), lerp(p.cY, p.baseY, t), p.size, p.size);
-                }
+                paint(p => ({ x: lerp(p.cX, p.baseX, t), y: lerp(p.cY, p.baseY, t) }));
                 if (elapsed >= T2) { phase = 3; phaseStart = ts; }
             } else if (phase === 3) {
                 const idle = Math.sin(time) * 0.35;
-                for (const p of parts) {
-                    ctx.fillStyle = COLOR;
-                    ctx.fillRect(p.baseX, p.baseY + idle * Math.sin(p.phase), p.size, p.size);
-                }
+                paint(p => ({ x: p.baseX, y: p.baseY + idle * Math.sin(p.phase) }));
                 if (elapsed >= T3) { exitLoader(); return; }
             }
             raf = requestAnimationFrame(draw);
