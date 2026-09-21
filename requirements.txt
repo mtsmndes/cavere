@@ -11,7 +11,7 @@ waitress==3.0.2
 gunicorn==23.0.0
 
 # Validação Rígida de Esquema e Dados
-pydantic==2.10.6
+pydantic==2.13.5
 
 # Geração de Termos e Cautelas em PDF
 weasyprint==70.0

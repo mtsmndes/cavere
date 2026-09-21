@@ -13,3 +13,4 @@ metaware-logo-particles/
 shader-gradient-component/
 .env
 .secret_key
+tests/
