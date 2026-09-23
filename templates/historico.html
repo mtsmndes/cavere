@@ -82,7 +82,9 @@
 </div>
 
 <!-- Painel de Pesquisa & Filtros (AETHER Command Box) -->
-<div class="surface-card" style="margin-bottom:var(--space-5);" id="painelPesquisaCautelas">
+<!-- CAUSA: filtros e exportacao estavam duplicados em dois cards para a mesma tabela, e o overflow cortava o menu. -->
+<!-- FIX: filtros, acoes e listagem agora compartilham um unico painel com overflow visivel. -->
+<div class="surface-card" style="margin-bottom:var(--space-5); overflow:visible;" id="painelPesquisaCautelas">
     <div class="surface-card-header" style="display:flex; justify-content:space-between; align-items:center;">
         <div style="display:flex; align-items:center; gap:var(--space-2);">
             <i data-lucide="search" style="width:1.1rem; height:1.1rem; color:var(--lime);"></i>
@@ -192,14 +194,15 @@
                 <input type="date" class="form-control" id="filtroDataFim" onchange="executarFiltrosCautelas()">
             </div>
 
-            <div class="col-lg-6 col-md-12 d-flex align-items-end justify-content-between flex-wrap gap-2">
-                <div style="font-size:0.875rem; color:var(--text-secondary); display:flex; align-items:center; gap:var(--space-2);">
-                    <i data-lucide="filter" style="color:var(--lime);"></i>
-                    <span>Exibindo <strong id="contadorResultados" style="color:var(--lime); font-family:var(--font-mono); font-size:1rem;">{{ cautelas|length }}</strong> de <strong style="font-family:var(--font-mono); color:var(--text-primary);">{{ cautelas|length }}</strong> cautela(s)</span>
-                </div>
-                <div style="display:flex; gap:var(--space-2);">
+            <div class="col-lg-6 col-md-12 d-flex align-items-end">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 w-100">
+                    <div style="font-size:0.875rem; color:var(--text-secondary); display:flex; align-items:center; gap:var(--space-2);">
+                        <i data-lucide="filter" style="color:var(--lime);"></i>
+                        <span>Exibindo <strong id="contadorResultados" style="color:var(--lime); font-family:var(--font-mono); font-size:1rem;">{{ cautelas|length }}</strong> de <strong style="font-family:var(--font-mono); color:var(--text-primary);">{{ cautelas|length }}</strong> cautela(s)</span>
+                    </div>
+                    <div style="display:flex; gap:var(--space-2);">
                     {% if current_user.role == 'admin' %}
-                    <div class="btn-group btn-group-sm">
+                    <div class="cv-export-group">
                         <button type="button" class="btn btn-outline-secondary btn-sm" data-action="exportar" data-formato="csv" title="Exportar cautelas filtradas para planilha executiva CSV">
                             <i data-lucide="download"></i> Exportar Dados
                         </button>
@@ -222,18 +225,17 @@
                         </ul>
                     </div>
                     {% endif %}
-                    <button type="button" class="btn btn-secondary btn-sm" data-action="resetar-filtros" title="Limpar todos os campos de pesquisa">
-                        <i data-lucide="rotate-ccw"></i> Limpar Filtros
-                    </button>
+                        <button type="button" class="btn btn-secondary btn-sm" data-action="resetar-filtros" title="Limpar todos os campos de pesquisa">
+                            <i data-lucide="rotate-ccw"></i> Limpar Filtros
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Tabela de Cautelas -->
-<div class="surface-card">
-    <div class="surface-card-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--space-3);">
+    <!-- Tabela de Cautelas integrada ao mesmo painel dos filtros -->
+    <div class="surface-card-header" style="border-top:1px solid var(--border);">
         <div>
             <div style="font-size:0.9375rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.04em; color:var(--text-primary);">
                 {% if current_user.role == 'admin' %}
@@ -243,64 +245,6 @@
                 {% endif %}
             </div>
             <div style="font-size:0.8125rem; color:var(--text-muted); margin-top:2px;">Histórico auditável e termos em PDF</div>
-        </div>
-        <div style="display:flex; align-items:center; gap:var(--space-2); flex-wrap:wrap;">
-            <div class="btn-group btn-group-sm" id="grupoFiltrosStatus">
-                <button type="button" class="btn btn-secondary active" id="filtroBtn-Todos" data-action="filtrar-status" data-status="Todos">
-                    Todos [{{ contadores.Total }}]
-                </button>
-                <button type="button" class="btn btn-secondary" id="filtroBtn-EmCampo" data-action="filtrar-status" data-status="Em Campo">
-                    Em Campo
-                </button>
-                <button type="button" class="btn btn-secondary" id="filtroBtn-Devolvido" data-action="filtrar-status" data-status="Devolvido">
-                    Devolvidos
-                </button>
-            </div>
-
-            {% if current_user.role == 'admin' %}
-            <div class="btn-group btn-group-sm d-none d-md-inline-flex" id="grupoFiltrosBase" title="Filtrar cautelas por Base">
-                <button type="button" class="btn btn-secondary active" id="filtroBaseBtn-Todas" data-action="filtrar-base" data-base="Todas">
-                    Todas Bases
-                </button>
-                <button type="button" class="btn btn-secondary" id="filtroBaseBtn-Tank" data-action="filtrar-base" data-base="Tank">
-                    Tank
-                </button>
-                <button type="button" class="btn btn-secondary" id="filtroBaseBtn-TDBR" data-action="filtrar-base" data-base="TDBR">
-                    TDBR
-                </button>
-                <button type="button" class="btn btn-secondary" id="filtroBaseBtn-Repair" data-action="filtrar-base" data-base="Repair">
-                    Repair
-                </button>
-                <button type="button" class="btn btn-secondary" id="filtroBaseBtn-Operacao" data-action="filtrar-base" data-base="Operação">
-                    Operação
-                </button>
-            </div>
-            {% endif %}
-
-            {% if current_user.role == 'admin' %}
-            <div class="btn-group btn-group-sm">
-                <button type="button" class="btn btn-primary btn-sm" data-action="exportar" data-formato="csv" title="Exportar cautelas visíveis para planilha executiva CSV">
-                    <i data-lucide="download"></i> Exportar Dados
-                </button>
-                <button type="button" class="btn btn-primary btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false" title="Formatos de exportação">
-                    <span class="visually-hidden">Opções</span>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="font-size:0.8125rem;">
-                    <li>
-                        <a class="dropdown-item d-flex align-items-center gap-2" href="javascript:void(0)" data-action="exportar" data-formato="csv">
-                            <i data-lucide="file-spreadsheet" class="text-success" style="width:14px;height:14px;"></i>
-                            <span>Planilha Executiva (.csv)</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item d-flex align-items-center gap-2" href="javascript:void(0)" data-action="exportar" data-formato="xlsx">
-                            <i data-lucide="file-check" class="text-primary" style="width:14px;height:14px;"></i>
-                            <span>Planilha Excel (.xlsx)</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-            {% endif %}
         </div>
     </div>
 
@@ -435,24 +379,6 @@
 </div>
 
 <script>
-    let baseRapidaAtiva = 'Todas';
-
-    function filtrarBaseRapido(base, btn) {
-        baseRapidaAtiva = base;
-        const sel = document.getElementById('filtroBaseSelect');
-        if (sel) sel.value = base;
-        
-        document.querySelectorAll('#grupoFiltrosBase button').forEach(b => b.classList.remove('active'));
-        if (btn) {
-            btn.classList.add('active');
-        } else {
-            const btnId = 'filtroBaseBtn-' + (base === 'Operação' ? 'Operacao' : (base === 'Todas' ? 'Todas' : base));
-            const elBtn = document.getElementById(btnId);
-            if (elBtn) elBtn.classList.add('active');
-        }
-        executarFiltrosCautelas();
-    }
-
     function executarFiltrosCautelas() {
         const texto = (document.getElementById('campoBuscaTexto')?.value || '').toLowerCase().trim();
         const statusSel = document.getElementById('filtroStatusSelect')?.value || 'Todos';
@@ -461,18 +387,6 @@
         const coordSel = document.getElementById('filtroCoordSelect')?.value || 'Todos';
         const dataInicio = document.getElementById('filtroDataInicio')?.value || '';
         const dataFim = document.getElementById('filtroDataFim')?.value || '';
-
-        // Sincroniza botões de status
-        document.querySelectorAll('#grupoFiltrosStatus button').forEach(b => b.classList.remove('active'));
-        const btnTabId = 'filtroBtn-' + statusSel.replace(/\s/g, '');
-        const btnTab = document.getElementById(btnTabId);
-        if (btnTab) btnTab.classList.add('active');
-
-        // Sincroniza botões de base rápida
-        document.querySelectorAll('#grupoFiltrosBase button').forEach(b => b.classList.remove('active'));
-        const btnBaseId = 'filtroBaseBtn-' + (baseSel === 'Operação' ? 'Operacao' : (baseSel === 'Todas' ? 'Todas' : baseSel));
-        const btnBase = document.getElementById(btnBaseId);
-        if (btnBase) btnBase.classList.add('active');
 
         const btnLimparTexto = document.getElementById('btnLimparBuscaTexto');
         if (btnLimparTexto) {
@@ -587,10 +501,6 @@
         const dtFim = document.getElementById('filtroDataFim');
         if (dtFim) dtFim.value = '';
         
-        document.querySelectorAll('#grupoFiltrosBase button').forEach(b => b.classList.remove('active'));
-        const btnBaseTodas = document.getElementById('filtroBaseBtn-Todas');
-        if (btnBaseTodas) btnBaseTodas.classList.add('active');
-
         executarFiltrosCautelas();
     }
 
@@ -711,12 +621,10 @@
         const action = el.getAttribute('data-action');
         if (action === 'filtrar-status') {
             filtrarStatusRapido(el.getAttribute('data-status'));
-        } else if (action === 'filtrar-base') {
-            filtrarBaseRapida(el.getAttribute('data-base'), el);
         } else if (action === 'resetar-filtros') {
-            resetarFiltrosHistorico();
+            resetarTodosFiltros();
         } else if (action === 'limpar-busca') {
-            limparBuscaHistorico();
+            limparBuscaTexto();
         } else if (action === 'exportar') {
             exportarHistorico(el.getAttribute('data-formato') || 'csv');
         }

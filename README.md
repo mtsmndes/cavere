@@ -141,6 +141,27 @@ Abra o arquivo `.env` para ajustar conforme necessário:
 - `PORT`: Porta de execução (padrão: `5000`).
 - `SESSION_COOKIE_SECURE`: Ative (`1`) caso o sistema rode sob conexão HTTPS.
 
+### Notificações automáticas por e-mail
+
+O Cavere avisa o coordenador/solicitante no e-mail cadastrado quando o chamado é aberto ou muda de andamento, incluindo atendimento, espera da entrega, finalização e recálculo após devolução.
+
+Configure no `.env`:
+
+```env
+EMAIL_NOTIFICATIONS_ENABLED=1
+SMTP_HOST=smtp.office365.com
+SMTP_PORT=587
+SMTP_USERNAME=cavere@empresa.com.br
+SMTP_PASSWORD=senha-ou-token-do-provedor
+SMTP_FROM=cavere@empresa.com.br
+SMTP_USE_TLS=1
+SMTP_USE_SSL=0
+SMTP_TIMEOUT=10
+APP_BASE_URL=https://cavere.empresa.com.br
+```
+
+Para SMTP com SSL direto (normalmente porta 465), use `SMTP_USE_SSL=1` e `SMTP_USE_TLS=0`. Uma falha temporária do servidor de e-mail fica registrada no log, mas não desfaz a atualização da solicitação.
+
 ---
 
 ### 5. Inicializar o Usuário Administrador

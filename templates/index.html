@@ -23,8 +23,8 @@
         <a href="/colaboradores" class="btn btn-secondary btn-sm" title="Ver lista de colaboradores e coordenadores">
             <i data-lucide="users"></i> Colaboradores [{{ coordenadores|length }}]
         </a>
-        <a href="/novo-equipamento" class="btn btn-outline btn-sm" title="Cadastrar novo ativo físico">
-            <i data-lucide="plus"></i> Equipamento
+        <a href="/novo-equipamento" class="btn btn-primary btn-sm" title="Cadastrar novo ativo físico na base">
+            <i data-lucide="plus-circle"></i> Novo Equipamento
         </a>
         <a href="/cadastrar-usuario" class="btn btn-primary btn-sm"
             title="Cadastrar novo usuário ou perfil de coordenador">
@@ -97,7 +97,7 @@
 
         <div style="display:flex; align-items:center; gap:var(--space-2);">
             {% if current_user.role == 'admin' %}
-            <div class="btn-group btn-group-sm">
+            <div class="cv-export-group">
                 <button type="button" class="btn btn-outline-secondary btn-sm" data-action="exportar-chamados"
                     data-formato="csv" title="Exportar chamados filtrados para planilha executiva CSV">
                     <i data-lucide="download"></i> Exportar Dados
@@ -179,7 +179,7 @@
                 </button>
             </div>
 
-            <div class="btn-group btn-group-sm" role="group" id="grupoFiltroSolicitacoes">
+            <div class="cv-filtro-group" role="group" id="grupoFiltroSolicitacoes">
                 <button type="button" class="btn btn-secondary active" id="filtroSol-todos"
                     data-action="filtrar-chamados" data-filtro="todos">
                     Todos [{{ solicitacoes|length }}]
@@ -195,7 +195,7 @@
             </div>
         </div>
 
-        <div class="btn-group btn-group-sm d-none d-md-inline-flex" role="group" id="grupoFiltroBaseAdmin"
+        <div class="cv-filtro-group d-none d-md-inline-flex" role="group" id="grupoFiltroBaseAdmin"
             title="Filtrar chamados por Base">
             <button type="button" class="btn btn-secondary active" data-action="filtrar-chamados-base"
                 data-base="todas">
@@ -432,8 +432,10 @@
             </div>
         </div>
 
-        <div style="display:flex; align-items:center; gap:var(--space-2); flex-wrap:wrap;">
-            <div class="input-group input-group-sm" style="min-width:210px; max-width:270px;">
+        <!-- CAUSA: a largura flexivel da busca fazia o acesso ao painel completo quebrar para uma segunda linha. -->
+        <!-- FIX: busca, filtros, exportacao e painel completo mantem bases fixas em uma unica linha horizontal. -->
+        <div style="display:flex; align-items:center; justify-content:flex-end; gap:var(--space-2); flex-wrap:nowrap; flex:0 0 auto;">
+            <div class="input-group input-group-sm" style="width:270px; min-width:210px; flex:0 0 270px;">
                 <span class="input-group-text"><i data-lucide="search"></i></span>
                 <input type="text" id="buscaEquipAdminDash" class="form-control"
                     placeholder="Buscar modelo, SN, base..." onkeyup="filtrarEquipamentosAdminDash()">
@@ -443,12 +445,7 @@
                 </button>
             </div>
 
-            <button type="button" class="btn btn-secondary btn-sm" id="btnToggleNotebookDash"
-                data-action="toggle-notebooks" title="Filtrar apenas notebooks">
-                <i data-lucide="laptop"></i> <span id="textoToggleNotebookDash">Notebooks</span>
-            </button>
-
-            <div class="btn-group btn-group-sm" role="group" id="grupoFiltroBaseEquipDash" title="Filtrar por Base">
+            <div class="cv-filtro-group" role="group" id="grupoFiltroBaseEquipDash" title="Filtrar por Base">
                 <button type="button" class="btn btn-secondary active" data-action="filtrar-equip-base"
                     data-base="todas">Todas</button>
                 <button type="button" class="btn btn-secondary" data-action="filtrar-equip-base"
@@ -462,7 +459,7 @@
             </div>
 
             {% if current_user.role == 'admin' %}
-            <div class="btn-group btn-group-sm">
+            <div class="cv-export-group">
                 <button type="button" class="btn btn-outline-secondary btn-sm" data-action="exportar-equip"
                     data-formato="csv" title="Exportar resumo de ativos filtrados para planilha executiva CSV">
                     <i data-lucide="download"></i> Exportar
@@ -751,7 +748,7 @@
                             <i data-lucide="x"></i>
                         </button>
                     </div>
-                    <div class="btn-group btn-group-sm" id="grupoFiltroBaseInventario" role="group"
+                    <div class="cv-filtro-group" id="grupoFiltroBaseInventario" role="group"
                         title="Filtrar inventário por Base">
                         <button type="button" class="btn btn-secondary active" data-action="filtrar-inv-base"
                             data-base="todas">Todas Bases</button>
@@ -884,6 +881,14 @@
 </div>
 
 <script>
+    // CAUSA: os modais estavam dentro de .cv-layout-wrap (stacking context z-index:1), enquanto o backdrop do Bootstrap
+    // era inserido diretamente no body com z-index:1050; por isso o backdrop ficava sobre o modal e bloqueava os cliques.
+    // FIX: os modais desta tela passam a ser filhos diretos do body antes da inicializaÃ§Ã£o do Bootstrap.
+    // ATENÃ‡ÃƒO: preserva IDs, formulÃ¡rios, eventos e o escurecimento correto apenas no conteÃºdo ao fundo.
+    document.querySelectorAll('.cv-content-body > .modal').forEach(function (modal) {
+        document.body.appendChild(modal);
+    });
+
     let categoriaFiltroAtivo = null;
     let tipoSolicitadoAtivo = null;
     let bsModalCautela = null;
@@ -1391,7 +1396,6 @@
     }
 
     // --- FILTROS DE EQUIPAMENTOS NO DASHBOARD DO ADMINISTRADOR ---
-    let apenasNotebooksDashAtivo = false;
     let baseEquipDashAtiva = 'todas';
 
     function filtrarEquipamentosAdminDash() {
@@ -1406,14 +1410,12 @@
 
         linhas.forEach(function (linha) {
             const busca = (linha.getAttribute('data-busca') || '').toLowerCase();
-            const isNotebook = linha.getAttribute('data-is-notebook') === '1';
             const base = linha.getAttribute('data-base') || '';
 
             let condTexto = (!termo || busca.includes(termo));
-            let condNotebook = (!apenasNotebooksDashAtivo || isNotebook);
             let condBase = (baseEquipDashAtiva === 'todas' || base === baseEquipDashAtiva || (baseEquipDashAtiva === 'Central' && base.includes('Central')));
 
-            if (condTexto && condNotebook && condBase) {
+            if (condTexto && condBase) {
                 linha.style.display = '';
                 visiveis++;
             } else {
@@ -1449,22 +1451,6 @@
                 document.createTextNode(' equipamentos cadastrados na base.')
             );
         }
-    }
-
-    function alternarNotebooksDash() {
-        apenasNotebooksDashAtivo = !apenasNotebooksDashAtivo;
-        const btn = document.getElementById('btnToggleNotebookDash');
-        const txt = document.getElementById('textoToggleNotebookDash');
-        if (apenasNotebooksDashAtivo) {
-            btn.classList.remove('btn-secondary');
-            btn.classList.add('btn-primary');
-            txt.textContent = 'Apenas Notebooks';
-        } else {
-            btn.classList.remove('btn-primary');
-            btn.classList.add('btn-secondary');
-            txt.textContent = 'Notebooks';
-        }
-        filtrarEquipamentosAdminDash();
     }
 
     function filtrarEquipPorBaseDash(base, btn) {
@@ -1617,7 +1603,6 @@
 
         const partesFiltros = [];
         if (baseEquipDashAtiva !== 'todas') partesFiltros.push(`Base: ${baseEquipDashAtiva}`);
-        if (apenasNotebooksDashAtivo) partesFiltros.push('Categoria: Apenas Notebooks');
         const buscaEquip = (document.getElementById('buscaEquipAdminDash')?.value || '').trim();
         if (buscaEquip) partesFiltros.push(`Busca: "${buscaEquip}"`);
 
@@ -1683,8 +1668,6 @@
             fecharLinhaIndividual(el);
         } else if (action === 'limpar-busca-equip') {
             limparBuscaEquipDash();
-        } else if (action === 'toggle-notebooks') {
-            alternarNotebooksDash();
         } else if (action === 'filtrar-equip-base') {
             filtrarEquipPorBaseDash(el.getAttribute('data-base'), el);
         } else if (action === 'exportar-equip') {

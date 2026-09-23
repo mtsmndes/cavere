@@ -68,9 +68,11 @@
             </div>
         </div>
 
-        <div style="display:flex; align-items:center; gap:var(--space-2); flex-wrap:wrap;">
+        <!-- CAUSA: a busca ocupava toda a base flex e empurrava exportacao/limpeza para uma segunda linha. -->
+        <!-- FIX: os tres controles mantem largura propria e permanecem alinhados horizontalmente. -->
+        <div style="display:flex; align-items:center; justify-content:flex-end; gap:var(--space-2); flex-wrap:nowrap; flex:0 0 auto;">
             <!-- Campo de Busca em Tempo Real -->
-            <div class="input-group input-group-sm" style="min-width:260px; max-width:320px;">
+            <div class="input-group input-group-sm" style="width:320px; min-width:260px; flex:0 0 320px;">
                 <span class="input-group-text"><i data-lucide="search"></i></span>
                 <input type="text" id="filtroTextoColab" class="form-control"
                        placeholder="Buscar por nome, matrícula, CPF, e-mail..."
@@ -81,11 +83,11 @@
             </div>
 
             {% if current_user.role == 'admin' %}
-            <div class="btn-group btn-group-sm">
-                <button type="button" class="btn btn-primary btn-sm" data-action="exportar" data-formato="csv" title="Exportar colaboradores filtrados para planilha executiva CSV">
+            <div class="cv-export-group">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-action="exportar" data-formato="csv" title="Exportar colaboradores filtrados para planilha executiva CSV">
                     <i data-lucide="download"></i> Exportar Dados
                 </button>
-                <button type="button" class="btn btn-primary btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false" title="Formatos de exportação">
+                <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false" title="Formatos de exportação">
                     <span class="visually-hidden">Opções</span>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="font-size:0.8125rem;">
@@ -114,23 +116,24 @@
 
     <!-- Filtros de Setor por Botões -->
     <!-- Filtros de Base e Setor por Botões -->
-    <div style="background:#f8fafc; border-bottom:1px solid var(--border); padding:var(--space-3) var(--space-4); display:flex; align-items:center; gap:var(--space-2); flex-wrap:wrap;">
+    <!-- CAUSA: a cor clara fixa ignorava o tema ativo. FIX: a superfície agora usa os tokens dos dois temas. -->
+    <div style="background:var(--surface-hover); border-bottom:1px solid var(--border); padding:var(--space-3) var(--space-4); display:flex; align-items:center; gap:var(--space-2); flex-wrap:wrap;">
         <span style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-right:4px;">
             Base:
         </span>
-        <button type="button" class="btn btn-secondary btn-sm btn-filtro-base active" data-base="todas" data-action="filtrar-base" data-base="todas">
+        <button type="button" class="btn btn-secondary btn-sm btn-filtro-base active" data-action="filtrar-base" data-base="todas">
             Todas
         </button>
-        <button type="button" class="btn btn-secondary btn-sm btn-filtro-base" data-base="Tank" data-action="filtrar-base" data-base="Tank">
+        <button type="button" class="btn btn-secondary btn-sm btn-filtro-base" data-action="filtrar-base" data-base="Tank">
             Tank
         </button>
-        <button type="button" class="btn btn-secondary btn-sm btn-filtro-base" data-base="TDBR" data-action="filtrar-base" data-base="TDBR">
+        <button type="button" class="btn btn-secondary btn-sm btn-filtro-base" data-action="filtrar-base" data-base="TDBR">
             TDBR
         </button>
-        <button type="button" class="btn btn-secondary btn-sm btn-filtro-base" data-base="Repair" data-action="filtrar-base" data-base="Repair">
+        <button type="button" class="btn btn-secondary btn-sm btn-filtro-base" data-action="filtrar-base" data-base="Repair">
             Repair
         </button>
-        <button type="button" class="btn btn-secondary btn-sm btn-filtro-base" data-base="Central" data-action="filtrar-base" data-base="Central">
+        <button type="button" class="btn btn-secondary btn-sm btn-filtro-base" data-action="filtrar-base" data-base="Central">
             Escritório Central
         </button>
 
@@ -139,28 +142,28 @@
         <span style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-right:4px;">
             Setor:
         </span>
-        <button type="button" class="btn btn-secondary btn-sm btn-filtro-setor active" data-setor="todos" data-action="filtrar-setor" data-setor="todos">
+        <button type="button" class="btn btn-secondary btn-sm btn-filtro-setor active" data-action="filtrar-setor" data-setor="todos">
             Todos [{{ colaboradores|length }}]
         </button>
-        <button type="button" class="btn btn-secondary btn-sm btn-filtro-setor" data-setor="Operações" data-action="filtrar-setor" data-setor="Operações">
+        <button type="button" class="btn btn-secondary btn-sm btn-filtro-setor" data-action="filtrar-setor" data-setor="Operações">
             Operações
         </button>
-        <button type="button" class="btn btn-secondary btn-sm btn-filtro-setor" data-setor="TI" data-action="filtrar-setor" data-setor="TI">
+        <button type="button" class="btn btn-secondary btn-sm btn-filtro-setor" data-action="filtrar-setor" data-setor="TI">
             TI
         </button>
-        <button type="button" class="btn btn-secondary btn-sm btn-filtro-setor" data-setor="QSMS" data-action="filtrar-setor" data-setor="QSMS">
+        <button type="button" class="btn btn-secondary btn-sm btn-filtro-setor" data-action="filtrar-setor" data-setor="QSMS">
             QSMS
         </button>
-        <button type="button" class="btn btn-secondary btn-sm btn-filtro-setor" data-setor="Planejamento" data-action="filtrar-setor" data-setor="Planejamento">
+        <button type="button" class="btn btn-secondary btn-sm btn-filtro-setor" data-action="filtrar-setor" data-setor="Planejamento">
             Planejamento
         </button>
-        <button type="button" class="btn btn-secondary btn-sm btn-filtro-setor" data-setor="Compras" data-action="filtrar-setor" data-setor="Compras">
+        <button type="button" class="btn btn-secondary btn-sm btn-filtro-setor" data-action="filtrar-setor" data-setor="Compras">
             Compras
         </button>
-        <button type="button" class="btn btn-secondary btn-sm btn-filtro-setor" data-setor="Financeiro" data-action="filtrar-setor" data-setor="Financeiro">
+        <button type="button" class="btn btn-secondary btn-sm btn-filtro-setor" data-action="filtrar-setor" data-setor="Financeiro">
             Financeiro
         </button>
-        <button type="button" class="btn btn-secondary btn-sm btn-filtro-setor" data-setor="Almoxarifado" data-action="filtrar-setor" data-setor="Almoxarifado">
+        <button type="button" class="btn btn-secondary btn-sm btn-filtro-setor" data-action="filtrar-setor" data-setor="Almoxarifado">
             Almoxarifado
         </button>
     </div>
@@ -267,6 +270,7 @@
                                     class="cv-btn-action cv-btn-action-secondary btn-toggle-colab" 
                                     id="btn-toggle-colab-{{ c.id }}"
                                     data-action="alternar-detalhes" data-id="{{ c.id }}" 
+                                    aria-expanded="false" aria-controls="detalhes-colab-{{ c.id }}"
                                     style="height:28px; font-size:0.75rem; padding:0 10px; cursor:pointer; display:inline-flex; align-items:center; gap:4px;"
                                     title="Expandir detalhes de {{ c.nome_completo }}">
                                 <i data-lucide="chevron-down" id="icon-toggle-colab-{{ c.id }}" style="width:13px; height:13px; transition:transform 0.2s;"></i>
@@ -286,11 +290,11 @@
                 <!-- Linha Expansível de Detalhes do Colaborador -->
                 <tr id="detalhes-colab-{{ c.id }}" class="linha-detalhe-colaborador d-none" data-parent-id="{{ c.id }}" style="background: rgba(0,0,0,0.015);">
                     <td colspan="6" class="p-0 border-0">
-                        <div style="padding: 16px 24px; background: #fafafa; border-bottom: 1px solid var(--border); border-top: 1px dashed var(--border);">
+                        <div style="padding: 16px 24px; background: var(--surface-hover); border-bottom: 1px solid var(--border); border-top: 1px dashed var(--border);">
                             <div class="row g-3">
                                 <!-- Card 1: Identificação & Documentos -->
                                 <div class="col-md-4">
-                                    <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 14px; height: 100%; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+                                    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 14px; height: 100%; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
                                         <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 12px; font-weight: 600; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">
                                             <i data-lucide="id-card" style="width: 14px; height: 14px; color: var(--primary);"></i>
                                             Identificação & Acesso
@@ -332,7 +336,7 @@
 
                                 <!-- Card 2: Contatos & Notificações -->
                                 <div class="col-md-4">
-                                    <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 14px; height: 100%; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+                                    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 14px; height: 100%; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
                                         <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 12px; font-weight: 600; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">
                                             <i data-lucide="phone-call" style="width: 14px; height: 14px; color: var(--primary);"></i>
                                             Canais de Comunicação
@@ -375,7 +379,7 @@
 
                                 <!-- Card 3: Operação & Histórico de Cautelas -->
                                 <div class="col-md-4">
-                                    <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 14px; height: 100%; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+                                    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 14px; height: 100%; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
                                         <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 12px; font-weight: 600; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">
                                             <i data-lucide="activity" style="width: 14px; height: 14px; color: var(--primary);"></i>
                                             Alocação & Cautelas
@@ -452,39 +456,10 @@
         {% endif %}
     </div>
 
-    <div class="surface-card-footer" style="padding:14px 20px; background:#fafafa; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--space-2);">
+    <div class="surface-card-footer" style="padding:14px 20px; background:var(--surface-hover); border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--space-2);">
         <span style="font-size:0.8125rem; color:var(--text-muted); font-family:var(--font-mono);" id="infoRodapeContagemColab">
             Total de <strong>{{ colaboradores|length }}</strong> colaboradores registrados.
         </span>
-        <div style="display:flex; gap:var(--space-2);">
-            {% if current_user.role == 'admin' %}
-            <div class="btn-group btn-group-sm">
-                <button type="button" class="btn btn-outline-secondary btn-sm" data-action="exportar" data-formato="csv" title="Exportar colaboradores filtrados para planilha executiva CSV">
-                    <i data-lucide="download"></i> Exportar Dados
-                </button>
-                <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false" title="Formatos de exportação">
-                    <span class="visually-hidden">Opções</span>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="font-size:0.8125rem;">
-                    <li>
-                        <a class="dropdown-item d-flex align-items-center gap-2" href="javascript:void(0)" data-action="exportar" data-formato="csv">
-                            <i data-lucide="file-spreadsheet" class="text-success" style="width:14px;height:14px;"></i>
-                            <span>Planilha Executiva (.csv)</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item d-flex align-items-center gap-2" href="javascript:void(0)" data-action="exportar" data-formato="xlsx">
-                            <i data-lucide="file-check" class="text-primary" style="width:14px;height:14px;"></i>
-                            <span>Planilha Excel (.xlsx)</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-            {% endif %}
-            <a href="/cadastrar-usuario" class="btn btn-primary btn-sm">
-                <i data-lucide="user-plus"></i> Novo Colaborador
-            </a>
-        </div>
     </div>
 </div>
 
@@ -505,6 +480,7 @@
             if (btn) {
                 btn.classList.remove('cv-btn-action-secondary');
                 btn.classList.add('cv-btn-action-primary');
+                btn.setAttribute('aria-expanded', 'true');
             }
             if (icon) {
                 icon.setAttribute('data-lucide', 'chevron-up');
@@ -517,6 +493,7 @@
             if (btn) {
                 btn.classList.remove('cv-btn-action-primary');
                 btn.classList.add('cv-btn-action-secondary');
+                btn.setAttribute('aria-expanded', 'false');
             }
             if (icon) {
                 icon.setAttribute('data-lucide', 'chevron-down');
@@ -796,7 +773,8 @@
         exportarColaboradores('csv');
     }
 
-    // Centralized Event Delegation for data-action in Colaboradores
+    // CAUSA: o listener chamava aliases inexistentes, interrompendo filtros, cópia e expansão.
+    // FIX: cada ação agora chama a função realmente declarada nesta página.
     document.addEventListener('click', function(e) {
         const el = e.target.closest('[data-action]');
         if (!el) return;
@@ -806,17 +784,17 @@
         } else if (action === 'navegar-solicitacoes') {
             window.location.href = '/meus-chamados';
         } else if (action === 'filtrar-base') {
-            filtrarBaseColab(el.getAttribute('data-base'), el);
+            filtrarPorBase(el.getAttribute('data-base'), el);
         } else if (action === 'filtrar-setor') {
-            filtrarSetorColab(el.getAttribute('data-setor'), el);
+            filtrarPorSetor(el.getAttribute('data-setor'), el);
         } else if (action === 'limpar-texto') {
-            limparBuscaTextoColab();
+            limparTextoColab();
         } else if (action === 'exportar') {
             exportarColaboradores(el.getAttribute('data-formato') || 'csv');
         } else if (action === 'alternar-detalhes') {
-            alternarDetalhesColab(el.getAttribute('data-id'));
+            alternarDetalhesColaborador(el.getAttribute('data-id'));
         } else if (action === 'copiar') {
-            copiarDado(el, el.getAttribute('data-texto'));
+            copiarTexto(el.getAttribute('data-copiar'), el);
         }
     });
 

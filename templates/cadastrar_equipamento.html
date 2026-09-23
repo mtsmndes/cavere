@@ -11,7 +11,8 @@
     <div class="surface-card">
         <div class="surface-card-header">
             <div>
-                <div style="font-size:1rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.04em; color:var(--text-primary);">
+                <div
+                    style="font-size:1rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.04em; color:var(--text-primary);">
                     Cadastrar Novo Equipamento
                 </div>
                 <div style="font-size:0.8125rem; color:var(--text-muted); margin-top:2px;">
@@ -26,11 +27,12 @@
 
                 <!-- Tipo do Equipamento -->
                 <div style="margin-bottom:var(--space-4);">
-                    <label class="form-label" for="tipo">Tipo de Equipamento <span style="color:var(--status-danger-text);">*</span></label>
+                    <label class="form-label" for="tipo">Tipo de Equipamento <span
+                            style="color:var(--status-danger-text);">*</span></label>
                     <select class="form-select" name="tipo" id="tipo" required onchange="verificarTipo()">
                         <option value="" disabled selected>Selecione o tipo de equipamento...</option>
                         <option value="Notebook">Notebook</option>
-                        <option value="Celular">Celular / Smartphone</option>
+                        <option value="Celular">Celular</option>
                         <option value="Monitor">Monitor</option>
                         <option value="Câmera">Câmera</option>
                         <option value="Rádio Comunicador">Rádio Comunicador</option>
@@ -47,7 +49,8 @@
 
                 <!-- Modelo do Equipamento -->
                 <div style="margin-bottom:var(--space-4);">
-                    <label class="form-label" for="modelo">Modelo do Equipamento <span style="color:var(--status-danger-text);">*</span></label>
+                    <label class="form-label" for="modelo">Modelo do Equipamento <span
+                            style="color:var(--status-danger-text);">*</span></label>
                     <input type="text" class="form-control" name="modelo" id="modelo"
                         placeholder="Ex: Dell Latitude 3420, Samsung Galaxy A54, Kodak Pixpro FZ55, etc." required>
                 </div>
@@ -68,13 +71,15 @@
                             placeholder="Ex: SN12345678 (deixe em branco se não houver ou estiver apagado)">
                     </div>
                     <div class="form-text" style="font-size:0.75rem;">
-                        Caso o ativo não possua número de série visível ou a etiqueta esteja apagada, pode deixar este campo em branco.
+                        Caso o ativo não possua número de série visível ou a etiqueta esteja apagada, pode deixar este
+                        campo em branco.
                     </div>
                 </div>
 
                 <!-- Base Operacional -->
                 <div style="margin-bottom:var(--space-4);">
-                    <label class="form-label" for="base">Base Operacional / Alocação do Ativo <span style="color:var(--status-danger-text);">*</span></label>
+                    <label class="form-label" for="base">Base Operacional / Alocação do Ativo <span
+                            style="color:var(--status-danger-text);">*</span></label>
                     <select class="form-select" name="base" id="base" required>
                         <option value="Tank" selected>Tank (Base Niterói - C-Tank)</option>
                         <option value="TDBR">TDBR (Macaé / Inspeções Técnicas)</option>
@@ -85,50 +90,68 @@
                 </div>
 
                 <!-- Aquisição / Propriedade do Ativo (Próprio vs Alugado) -->
-                <div style="margin-bottom:var(--space-4); background:var(--background); border:1px solid var(--border); border-radius:2px; padding:var(--space-4);">
-                    <label class="form-label" style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-3);">
+                <div
+                    style="margin-bottom:var(--space-4); background:var(--background); border:1px solid var(--border); border-radius:2px; padding:var(--space-4);">
+                    <label class="form-label"
+                        style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-3);">
                         <i data-lucide="building-2" style="color:var(--lime);"></i>
-                        <span style="font-weight:700; font-family:var(--font-mono); text-transform:uppercase; font-size:0.8125rem; color:var(--text-primary);">
+                        <span
+                            style="font-weight:700; font-family:var(--font-mono); text-transform:uppercase; font-size:0.8125rem; color:var(--text-primary);">
                             Modalidade de Aquisição <span style="color:var(--status-danger-text);">*</span>
                         </span>
                     </label>
 
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--space-3); margin-bottom:var(--space-3);">
-                        <label class="cv-tipo-opcao" style="border:1px solid var(--border); border-radius:2px; padding:var(--space-3); cursor:pointer; display:flex; align-items:flex-start; gap:var(--space-2); background:var(--surface);">
-                            <input type="radio" name="alugado" value="0" id="radioProprio" checked onchange="alternarPropriedade()" style="margin-top:3px; cursor:pointer;">
+                    <div
+                        style="display:grid; grid-template-columns:1fr 1fr; gap:var(--space-3); margin-bottom:var(--space-3);">
+                        <label class="cv-tipo-opcao"
+                            style="border:1px solid var(--border); border-radius:2px; padding:var(--space-3); cursor:pointer; display:flex; align-items:flex-start; gap:var(--space-2); background:var(--surface);">
+                            <input type="radio" name="alugado" value="0" id="radioProprio" checked
+                                onchange="alternarPropriedade()" style="margin-top:3px; cursor:pointer;">
                             <div>
-                                <div style="font-weight:600; font-size:0.875rem; color:var(--text-primary);">Próprio Ambipar</div>
-                                <div style="font-size:0.75rem; color:var(--text-muted);">Ativo permanente próprio da companhia</div>
+                                <div style="font-weight:600; font-size:0.875rem; color:var(--text-primary);">Próprio
+                                    Ambipar</div>
+                                <div style="font-size:0.75rem; color:var(--text-muted);">Ativo permanente próprio da
+                                    companhia</div>
                             </div>
                         </label>
 
-                        <label class="cv-tipo-opcao" style="border:1px solid var(--border); border-radius:2px; padding:var(--space-3); cursor:pointer; display:flex; align-items:flex-start; gap:var(--space-2); background:var(--surface);">
-                            <input type="radio" name="alugado" value="1" id="radioAlugado" onchange="alternarPropriedade()" style="margin-top:3px; cursor:pointer;">
+                        <label class="cv-tipo-opcao"
+                            style="border:1px solid var(--border); border-radius:2px; padding:var(--space-3); cursor:pointer; display:flex; align-items:flex-start; gap:var(--space-2); background:var(--surface);">
+                            <input type="radio" name="alugado" value="1" id="radioAlugado"
+                                onchange="alternarPropriedade()" style="margin-top:3px; cursor:pointer;">
                             <div>
-                                <div style="font-weight:600; font-size:0.875rem; color:var(--text-primary);">Alugado / Locado</div>
-                                <div style="font-size:0.75rem; color:var(--text-muted);">Equipamento sob contrato de locação</div>
+                                <div style="font-weight:600; font-size:0.875rem; color:var(--text-primary);">Alugado /
+                                    Locado</div>
+                                <div style="font-size:0.75rem; color:var(--text-muted);">Equipamento sob contrato de
+                                    locação</div>
                             </div>
                         </label>
                     </div>
 
                     <!-- Campo da Empresa Locadora exibido quando for Alugado -->
-                    <div id="bloco-locadora" style="display:none; padding-top:var(--space-3); border-top:1px dashed var(--border);">
-                        <label class="form-label" for="empresa_locadora">Empresa Responsável pelo Aluguel (Locadora) <span style="color:var(--status-danger-text);">*</span></label>
+                    <div id="bloco-locadora"
+                        style="display:none; padding-top:var(--space-3); border-top:1px dashed var(--border);">
+                        <label class="form-label" for="empresa_locadora">Empresa Responsável pelo Aluguel (Locadora)
+                            <span style="color:var(--status-danger-text);">*</span></label>
                         <div class="input-group">
                             <span class="input-group-text"><i data-lucide="handshake"></i></span>
                             <input type="text" class="form-control" name="empresa_locadora" id="empresa_locadora"
                                 placeholder="Ex: LocaMaxx, TechRent, Dell Financial, etc.">
                         </div>
-                        <div class="form-text">Informe a fornecedora terceirizada ou locadora contratual deste ativo.</div>
+                        <div class="form-text">Informe a fornecedora terceirizada ou locadora contratual deste ativo.
+                        </div>
                     </div>
                 </div>
 
                 <!-- BLOCO CONDICIONAL: NOTEBOOK (Hardware & Sistema Operacional) -->
                 <div id="bloco-notebook" style="display:none; margin-bottom:var(--space-4);">
-                    <div style="background:var(--background); border:1px solid var(--border); border-radius:2px; padding:var(--space-4);">
-                        <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-3); padding-bottom:var(--space-2); border-bottom:1px solid var(--border);">
+                    <div
+                        style="background:var(--background); border:1px solid var(--border); border-radius:2px; padding:var(--space-4);">
+                        <div
+                            style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-3); padding-bottom:var(--space-2); border-bottom:1px solid var(--border);">
                             <i data-lucide="laptop" style="color:var(--lime); width:18px; height:18px;"></i>
-                            <span style="font-size:0.8125rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; color:var(--text-primary);">
+                            <span
+                                style="font-size:0.8125rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; color:var(--text-primary);">
                                 Especificações de Hardware & Sistema Operacional (Notebook)
                             </span>
                         </div>
@@ -158,7 +181,8 @@
                         <div style="margin-bottom:var(--space-3);">
                             <label class="form-label" for="processador_notebook">Processador (CPU)</label>
                             <input type="text" class="form-control" name="processador" id="processador_notebook"
-                                list="lista_cpu" placeholder="Ex: Intel Core i5 (11ª Gen), Intel Core i7, AMD Ryzen 5...">
+                                list="lista_cpu"
+                                placeholder="Ex: Intel Core i5 (11ª Gen), Intel Core i7, AMD Ryzen 5...">
                             <datalist id="lista_cpu">
                                 <option value="Intel Core i5 (11ª Gen)">
                                 <option value="Intel Core i5 (12ª Gen)">
@@ -206,20 +230,27 @@
 
                 <!-- BLOCO CONDICIONAL: CELULAR / SMARTPHONE (IMEI & Armazenamento) -->
                 <div id="bloco-celular" style="display:none; margin-bottom:var(--space-4);">
-                    <div style="background:var(--background); border:1px solid var(--border); border-radius:2px; padding:var(--space-4);">
-                        <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-3); padding-bottom:var(--space-2); border-bottom:1px solid var(--border);">
+                    <div
+                        style="background:var(--background); border:1px solid var(--border); border-radius:2px; padding:var(--space-4);">
+                        <div
+                            style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-3); padding-bottom:var(--space-2); border-bottom:1px solid var(--border);">
                             <i data-lucide="smartphone" style="color:var(--lime); width:18px; height:18px;"></i>
-                            <span style="font-size:0.8125rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; color:var(--text-primary);">
+                            <span
+                                style="font-size:0.8125rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; color:var(--text-primary);">
                                 Informações do Dispositivo Móvel
                             </span>
                         </div>
                         <div style="margin-bottom:var(--space-3);">
                             <label class="form-label" for="imei1">IMEI 1</label>
-                            <input type="text" class="form-control" name="imei1" id="imei1" placeholder="Digite o IMEI principal (15 dígitos)">
+                            <input type="text" class="form-control" name="imei1" id="imei1"
+                                placeholder="Digite o IMEI principal (15 dígitos)">
                         </div>
                         <div style="margin-bottom:var(--space-3);">
-                            <label class="form-label" for="imei2">IMEI 2 <span style="color:var(--text-muted); font-weight:400;">(Opcional - Dual SIM)</span></label>
-                            <input type="text" class="form-control" name="imei2" id="imei2" placeholder="Digite o IMEI secundário se houver">
+                            <label class="form-label" for="imei2">IMEI 2 <span
+                                    style="color:var(--text-muted); font-weight:400;">(Opcional - Dual
+                                    SIM)</span></label>
+                            <input type="text" class="form-control" name="imei2" id="imei2"
+                                placeholder="Digite o IMEI secundário se houver">
                         </div>
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--space-3);">
                             <div>
@@ -253,10 +284,13 @@
 
                 <!-- BLOCO CONDICIONAL: MONITOR -->
                 <div id="bloco-monitor" style="display:none; margin-bottom:var(--space-4);">
-                    <div style="background:var(--background); border:1px solid var(--border); border-radius:2px; padding:var(--space-4);">
-                        <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-3); padding-bottom:var(--space-2); border-bottom:1px solid var(--border);">
+                    <div
+                        style="background:var(--background); border:1px solid var(--border); border-radius:2px; padding:var(--space-4);">
+                        <div
+                            style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-3); padding-bottom:var(--space-2); border-bottom:1px solid var(--border);">
                             <i data-lucide="monitor" style="color:var(--lime); width:18px; height:18px;"></i>
-                            <span style="font-size:0.8125rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; color:var(--text-primary);">
+                            <span
+                                style="font-size:0.8125rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; color:var(--text-primary);">
                                 Especificações do Monitor
                             </span>
                         </div>
@@ -293,10 +327,13 @@
 
                 <!-- BLOCO CONDICIONAL: RÁDIO COMUNICADOR -->
                 <div id="bloco-radio" style="display:none; margin-bottom:var(--space-4);">
-                    <div style="background:var(--background); border:1px solid var(--border); border-radius:2px; padding:var(--space-4);">
-                        <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-3); padding-bottom:var(--space-2); border-bottom:1px solid var(--border);">
+                    <div
+                        style="background:var(--background); border:1px solid var(--border); border-radius:2px; padding:var(--space-4);">
+                        <div
+                            style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-3); padding-bottom:var(--space-2); border-bottom:1px solid var(--border);">
                             <i data-lucide="radio" style="color:var(--lime); width:18px; height:18px;"></i>
-                            <span style="font-size:0.8125rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; color:var(--text-primary);">
+                            <span
+                                style="font-size:0.8125rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; color:var(--text-primary);">
                                 Configurações do Rádio Comunicador
                             </span>
                         </div>
@@ -322,10 +359,13 @@
 
                 <!-- BLOCO CONDICIONAL: DETECTOR DE GÁS -->
                 <div id="bloco-gas" style="display:none; margin-bottom:var(--space-4);">
-                    <div style="background:var(--background); border:1px solid var(--border); border-radius:2px; padding:var(--space-4);">
-                        <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-3); padding-bottom:var(--space-2); border-bottom:1px solid var(--border);">
+                    <div
+                        style="background:var(--background); border:1px solid var(--border); border-radius:2px; padding:var(--space-4);">
+                        <div
+                            style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-3); padding-bottom:var(--space-2); border-bottom:1px solid var(--border);">
                             <i data-lucide="activity" style="color:var(--lime); width:18px; height:18px;"></i>
-                            <span style="font-size:0.8125rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; color:var(--text-primary);">
+                            <span
+                                style="font-size:0.8125rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; color:var(--text-primary);">
                                 Sensores e Calibração (Detector de Gás)
                             </span>
                         </div>
@@ -354,14 +394,17 @@
                 <!-- Observações e Acessórios Adicionais (Geral para qualquer equipamento) -->
                 <div style="margin-bottom:var(--space-4);">
                     <label class="form-label" for="especificacoes">
-                        Observações / Acessórios Inclusos <span style="color:var(--text-muted); font-weight:400;">(Opcional)</span>
+                        Observações / Acessórios Inclusos <span
+                            style="color:var(--text-muted); font-weight:400;">(Opcional)</span>
                     </label>
                     <input type="text" class="form-control" name="especificacoes" id="especificacoes"
                         placeholder="Ex: Acompanha fonte original 65W, cabo HDMI, case acolchoada, etc.">
-                    <div class="form-text">Registre informações adicionais de acessórios ou estado de conservação do ativo.</div>
+                    <div class="form-text">Registre informações adicionais de acessórios ou estado de conservação do
+                        ativo.</div>
                 </div>
 
-                <div style="display:flex; justify-content:space-between; align-items:center; padding-top:var(--space-4); border-top:1px solid var(--border);">
+                <div
+                    style="display:flex; justify-content:space-between; align-items:center; padding-top:var(--space-4); border-top:1px solid var(--border);">
                     <a href="/" class="btn btn-secondary btn-sm">Cancelar</a>
                     <button type="submit" class="btn btn-primary btn-sm">
                         <i data-lucide="plus-circle"></i> Salvar Equipamento
@@ -375,19 +418,20 @@
 <script>
     function verificarTipo() {
         let tipo = (document.getElementById('tipo').value || '').trim().toLowerCase();
-        
+
         let blocoNotebook = document.getElementById('bloco-notebook');
         let blocoCelular = document.getElementById('bloco-celular');
         let blocoMonitor = document.getElementById('bloco-monitor');
         let blocoRadio = document.getElementById('bloco-radio');
         let blocoGas = document.getElementById('bloco-gas');
-        
+
         let isNotebook = tipo === 'notebook' || tipo.includes('notebook') || tipo.includes('laptop');
-        let isCelular = tipo === 'celular' || tipo.includes('celular') || tipo.includes('smartphone');
+        let isCelular = tipo === 'celular' || tipo.includes('celular')
+
         let isMonitor = tipo === 'monitor' || tipo.includes('monitor');
         let isRadio = tipo.includes('rádio') || tipo.includes('radio');
         let isGas = tipo.includes('gás') || tipo.includes('gas');
-        
+
         blocoNotebook.style.display = isNotebook ? 'block' : 'none';
         blocoCelular.style.display = isCelular ? 'block' : 'none';
         blocoMonitor.style.display = isMonitor ? 'block' : 'none';
@@ -414,7 +458,7 @@
         }
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         verificarTipo();
     });
 </script>

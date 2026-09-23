@@ -15,6 +15,7 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from pydantic import BaseModel, Field, ValidationError
+from notificacoes_email import agendar_notificacao_solicitacao
 
 @contextmanager
 def suprimir_warnings_glib():
@@ -1262,6 +1263,7 @@ def gerar():
         flash("Por favor, selecione o Equipamento, o Coordenador e informe o RDO.", "warning")
         return redirect(destino_sucesso)
 
+    notificacao = None
     conexao = get_db_connection()
     cursor = conexao.cursor()
     try:
@@ -1324,17 +1326,21 @@ def gerar():
         if id_sol_int:
             cursor.execute('SELECT COUNT(*) FROM cautelas WHERE id_solicitacao = ? AND data_hora_devolucao IS NULL', (id_sol_int,))
             total_emitidos = cursor.fetchone()[0]
-            cursor.execute('SELECT quantidade FROM solicitacoes WHERE id = ?', (id_sol_int,))
+            cursor.execute('SELECT quantidade, status FROM solicitacoes WHERE id = ?', (id_sol_int,))
             row_q = cursor.fetchone()
             qtd_solicitada = row_q[0] if row_q else 1
+            status_anterior = row_q[1] if row_q else None
 
             if total_emitidos >= qtd_solicitada:
+                novo_status = 'Esperando Entrega'
                 cursor.execute("UPDATE solicitacoes SET status = 'Esperando Entrega' WHERE id = ?", (id_sol_int,))
                 msg_progresso = f"Todos os {qtd_solicitada} itens solicitados foram emitidos! O chamado agora está 'Esperando Entrega'."
             else:
+                novo_status = 'Em Atendimento'
                 cursor.execute("UPDATE solicitacoes SET status = 'Em Atendimento' WHERE id = ?", (id_sol_int,))
                 faltam = qtd_solicitada - total_emitidos
                 msg_progresso = f"Item {total_emitidos} de {qtd_solicitada} emitido com sucesso! Faltam {faltam} item(ns)."
+            notificacao = (id_sol_int, status_anterior, msg_progresso)
         else:
             msg_progresso = "Cautela gerada com sucesso."
 
@@ -1349,6 +1355,9 @@ def gerar():
     finally:
         conexao.close()
 
+    if notificacao:
+        agendar_notificacao_solicitacao(get_db_connection, *notificacao)
+
     return redirect(destino_sucesso)
 
 
@@ -1356,16 +1365,27 @@ def gerar():
 @login_required
 @admin_required
 def entregar_solicitacao(id_solicitacao):
+    notificacao = None
     conexao = get_db_connection()
     cursor = conexao.cursor()
     try:
+        cursor.execute('SELECT status FROM solicitacoes WHERE id = ?', (id_solicitacao,))
+        row = cursor.fetchone()
+        if not row:
+            flash('Solicitação não encontrada.', 'warning')
+            return redirect(url_for('home'))
+        status_anterior = row[0]
         cursor.execute("UPDATE solicitacoes SET status = 'Finalizada' WHERE id = ?", (id_solicitacao,))
         conexao.commit()
+        if status_anterior != 'Finalizada':
+            notificacao = (id_solicitacao, status_anterior, 'A entrega foi confirmada e o chamado foi finalizado.')
         flash(f"Equipamento da solicitação #SOL-{id_solicitacao} marcado como entregue! Chamado finalizado.", "success")
     except Exception as e:
         flash(f"Erro ao finalizar solicitação: {e}", "danger")
     finally:
         conexao.close()
+    if notificacao:
+        agendar_notificacao_solicitacao(get_db_connection, *notificacao)
     return redirect(url_for('home'))
 
 
@@ -1635,6 +1655,7 @@ def colaboradores():
 @login_required
 @admin_required
 def devolver(id_equipamento):
+    notificacao = None
     conexao = get_db_connection()
     cursor = conexao.cursor()
     try:
@@ -1676,6 +1697,7 @@ def devolver(id_equipamento):
                         novo_status = 'Esperando Entrega'
 
                     cursor.execute('UPDATE solicitacoes SET status = ? WHERE id = ?', (novo_status, id_sol))
+                    notificacao = (id_sol, status_sol, 'O andamento foi recalculado após a devolução de um equipamento.')
                     faltam_agora = max(0, qtd_pedida - ativas_restantes)
                     msg_solicitacao = f" Solicitação #SOL-{id_sol} recalculada: {ativas_restantes}/{qtd_pedida} ativos (status '{novo_status}')."
 
@@ -1685,6 +1707,8 @@ def devolver(id_equipamento):
         flash(f"Erro ao devolver equipamento: {e}", "danger")
     finally:
         conexao.close()
+    if notificacao:
+        agendar_notificacao_solicitacao(get_db_connection, *notificacao)
     origem = request.referrer
     if origem and is_safe_redirect_url(origem):
         return redirect(origem)
@@ -2211,6 +2235,13 @@ def solicitar_equipamento():
 
             conexao.commit()
 
+            conexao.close()
+            for id_criado in ids_criados:
+                agendar_notificacao_solicitacao(
+                    get_db_connection, id_criado, None,
+                    'Sua solicitação foi registrada e aguarda o início do atendimento.'
+                )
+
             if len(ids_criados) == 1:
                 flash(f"Chamado #{ids_criados[0]} criado com sucesso! Solicitação de {resumo_itens[0]} ({tipo_uso} - {base} - {setor}) registrada.", "success")
             else:
@@ -2218,7 +2249,6 @@ def solicitar_equipamento():
                 itens_str = ", ".join(resumo_itens)
                 flash(f"{len(ids_criados)} chamados criados com sucesso ({ids_str})! Itens solicitados: {itens_str} ({tipo_uso} - {base} - {setor}).", "success")
 
-            conexao.close()
             return redirect(url_for('meus_chamados'))
         except Exception as e:
             flash(f"Erro ao registrar chamado(s): {e}", "danger")
