@@ -103,7 +103,7 @@
                 <div class="input-group">
                     <span class="input-group-text"><i data-lucide="search"></i></span>
                     <input type="text" id="campoBuscaTexto" class="form-control"
-                        placeholder="Buscar por RDO, modelo, SN, coord..." onkeyup="executarFiltrosCautelas()">
+                        placeholder="Buscar por RDO, modelo, SN, coord..." oninput="executarFiltrosCautelas()">
                     <button class="btn btn-outline-secondary" type="button" id="btnLimparBuscaTexto" data-action="limpar-busca" title="Limpar busca" style="display:none;">
                         <i data-lucide="x"></i>
                     </button>
@@ -394,7 +394,6 @@
         }
 
         let totalExibidas = 0;
-        let visibleIndex = 0;
         const linhas = document.querySelectorAll('.linha-cautela');
 
         linhas.forEach(function(linha) {
@@ -433,23 +432,13 @@
 
             if (!visivel) {
                 linha.style.display = 'none';
-                linha.style.opacity = '';
-                linha.style.transform = '';
-                linha.style.transition = '';
             } else {
-                const delay = visibleIndex < 8 ? visibleIndex * 25 : 0;
                 linha.style.display = '';
-                linha.style.opacity = '0';
-                linha.style.transform = 'translateY(4px)';
-                linha.style.transition = 'none';
-                requestAnimationFrame(function() {
-                    linha.style.transition = 'opacity 200ms cubic-bezier(0.4,0,0.2,1) ' + delay + 'ms, transform 200ms cubic-bezier(0.16,1,0.3,1) ' + delay + 'ms';
-                    linha.style.opacity = '1';
-                    linha.style.transform = 'translateY(0)';
-                });
                 totalExibidas++;
-                visibleIndex++;
             }
+            linha.style.opacity = '';
+            linha.style.transform = '';
+            linha.style.transition = '';
         });
 
         const contador = document.getElementById('contadorResultados');
@@ -464,9 +453,6 @@
         const linhaVazia = document.getElementById('linhaNenhumResultado');
         if (linhaVazia) {
             linhaVazia.classList.toggle('d-none', totalExibidas > 0);
-        }
-        if (window.lucide) {
-            lucide.createIcons();
         }
     }
 

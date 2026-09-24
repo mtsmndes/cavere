@@ -131,28 +131,6 @@
                         <hr class="dropdown-divider">
                     </li>
                     <li>
-                        <h6 class="dropdown-header text-uppercase"
-                            style="font-size:0.6875rem; letter-spacing:0.05em; font-weight:700; color:var(--text-muted);">
-                            Visualização da Fila</h6>
-                    </li>
-                    <li>
-                        <a class="dropdown-item d-flex align-items-center gap-2" href="javascript:void(0)"
-                            data-action="toggle-finalizados" id="itemMenuToggleFinalizados">
-                            <i data-lucide="eye-off" class="text-muted" style="width:14px;height:14px;"></i>
-                            <span id="textoItemToggleFinalizados">Ocultar Finalizados</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item d-flex align-items-center gap-2" href="javascript:void(0)"
-                            data-action="reabrir-finalizados">
-                            <i data-lucide="eye" class="text-muted" style="width:14px;height:14px;"></i>
-                            <span>Reexibir Todos os Chamados</span>
-                        </a>
-                    </li>
-                    <li>
-                        <hr class="dropdown-divider">
-                    </li>
-                    <li>
                         <a class="dropdown-item d-flex align-items-center gap-2" href="/historico">
                             <i data-lucide="history" class="text-muted" style="width:14px;height:14px;"></i>
                             <span>Ir para Histórico Geral de Cautelas</span>
@@ -373,12 +351,11 @@
                             </button>
                         </form>
                         {% else %}
-                        <button type="button" class="cv-btn-action cv-btn-action-done"
-                            style="width:100%; min-width:140px; white-space:nowrap;" data-action="fechar-chamado-linha"
-                            title="Ocultar este chamado finalizado da visão de trabalho">
-                            <i data-lucide="eye-off"></i>
-                            <span>Ocultar</span>
-                        </button>
+                        <span class="cv-btn-action cv-btn-action-done"
+                            style="width:100%; min-width:140px; white-space:nowrap; cursor:default;">
+                            <i data-lucide="check"></i>
+                            <span>Concluído</span>
+                        </span>
                         {% endif %}
                     </td>
                 </tr>
@@ -390,20 +367,6 @@
                 </tr>
             </tbody>
         </table>
-
-        <!-- Banner de Chamados Finalizados Ocultos -->
-        <div id="avisoFinalizadosOcultos" class="d-none"
-            style="padding:var(--space-3) var(--space-4); background:var(--background-card); border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; font-size:0.8125rem; color:var(--text-muted);">
-            <div style="display:flex; align-items:center; gap:var(--space-2);">
-                <i data-lucide="check-circle" class="text-success me-1" style="width:16px;height:16px;"></i>
-                <span><strong id="contadorFinalizadosOcultos">0</strong> chamado(s) finalizado(s) estão ocultos nesta
-                    visão.</span>
-            </div>
-            <button type="button" class="btn btn-link btn-sm p-0" data-action="reabrir-finalizados"
-                style="font-size:0.8125rem; text-decoration:none; font-weight:600; color:var(--lime); cursor:pointer;">
-                <i data-lucide="eye" class="me-1" style="width:14px;height:14px;"></i>Reexibir todos
-            </button>
-        </div>
         {% else %}
         <div class="cv-empty-state">
             <div class="cv-empty-icon"><i data-lucide="inbox"></i></div>
@@ -438,7 +401,7 @@
             <div class="input-group input-group-sm" style="width:270px; min-width:210px; flex:0 0 270px;">
                 <span class="input-group-text"><i data-lucide="search"></i></span>
                 <input type="text" id="buscaEquipAdminDash" class="form-control"
-                    placeholder="Buscar modelo, SN, base..." onkeyup="filtrarEquipamentosAdminDash()">
+                    placeholder="Buscar modelo, SN, base..." oninput="filtrarEquipamentosAdminDash()">
                 <button class="btn btn-outline-secondary" type="button" id="btnLimparBuscaEquipDash"
                     data-action="limpar-busca-equip" style="display:none;" title="Limpar busca">
                     <i data-lucide="x"></i>
@@ -912,18 +875,12 @@
             if (inputBusca) {
                 inputBusca.value = termoUrl;
             }
-            finalizadosFechadosAdmin = false;
             filtroChamadosAtivo = 'todos';
             document.querySelectorAll('#grupoFiltroSolicitacoes button').forEach(function (b) {
                 b.classList.remove('active');
             });
             const btnTodos = document.getElementById('filtroSol-todos');
             if (btnTodos) btnTodos.classList.add('active');
-            document.querySelectorAll('.linha-solicitacao').forEach(function (row) {
-                row.removeAttribute('data-fechada-individual');
-            });
-        } else if (localStorage.getItem('cavere_finalizados_fechados_admin') === '1') {
-            finalizadosFechadosAdmin = true;
         }
 
         aplicarVisibilidadeChamados();
@@ -1099,6 +1056,11 @@
     }
 
     document.getElementById('formCautelaModal').addEventListener('submit', function (e) {
+        if (this.dataset.submitting === 'true') {
+            e.preventDefault();
+            return false;
+        }
+
         const selectEq = document.getElementById('campoIdEquipamentoModal');
         const idSol = document.getElementById('campoIdSolicitacaoModal').value;
 
@@ -1123,6 +1085,17 @@
                 alert('Operação bloqueada! O chamado exige "' + tipoSolicitadoAtivo + '", mas você selecionou um equipamento incompatível.');
                 return false;
             }
+        }
+
+        // Bloqueia cliques repetidos enquanto o servidor registra a cautela.
+        this.dataset.submitting = 'true';
+        const botao = document.getElementById('btnSubmitModalCautela');
+        if (botao) {
+            botao.disabled = true;
+            const indicador = document.createElement('span');
+            indicador.className = 'spinner-border spinner-border-sm';
+            indicador.setAttribute('aria-hidden', 'true');
+            botao.replaceChildren(indicador, document.createTextNode(' Registrando cautela...'));
         }
     });
 
@@ -1179,7 +1152,6 @@
         if (window.lucide) lucide.createIcons();
     }
 
-    let finalizadosFechadosAdmin = false;
     let filtroChamadosAtivo = 'todos';
     let filtroBaseAdminAtivo = 'todas';
 
@@ -1222,19 +1194,13 @@
         const tokensBusca = normalizar(termoBusca).split(/\s+/).filter(Boolean);
 
         const linhas = document.querySelectorAll('.linha-solicitacao');
-        let totalFinalizadas = 0;
-        let finalizadasOcultas = 0;
-        let visibleIndex = 0;
         let totalExibidas = 0;
 
         linhas.forEach(function (row) {
             const isFinalizada = row.getAttribute('data-finalizada') === '1';
-            const individualmenteFechada = row.getAttribute('data-fechada-individual') === '1';
             const baseRow = row.getAttribute('data-base') || '';
             const tipoUsoRow = row.getAttribute('data-tipo-uso') || '';
             const buscaRow = normalizar(row.getAttribute('data-busca') || '');
-
-            if (isFinalizada) totalFinalizadas++;
 
             let deveExibir = true;
 
@@ -1248,18 +1214,11 @@
 
             // Filtro de Status
             if (deveExibir) {
-                if (filtroChamadosAtivo === 'abertos') {
-                    deveExibir = !isFinalizada;
-                } else if (filtroChamadosAtivo === 'finalizados') {
+                if (filtroChamadosAtivo === 'finalizados') {
                     deveExibir = isFinalizada;
                 } else {
-                    if (!termoBusca) {
-                        if (finalizadosFechadosAdmin && isFinalizada) {
-                            deveExibir = false;
-                        } else if (individualmenteFechada) {
-                            deveExibir = false;
-                        }
-                    }
+                    // FIX: a fila padrão exibe somente trabalho ativo; concluídos aparecem no filtro dedicado.
+                    deveExibir = !isFinalizada;
                 }
             }
 
@@ -1279,24 +1238,13 @@
 
             if (!deveExibir) {
                 row.style.display = 'none';
-                row.style.opacity = '';
-                row.style.transform = '';
-                row.style.transition = '';
-                if (isFinalizada) finalizadasOcultas++;
             } else {
                 totalExibidas++;
-                const delay = visibleIndex < 8 ? visibleIndex * 25 : 0;
                 row.style.display = '';
-                row.style.opacity = '0';
-                row.style.transform = 'translateY(4px)';
-                row.style.transition = 'none';
-                requestAnimationFrame(function () {
-                    row.style.transition = 'opacity 200ms cubic-bezier(0.4,0,0.2,1) ' + delay + 'ms, transform 200ms cubic-bezier(0.16,1,0.3,1) ' + delay + 'ms';
-                    row.style.opacity = '1';
-                    row.style.transform = 'translateY(0)';
-                });
-                visibleIndex++;
             }
+            row.style.opacity = '';
+            row.style.transform = '';
+            row.style.transition = '';
         });
 
         const linhaVaziaSol = document.getElementById('linhaVaziaSolicitacoesAdmin');
@@ -1304,65 +1252,6 @@
             linhaVaziaSol.classList.toggle('d-none', totalExibidas > 0);
         }
 
-        const textoMenu = document.getElementById('textoItemToggleFinalizados');
-        if (textoMenu) {
-            textoMenu.textContent = (finalizadosFechadosAdmin || finalizadasOcultas > 0) ? 'Reexibir Finalizados' : 'Ocultar Finalizados';
-        }
-
-        const aviso = document.getElementById('avisoFinalizadosOcultos');
-        const contador = document.getElementById('contadorFinalizadosOcultos');
-
-        if (aviso && contador) {
-            if (finalizadasOcultas > 0) {
-                aviso.classList.remove('d-none');
-                aviso.classList.add('d-flex');
-                contador.textContent = finalizadasOcultas;
-            } else {
-                aviso.classList.add('d-none');
-                aviso.classList.remove('d-flex');
-            }
-        }
-        if (window.lucide) {
-            lucide.createIcons();
-        }
-    }
-
-    function reabrirTodosFinalizados() {
-        finalizadosFechadosAdmin = false;
-        localStorage.setItem('cavere_finalizados_fechados_admin', '0');
-        document.querySelectorAll('.linha-solicitacao').forEach(function (row) {
-            row.removeAttribute('data-fechada-individual');
-        });
-        filtrarChamadosAdmin('todos');
-    }
-
-    function toggleFinalizadosAdmin(forcarEstado) {
-        if (typeof forcarEstado === 'boolean') {
-            finalizadosFechadosAdmin = forcarEstado;
-        } else {
-            const temOcultas = document.querySelectorAll('.linha-solicitacao[data-fechada-individual]').length > 0;
-            if (finalizadosFechadosAdmin || temOcultas) {
-                finalizadosFechadosAdmin = false;
-            } else {
-                finalizadosFechadosAdmin = true;
-            }
-        }
-
-        if (!finalizadosFechadosAdmin) {
-            document.querySelectorAll('.linha-solicitacao').forEach(function (row) {
-                row.removeAttribute('data-fechada-individual');
-            });
-            localStorage.setItem('cavere_finalizados_fechados_admin', '0');
-            filtrarChamadosAdmin('todos');
-            return;
-        } else {
-            localStorage.setItem('cavere_finalizados_fechados_admin', '1');
-            if (filtroChamadosAtivo === 'finalizados') {
-                filtrarChamadosAdmin('todos');
-                return;
-            }
-        }
-        aplicarVisibilidadeChamados();
     }
 
     function filtrarChamadosAdmin(tipo) {
@@ -1373,26 +1262,7 @@
         const btn = document.getElementById('filtroSol-' + tipo);
         if (btn) btn.classList.add('active');
 
-        if (tipo === 'abertos') {
-            finalizadosFechadosAdmin = true;
-        } else if (tipo === 'finalizados') {
-            finalizadosFechadosAdmin = false;
-        } else if (tipo === 'todos') {
-            finalizadosFechadosAdmin = false;
-            localStorage.setItem('cavere_finalizados_fechados_admin', '0');
-            document.querySelectorAll('.linha-solicitacao').forEach(function (row) {
-                row.removeAttribute('data-fechada-individual');
-            });
-        }
         aplicarVisibilidadeChamados();
-    }
-
-    function fecharLinhaIndividual(btn) {
-        const row = btn.closest('tr');
-        if (row) {
-            row.setAttribute('data-fechada-individual', '1');
-            aplicarVisibilidadeChamados();
-        }
     }
 
     // --- FILTROS DE EQUIPAMENTOS NO DASHBOARD DO ADMINISTRADOR ---
@@ -1529,8 +1399,6 @@
         const partesFiltros = [];
         if (filtroChamadosAtivo !== 'todos') partesFiltros.push(`Filtro Status: ${filtroChamadosAtivo === 'abertos' ? 'Em Aberto' : 'Finalizados'}`);
         if (filtroBaseAdminAtivo !== 'todas') partesFiltros.push(`Base: ${filtroBaseAdminAtivo}`);
-        if (finalizadosFechadosAdmin) partesFiltros.push('Finalizados: Ocultados individualmente');
-
         const inputBusca = document.getElementById('buscaSolicitacoesAdmin');
         const termoBusca = (inputBusca?.value || '').trim();
         if (termoBusca) partesFiltros.push(`Busca por Termo: "${termoBusca}"`);
@@ -1658,14 +1526,8 @@
             filtrarChamadosPorBaseAdmin(el.getAttribute('data-base'), el);
         } else if (action === 'exportar-chamados') {
             exportarChamadosAdmin(el.getAttribute('data-formato') || 'csv');
-        } else if (action === 'toggle-finalizados') {
-            toggleFinalizadosAdmin();
-        } else if (action === 'reabrir-finalizados') {
-            reabrirTodosFinalizados();
         } else if (action === 'atender-chamado') {
             abrirModalAtendimentoDoBotao(el);
-        } else if (action === 'fechar-chamado-linha') {
-            fecharLinhaIndividual(el);
         } else if (action === 'limpar-busca-equip') {
             limparBuscaEquipDash();
         } else if (action === 'filtrar-equip-base') {
@@ -1685,7 +1547,6 @@
         const inputBuscaAdmin = document.getElementById('buscaSolicitacoesAdmin');
         if (inputBuscaAdmin) {
             inputBuscaAdmin.addEventListener('input', aplicarVisibilidadeChamados);
-            inputBuscaAdmin.addEventListener('keyup', aplicarVisibilidadeChamados);
         }
     });
 

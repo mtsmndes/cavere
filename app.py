@@ -4,6 +4,7 @@ import sys
 import sqlite3
 import html
 import re
+import base64
 import secrets
 import hmac
 from functools import wraps
@@ -39,6 +40,7 @@ def suprimir_warnings_glib():
 # Importa WeasyPrint de forma silenciosa para evitar ruído de GLib/GIO no console do Windows
 with suprimir_warnings_glib():
     from weasyprint import HTML
+    from weasyprint.urls import URLFetcherResponse
 
 # Carrega variáveis de ambiente do arquivo .env caso exista (sem dependência externa)
 def _carregar_env():
@@ -176,7 +178,7 @@ def get_db_connection():
     """
     conn = sqlite3.connect('Cavere.db', timeout=15.0)
     conn.execute('PRAGMA foreign_keys = ON;')
-    conn.execute('PRAGMA journal_mode = WAL;')
+    conn.execute('PRAGMA busy_timeout = 15000;')
     conn.execute('PRAGMA synchronous = NORMAL;')
     return conn
 
@@ -864,7 +866,29 @@ def seguro_url_fetcher(url):
     Bloqueia qualquer requisição externa de rede ou acesso a arquivos locais
     durante a compilação do PDF (defesa estrita contra SSRF e LFI).
     """
+    # Imagens incorporadas pelo próprio servidor não abrem acesso a rede ou ao sistema de arquivos.
+    if url.startswith('data:image/png;base64,'):
+        conteudo = url.split(',', 1)[1]
+        return URLFetcherResponse(
+            url,
+            base64.b64decode(conteudo, validate=True),
+            {'Content-Type': 'image/png'},
+        )
     raise ValueError(f"Acesso a recursos externos bloqueado por segurança: {url}")
+
+
+def imagem_pdf_data_uri(nome_arquivo):
+    """Carrega somente os elementos gráficos internos permitidos no termo."""
+    nomes_permitidos = {
+        'ambipar-logo.png',
+        'ambipar-footer.png',
+    }
+    if nome_arquivo not in nomes_permitidos:
+        raise ValueError('Elemento gráfico de PDF não permitido.')
+    caminho = os.path.join(app.root_path, 'static', 'pdf', nome_arquivo)
+    with open(caminho, 'rb') as arquivo:
+        conteudo = base64.b64encode(arquivo.read()).decode('ascii')
+    return f'data:image/png;base64,{conteudo}'
 
 
 def formatar_nome_pdf_cautela(rdo, sn):
@@ -880,14 +904,12 @@ def formatar_nome_pdf_cautela(rdo, sn):
 def gerar_pdf_termo(rdo, sn, tipo, modelo, imei1, imei2, nome_coord, cpf_coord, data_str=None,
                     processador='', memoria_ram='', armazenamento='', sistema_operacional='', especificacoes=''):
     """
-    Gera e salva o PDF do Termo de Cautela na pasta Cautelas/
-    Aplica escapamento HTML estrito (html.escape) em todas as variáveis para impedir XSS/SSRF
-    e desativa resolução de URLs externas no WeasyPrint.
+    Gera o termo corporativo de responsabilidade em uma página A4.
+    A identificação técnica é adaptada à categoria do equipamento sem alterar as cláusulas jurídicas.
     """
     if not data_str:
         data_str = datetime.now().strftime("%d/%m/%Y %H:%M")
 
-    s_rdo = html.escape(str(rdo or 'N/A'))
     s_sn = html.escape(str(sn)) if sn else 'Sem Serial / Apagado'
     s_tipo = html.escape(str(tipo or 'Equipamento'))
     s_modelo = html.escape(str(modelo or 'N/A'))
@@ -895,19 +917,53 @@ def gerar_pdf_termo(rdo, sn, tipo, modelo, imei1, imei2, nome_coord, cpf_coord, 
     s_imei2 = html.escape(str(imei2 or 'N/A'))
     s_nome = html.escape(str(nome_coord or 'Responsável'))
     s_cpf = html.escape(str(cpf_coord or 'N/A'))
-    s_data = html.escape(str(data_str or ''))
+    logo_pdf = imagem_pdf_data_uri('ambipar-logo.png')
+    rodape_pdf = imagem_pdf_data_uri('ambipar-footer.png')
+    data_documento = str(data_str or '').strip()
+    for formato_data in ('%Y-%m-%d %H:%M:%S', '%Y-%m-%d', '%d/%m/%Y %H:%M'):
+        try:
+            data_documento = datetime.strptime(data_documento, formato_data).strftime('%d/%m/%Y')
+            break
+        except ValueError:
+            continue
+    s_data = html.escape(data_documento.split(' ')[0])
 
-    linhas_extras = ""
-    if sistema_operacional:
-        linhas_extras += f"<tr><th>Sistema Operacional</th><td>{html.escape(str(sistema_operacional))}</td></tr>"
-    if processador:
-        linhas_extras += f"<tr><th>Processador (CPU)</th><td>{html.escape(str(processador))}</td></tr>"
-    if memoria_ram:
-        linhas_extras += f"<tr><th>Memória RAM</th><td>{html.escape(str(memoria_ram))}</td></tr>"
-    if armazenamento:
-        linhas_extras += f"<tr><th>Armazenamento</th><td>{html.escape(str(armazenamento))}</td></tr>"
-    if especificacoes:
-        linhas_extras += f"<tr><th>Especificações Técnicas</th><td>{html.escape(str(especificacoes))}</td></tr>"
+    # CAUSA: o PDF anterior usava a mesma tabela genérica para celular, notebook e demais ativos.
+    # FIX: celulares priorizam IMEI; computadores recebem configuração técnica; os demais usam identificação patrimonial.
+    tipo_chave = str(tipo or '').lower()
+    tipo_chave = (tipo_chave.replace('á', 'a').replace('â', 'a').replace('ã', 'a')
+                  .replace('é', 'e').replace('ê', 'e').replace('í', 'i')
+                  .replace('ó', 'o').replace('ô', 'o').replace('õ', 'o')
+                  .replace('ú', 'u').replace('ç', 'c'))
+    eh_celular = any(chave in tipo_chave for chave in ('celular', 'smartphone', 'telefone'))
+    eh_computador = any(chave in tipo_chave for chave in ('notebook', 'laptop', 'computador', 'desktop'))
+
+    campos_principais = [('TIPO DE EQUIPAMENTO', s_tipo), ('MODELO', s_modelo),
+                         ('Nº DE SÉRIE OU PATRIMÔNIO', s_sn)]
+    if eh_celular:
+        campos_principais.append(('IMEI 1', s_imei1))
+        if imei2:
+            campos_principais.append(('IMEI 2', s_imei2))
+
+    cabecalhos = ''.join(f'<th>{rotulo}</th>' for rotulo, _ in campos_principais)
+    valores = ''.join(f'<td>{valor}</td>' for _, valor in campos_principais)
+    tabela_identificacao = f'<table class="equipment-table"><thead><tr>{cabecalhos}</tr></thead><tbody><tr>{valores}</tr></tbody></table>'
+
+    campos_tecnicos = []
+    if eh_computador:
+        campos_tecnicos = [
+            ('SISTEMA OPERACIONAL', sistema_operacional), ('PROCESSADOR (CPU)', processador),
+            ('MEMÓRIA RAM', memoria_ram), ('ARMAZENAMENTO', armazenamento),
+            ('ESPECIFICAÇÕES TÉCNICAS', especificacoes)
+        ]
+    elif not eh_celular and especificacoes:
+        campos_tecnicos = [('ESPECIFICAÇÕES TÉCNICAS', especificacoes)]
+
+    linhas_tecnicas = ''
+    for rotulo, valor in campos_tecnicos:
+        if valor:
+            linhas_tecnicas += f'<tr><th>{rotulo}</th><td>{html.escape(str(valor))}</td></tr>'
+    tabela_tecnica = f'<table class="technical-table">{linhas_tecnicas}</table>' if linhas_tecnicas else ''
 
     html_content = f"""
     <!DOCTYPE html>
@@ -915,45 +971,72 @@ def gerar_pdf_termo(rdo, sn, tipo, modelo, imei1, imei2, nome_coord, cpf_coord, 
     <head>
         <meta charset="UTF-8">
         <style>
-            body {{ font-family: Arial, sans-serif; margin: 40px; color: #111; }}
-            .header {{ text-align: center; border-bottom: 2px solid #005A32; padding-bottom: 10px; }}
-            .header h1 {{ color: #005A32; font-size: 18pt; text-transform: uppercase; margin: 0; }}
-            .section-title {{ background-color: #eef5f1; padding: 8px; font-weight: bold; margin-top: 25px; border-left: 4px solid #005A32; }}
-            table {{ width: 100%; border-collapse: collapse; margin-top: 10px; }}
-            th, td {{ border: 1px solid #ddd; padding: 10px; text-align: left; }}
-            th {{ background-color: #fafafa; width: 30%; }}
-            .signature {{ margin-top: 60px; text-align: center; }}
-            .line {{ width: 60%; border-top: 1px solid #000; margin: 0 auto 10px auto; }}
+            @page {{ size: A4; margin: 14mm 15mm 25mm; }}
+            * {{ box-sizing: border-box; }}
+            body {{ margin: 0; color: #111; font-family: Arial, sans-serif; font-size: 8.7pt; line-height: 1.22; }}
+            .brand {{ height: 17mm; text-align: center; }}
+            .brand img {{ display: inline-block; width: 48mm; height: auto; }}
+            h1 {{ margin: 2mm 0 8mm; text-align: center; font-size: 12pt; text-transform: uppercase; }}
+            .opening {{ margin: 0 0 7mm; text-align: justify; font-size: 9.4pt; line-height: 1.34; }}
+            .equipment-table {{ width: 92%; margin: 0 auto 6mm; border-collapse: collapse; table-layout: fixed; }}
+            .equipment-table th {{ padding: 2mm 1mm; background: #c6e0b4; border: 1px solid #888; font-size: 7pt; text-align: center; }}
+            .equipment-table td {{ height: 9mm; padding: 2.4mm 1mm; border: 1px solid #888; font-size: 8.5pt; text-align: center; word-break: break-word; }}
+            .technical-table {{ width: 92%; margin: -4mm auto 6mm; border-collapse: collapse; }}
+            .technical-table th {{ width: 29%; padding: 1.4mm; background: #edf4e8; border: 1px solid #999; font-size: 7pt; text-align: left; }}
+            .technical-table td {{ padding: 1.4mm; border: 1px solid #999; font-size: 7.8pt; }}
+            h2 {{ margin: 0 0 3mm; font-size: 10pt; text-transform: uppercase; }}
+            ol {{ margin: 0; padding-left: 5mm; }}
+            li {{ margin: 0 0 2mm; padding-left: 1mm; text-align: justify; font-size: 8.3pt; line-height: 1.24; }}
+            .place-date {{ margin-top: 6mm; font-size: 9pt; }}
+            .signatures {{ display: table; width: 100%; margin-top: 18mm; table-layout: fixed; }}
+            .signature {{ display: table-cell; width: 50%; padding: 0 8mm; text-align: center; vertical-align: top; }}
+            .signature-space {{ height: 13mm; position: relative; }}
+            .signature-line {{ border-top: 1px solid #111; padding-top: 1.5mm; font-size: 7.8pt; }}
+            .signature-data {{ margin-top: 2mm; text-align: left; font-size: 7.2pt; line-height: 1.35; }}
+            /* Mantém a proporção original do rodapé para não deformar o QR Code e a marca. */
+            .footer {{ position: fixed; right: -15mm; bottom: -25mm; left: -15mm; height: 30.7mm; overflow: hidden; }}
+            .footer-art {{ position: absolute; right: 0; bottom: 0; left: 0; width: 210mm; height: auto; }}
+            .footer-info {{ position: absolute; left: 28mm; bottom: 7mm; font-size: 6.5pt; font-weight: 700; line-height: 1.3; }}
         </style>
     </head>
     <body>
-        <div class="header">
-            <h1>Termo de Cautela - Sistema Cavere</h1>
-            <p>Ambipar Industrial - Base Niterói</p>
-        </div>
-        
-        <p>Declaro que recebi da AMBIPAR INDUSTRIAL, a título de cautela, o equipamento abaixo, comprometendo-me a zelar pela sua guarda e devolução após a operação.</p>
-        
-        <div class="section-title">Dados do Responsável</div>
-        <table>
-            <tr><th>Nome</th><td>{s_nome}</td></tr>
-            <tr><th>CPF/Matrícula</th><td>{s_cpf}</td></tr>
-            <tr><th>RDO Vinculado</th><td>{s_rdo}</td></tr>
-        </table>
+        <div class="brand"><img src="{logo_pdf}" alt="Ambipar"></div>
+        <h1>Termo de Responsabilidade e Cautela de Equipamento</h1>
 
-        <div class="section-title">Dados do Equipamento</div>
-        <table>
-            <tr><th>Tipo</th><td>{s_tipo}</td></tr>
-            <tr><th>Modelo</th><td>{s_modelo}</td></tr>
-            <tr><th>Patrimônio / SN</th><td>{s_sn}</td></tr>
-            <tr><th>IMEI 1</th><td>{s_imei1}</td></tr>
-            <tr><th>IMEI 2</th><td>{s_imei2}</td></tr>
-            {linhas_extras}
-        </table>
-        
-        <div class="signature">
-            <div class="line"></div>
-            <p><strong>{s_nome}</strong><br>Assinatura do Responsável<br>Data: {s_data}</p>
+        <p class="opening"><strong>AMBIPAR RESPONSE TANK CLEANING S/A</strong>, localizada na Rua Manoel Pacheco de Carvalho, nº 102 – Galpão, Centro, Niterói/RJ, inscrita no CNPJ sob o nº 18.591.097/0001-10, <strong>ENTREGA</strong>, neste ato, ao(à) colaborador(a) <strong>{s_nome}</strong>, portador(a) do CPF nº <strong>{s_cpf}</strong>, doravante denominado(a) simplesmente <strong>“USUÁRIO(A)”</strong>, o equipamento abaixo descrito, destinado ao uso exclusivo em suas atividades profissionais, sob as seguintes condições:</p>
+
+        {tabela_identificacao}
+        {tabela_tecnica}
+
+        <h2>Condições</h2>
+        <ol>
+            <li>O equipamento deverá ser utilizado única e exclusivamente a serviço da <strong>EMPRESA</strong>, em razão da atividade exercida pelo(a) <strong>USUÁRIO(A)</strong>;</li>
+            <li>O(A) <strong>USUÁRIO(A)</strong> ficará responsável pela guarda, uso e conservação do equipamento, cabendo-lhe zelar por sua integridade e bom funcionamento;</li>
+            <li>O(A) <strong>USUÁRIO(A)</strong> detém apenas a detenção do equipamento, para fins de uso exclusivo na prestação de serviços, e não a sua propriedade, sendo terminantemente vedados o empréstimo, a locação, a cessão ou o repasse a terceiros, sem autorização prévia e expressa da <strong>EMPRESA</strong>;</li>
+            <li>O(A) <strong>USUÁRIO(A)</strong> deverá comunicar imediatamente ao setor responsável qualquer anormalidade, avaria, mau funcionamento, perda, furto ou roubo do equipamento;</li>
+            <li>A <strong>EMPRESA</strong> garante suporte técnico, manutenção e, quando necessário, substituição do equipamento sem qualquer ônus ao(à) <strong>USUÁRIO(A)</strong>, exceto quando o dano decorrer comprovadamente de mau uso, negligência, imprudência ou descumprimento das condições aqui previstas;</li>
+            <li>Não será atribuída responsabilidade ao(à) <strong>USUÁRIO(A)</strong> por desgaste natural decorrente do uso regular, defeito de fabricação, caso fortuito ou força maior;</li>
+            <li>Ao término da prestação de serviço, do contrato individual de trabalho, ou mediante solicitação da <strong>EMPRESA</strong>, o(a) <strong>USUÁRIO(A)</strong> compromete-se a devolver o equipamento em perfeito estado no mesmo dia em que for comunicado ou comunique seu desligamento, resguardado o desgaste natural decorrente do uso normal.</li>
+        </ol>
+
+        <div class="place-date">Niterói/RJ, {s_data}.</div>
+
+        <div class="signatures">
+            <div class="signature">
+                <div class="signature-space"></div>
+                <div class="signature-line">Assinatura do(a) Colaborador(a) / USUÁRIO(A)</div>
+                <div class="signature-data">Nome: {s_nome}<br>CPF: {s_cpf}</div>
+            </div>
+            <div class="signature">
+                <div class="signature-space"></div>
+                <div class="signature-line">Assinatura do Responsável pela Entrega</div>
+                <div class="signature-data">Representante da EMPRESA</div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <img class="footer-art" src="{rodape_pdf}" alt="Ambipar">
+            <div class="footer-info">AMBIPAR RESPONSE TANK CLEANING S/A<br>Rua Manoel Pacheco de Carvalho, nº 102 – Galpão, Centro, Niterói/RJ</div>
         </div>
     </body>
     </html>
@@ -1123,31 +1206,33 @@ def home():
     ''')
     solicitacoes_raw = cursor.fetchall()
 
+    # CAUSA: o painel executava uma nova consulta para cada solicitação (N+1 queries).
+    # FIX: carrega todos os itens vinculados uma vez e os agrupa em memória.
+    cursor.execute('''
+        SELECT c.id_solicitacao, c.id_cautela, e.tipo, e.modelo, e.patrimonio_sn,
+               c.data_hora_saida, c.data_hora_devolucao
+        FROM cautelas c
+        JOIN equipamentos e ON c.id_equipamento = e.id
+        WHERE c.id_solicitacao IS NOT NULL
+        ORDER BY c.id_solicitacao, c.id_cautela
+    ''')
+    itens_por_solicitacao = {}
+    for item in cursor.fetchall():
+        itens_por_solicitacao.setdefault(item[0], []).append({
+            'id_cautela': item[1],
+            'tipo': item[2],
+            'modelo': item[3],
+            'patrimonio_sn': item[4],
+            'data_saida': item[5],
+            'devolvido': bool(item[6]),
+            'data_devolucao': item[6],
+        })
+
     solicitacoes = []
     for s in solicitacoes_raw:
         id_sol = s[0]
         qtd_total = s[3]
-        
-        cursor.execute('''
-            SELECT c.id_cautela, e.tipo, e.modelo, e.patrimonio_sn, c.data_hora_saida, c.data_hora_devolucao
-            FROM cautelas c
-            JOIN equipamentos e ON c.id_equipamento = e.id
-            WHERE c.id_solicitacao = ?
-            ORDER BY c.id_cautela ASC
-        ''', (id_sol,))
-        itens_raw = cursor.fetchall()
-        
-        itens_emitidos = []
-        for it in itens_raw:
-            itens_emitidos.append({
-                'id_cautela': it[0],
-                'tipo': it[1],
-                'modelo': it[2],
-                'patrimonio_sn': it[3],
-                'data_saida': it[4],
-                'devolvido': bool(it[5]),
-                'data_devolucao': it[5]
-            })
+        itens_emitidos = itens_por_solicitacao.get(id_sol, [])
         
         status_atual = s[8]
         is_finalizada = status_atual in ('Finalizada', 'Concluído', 'Concluido', 'Finalizado', 'Devolvido')
@@ -1267,6 +1352,8 @@ def gerar():
     conexao = get_db_connection()
     cursor = conexao.cursor()
     try:
+        # Serializa a retirada do equipamento: dois cliques concorrentes não podem criar duas cautelas.
+        cursor.execute('BEGIN IMMEDIATE')
         cursor.execute('''
             SELECT tipo, modelo, patrimonio_sn, imei_1, imei_2, status,
                    COALESCE(processador, ''), COALESCE(memoria_ram, ''),
@@ -1289,7 +1376,6 @@ def gerar():
                     nome_padrao = user_row[1].replace('.', ' ').title()
                     cursor.execute('INSERT INTO coordenadores (id, nome_completo, cpf_matricula) VALUES (?, ?, ?)',
                                    (user_row[0], nome_padrao, f"MAT-{user_row[0]}"))
-                    conexao.commit()
                     coord = (user_row[0], nome_padrao, f"MAT-{user_row[0]}")
                     id_coordenador = user_row[0]
                 else:
@@ -1305,6 +1391,18 @@ def gerar():
 
         tipo, modelo, sn, imei1, imei2, status_equip, proc, ram, arm, so, esp = equip
         coord_id, nome_coord, cpf_coord = coord
+
+        cursor.execute('''
+            SELECT id_cautela FROM cautelas
+            WHERE id_equipamento = ? AND data_hora_devolucao IS NULL
+            LIMIT 1
+        ''', (id_equipamento,))
+        cautela_ativa = cursor.fetchone()
+        status_disponivel = str(status_equip or '').strip().lower() in ('disponível', 'disponivel')
+        if cautela_ativa or not status_disponivel:
+            conexao.rollback()
+            flash("Este equipamento já possui uma cautela ativa ou não está mais disponível. Nenhum registro duplicado foi criado.", "warning")
+            return redirect(destino_sucesso)
 
         if id_sol_int:
             cursor.execute('SELECT tipo_equipamento, quantidade FROM solicitacoes WHERE id = ?', (id_sol_int,))
@@ -1345,12 +1443,11 @@ def gerar():
             msg_progresso = "Cautela gerada com sucesso."
 
         conexao.commit()
-        gerar_pdf_termo(rdo, sn, tipo, modelo, imei1, imei2, nome_coord, cpf_coord,
-                        processador=proc, memoria_ram=ram, armazenamento=arm, sistema_operacional=so, especificacoes=esp)
         sn_display = f"SN: {sn}" if sn else "Sem Serial"
-        flash(f"Termo gerado com sucesso para {nome_coord} ({tipo} {modelo} - {sn_display})! {msg_progresso}", "success")
+        flash(f"Cautela registrada para {nome_coord} ({tipo} {modelo} - {sn_display})! O PDF será gerado ao abrir ou baixar. {msg_progresso}", "success")
         
     except Exception as e:
+        conexao.rollback()
         flash(f"Erro ao gerar cautela: {e}", "danger")
     finally:
         conexao.close()
@@ -1368,6 +1465,8 @@ def entregar_solicitacao(id_solicitacao):
     notificacao = None
     conexao = get_db_connection()
     cursor = conexao.cursor()
+    # O modo WAL persiste no arquivo; configurá-lo uma vez evita renegociação em toda requisição.
+    cursor.execute('PRAGMA journal_mode = WAL;')
     try:
         cursor.execute('SELECT status FROM solicitacoes WHERE id = ?', (id_solicitacao,))
         row = cursor.fetchone()
@@ -1896,17 +1995,9 @@ def download_cautela(filename):
             destino = request.referrer if (request.referrer and is_safe_redirect_url(request.referrer)) else url_for('historico')
             return redirect(destino)
 
-    # 4. Verifica se o arquivo existe em disco ou tenta auto-regenerar
+    # 4. Regenera sempre a partir do banco para nunca entregar uma versão antiga em cache no disco.
     arquivo_alvo = None
-    candidatos = [arquivo_esperado, nome_seguro, nome_canonico, nome_puro]
-    for cand in candidatos:
-        if cand and PADRAO_NOME_CAUTELA.match(cand):
-            cand_path = os.path.join(caminho_dir, cand)
-            if os.path.exists(cand_path):
-                arquivo_alvo = cand
-                break
-
-    if not arquivo_alvo and cautela_info:
+    if cautela_info:
         try:
             c_id, id_coord, rdo_v, sn_v, tipo, modelo, imei1, imei2, nome_c, cpf_c, dt_saida, proc, ram, arm, so, esp = cautela_info
             nome_gerado = gerar_pdf_termo(rdo_v, sn_v, tipo or 'Equipamento', modelo or '', imei1, imei2, nome_c, cpf_c, dt_saida,
@@ -1914,13 +2005,16 @@ def download_cautela(filename):
             if os.path.exists(os.path.join(caminho_dir, nome_gerado)):
                 arquivo_alvo = nome_gerado
         except Exception as e:
-            print(f"Aviso seguro: Falha ao auto-regenerar PDF: {e}")
+            print(f"Aviso seguro: Falha ao regenerar PDF: {e}")
 
     conexao.close()
 
     # 5. Se o arquivo existe em disco, envia o PDF diretamente
     if arquivo_alvo and os.path.exists(os.path.join(caminho_dir, arquivo_alvo)):
-        return send_from_directory(caminho_dir, arquivo_alvo)
+        resposta = send_from_directory(caminho_dir, arquivo_alvo, conditional=False, max_age=0)
+        resposta.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+        resposta.headers['Pragma'] = 'no-cache'
+        return resposta
 
     # 6. Caso não exista de forma alguma, redireciona adequadamente
     flash(f"O termo em PDF solicitado não foi encontrado.", "warning")
