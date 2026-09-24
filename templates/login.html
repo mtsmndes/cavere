@@ -357,6 +357,14 @@
             font-size: 0.8125rem;
         }
 
+        /* Evita que o revelador nativo do navegador apareça junto do botão do sistema. */
+        .cv-input-field[type="password"]::-ms-reveal,
+        .cv-input-field[type="password"]::-ms-clear {
+            display: none;
+            width: 0;
+            height: 0;
+        }
+
         .btn-toggle-pw {
             display: flex;
             align-items: center;
@@ -1062,8 +1070,10 @@
                         <div class="cv-input-box">
                             <input type="password" class="cv-input-field" id="inputSenha" name="senha"
                                    placeholder="Digite sua senha de acesso" required autocomplete="current-password">
-                            <button type="button" class="btn-toggle-pw" id="toggleSenha" title="Exibir ou ocultar senha" tabindex="-1">
-                                <i data-lucide="eye" id="iconeSenha"></i>
+                            <button type="button" class="btn-toggle-pw" id="toggleSenha" title="Exibir senha"
+                                    aria-label="Exibir senha" aria-pressed="false">
+                                <i data-lucide="eye" class="icone-senha icone-senha-exibir"></i>
+                                <i data-lucide="eye-off" class="icone-senha icone-senha-ocultar d-none"></i>
                             </button>
                         </div>
                     </div>
@@ -1093,21 +1103,14 @@
         if (toggleBtn && inputSenha) {
             toggleBtn.addEventListener('click', function(e) {
                 e.preventDefault();
-                const icon = document.createElement('i');
-                icon.id = 'iconeSenha';
-                if (inputSenha.type === 'password') {
-                    inputSenha.type = 'text';
-                    icon.setAttribute('data-lucide', 'eye-off');
-                    toggleBtn.setAttribute('title', 'Ocultar senha');
-                } else {
-                    inputSenha.type = 'password';
-                    icon.setAttribute('data-lucide', 'eye');
-                    toggleBtn.setAttribute('title', 'Exibir senha');
-                }
-                toggleBtn.replaceChildren(icon);
-                if (window.lucide) {
-                    lucide.createIcons();
-                }
+                const vaiExibir = inputSenha.type === 'password';
+                inputSenha.type = vaiExibir ? 'text' : 'password';
+
+                toggleBtn.querySelector('.icone-senha-exibir')?.classList.toggle('d-none', vaiExibir);
+                toggleBtn.querySelector('.icone-senha-ocultar')?.classList.toggle('d-none', !vaiExibir);
+                toggleBtn.setAttribute('title', vaiExibir ? 'Ocultar senha' : 'Exibir senha');
+                toggleBtn.setAttribute('aria-label', vaiExibir ? 'Ocultar senha' : 'Exibir senha');
+                toggleBtn.setAttribute('aria-pressed', vaiExibir ? 'true' : 'false');
             });
         }
 
