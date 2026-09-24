@@ -85,16 +85,41 @@
 <!-- CAUSA: filtros e exportacao estavam duplicados em dois cards para a mesma tabela, e o overflow cortava o menu. -->
 <!-- FIX: filtros, acoes e listagem agora compartilham um unico painel com overflow visivel. -->
 <div class="surface-card" style="margin-bottom:var(--space-5); overflow:visible;" id="painelPesquisaCautelas">
-    <div class="surface-card-header" style="display:flex; justify-content:space-between; align-items:center;">
-        <div style="display:flex; align-items:center; gap:var(--space-2);">
-            <i data-lucide="search" style="width:1.1rem; height:1.1rem; color:var(--lime);"></i>
-            <span style="font-weight:700; font-size:0.875rem; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.04em; color:var(--text-primary);">
-                Filtros de Auditoria &amp; Busca Rápida
-            </span>
+    <div class="surface-card-header cv-table-head">
+        <div class="cv-table-head-main">
+            <div class="cv-table-title-line">
+                <span class="cv-table-title">
+                    {% if current_user.role == 'admin' %}
+                    Base Geral de Cautelas Registradas
+                    {% else %}
+                    Cautelas Registradas &bull; {{ base_usuario }}
+                    {% endif %}
+                </span>
+                <span class="badge-notion badge-notion-gray" id="badgeFiltroAtivo" style="display:none;">Filtros Ativos</span>
+            </div>
+            <div class="cv-table-subtitle">Histórico auditável, busca avançada e termos em PDF</div>
         </div>
-        <span class="badge-notion badge-notion-gray" id="badgeFiltroAtivo" style="display:none;">Filtros Ativos</span>
+        <div class="cv-table-actions">
+            {% if current_user.role == 'admin' %}
+            <div class="cv-export-group">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-action="exportar" data-formato="csv" title="Exportar cautelas filtradas para planilha executiva CSV">
+                    <i data-lucide="download"></i> Exportar Dados
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false" title="Formatos de exportação">
+                    <span class="visually-hidden">Opções</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="font-size:0.8125rem;">
+                    <li><a class="dropdown-item d-flex align-items-center gap-2" href="javascript:void(0)" data-action="exportar" data-formato="csv"><i data-lucide="file-spreadsheet" class="text-success" style="width:14px;height:14px;"></i><span>Planilha Executiva (.csv)</span></a></li>
+                    <li><a class="dropdown-item d-flex align-items-center gap-2" href="javascript:void(0)" data-action="exportar" data-formato="xlsx"><i data-lucide="file-check" class="text-primary" style="width:14px;height:14px;"></i><span>Planilha Excel (.xlsx)</span></a></li>
+                </ul>
+            </div>
+            {% endif %}
+            <button type="button" class="btn btn-outline-secondary btn-sm" data-action="resetar-filtros" title="Limpar todos os campos de pesquisa">
+                <i data-lucide="rotate-ccw"></i> Limpar Filtros
+            </button>
+        </div>
     </div>
-    <div class="surface-card-body">
+    <div class="surface-card-body cv-table-filter-panel">
         <div class="row g-3">
             <div class="col-lg-{% if current_user.role == 'admin' %}3{% else %}4{% endif %} col-md-12">
                 <label class="form-label" for="campoBuscaTexto">
@@ -200,51 +225,8 @@
                         <i data-lucide="filter" style="color:var(--lime);"></i>
                         <span>Exibindo <strong id="contadorResultados" style="color:var(--lime); font-family:var(--font-mono); font-size:1rem;">{{ cautelas|length }}</strong> de <strong style="font-family:var(--font-mono); color:var(--text-primary);">{{ cautelas|length }}</strong> cautela(s)</span>
                     </div>
-                    <div style="display:flex; gap:var(--space-2);">
-                    {% if current_user.role == 'admin' %}
-                    <div class="cv-export-group">
-                        <button type="button" class="btn btn-outline-secondary btn-sm" data-action="exportar" data-formato="csv" title="Exportar cautelas filtradas para planilha executiva CSV">
-                            <i data-lucide="download"></i> Exportar Dados
-                        </button>
-                        <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false" title="Formatos de exportação">
-                            <span class="visually-hidden">Opções</span>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="font-size:0.8125rem;">
-                            <li>
-                                <a class="dropdown-item d-flex align-items-center gap-2" href="javascript:void(0)" data-action="exportar" data-formato="csv">
-                                    <i data-lucide="file-spreadsheet" class="text-success" style="width:14px;height:14px;"></i>
-                                    <span>Planilha Executiva (.csv)</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item d-flex align-items-center gap-2" href="javascript:void(0)" data-action="exportar" data-formato="xlsx">
-                                    <i data-lucide="file-check" class="text-primary" style="width:14px;height:14px;"></i>
-                                    <span>Planilha Excel (.xlsx)</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                    {% endif %}
-                        <button type="button" class="btn btn-secondary btn-sm" data-action="resetar-filtros" title="Limpar todos os campos de pesquisa">
-                            <i data-lucide="rotate-ccw"></i> Limpar Filtros
-                        </button>
-                    </div>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Tabela de Cautelas integrada ao mesmo painel dos filtros -->
-    <div class="surface-card-header" style="border-top:1px solid var(--border);">
-        <div>
-            <div style="font-size:0.9375rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.04em; color:var(--text-primary);">
-                {% if current_user.role == 'admin' %}
-                Base Geral de Cautelas Registradas
-                {% else %}
-                Cautelas Registradas &bull; {{ base_usuario }}
-                {% endif %}
-            </div>
-            <div style="font-size:0.8125rem; color:var(--text-muted); margin-top:2px;">Histórico auditável e termos em PDF</div>
         </div>
     </div>
 

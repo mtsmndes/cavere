@@ -53,8 +53,8 @@
 
 <!-- Tabela de Colaboradores -->
 <div class="surface-card" style="margin-bottom:var(--space-5);">
-    <div class="surface-card-header" style="padding:18px 20px; flex-wrap:wrap; gap:var(--space-3);">
-        <div>
+    <div class="surface-card-header cv-table-head">
+        <div class="cv-table-head-main">
             <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
                 <span style="font-size:0.875rem; font-weight:700; color:var(--text-primary); text-transform:uppercase; letter-spacing:0.05em; font-family:var(--font-mono); line-height:1.2;">
                     Quadro Geral de Colaboradores
@@ -68,20 +68,7 @@
             </div>
         </div>
 
-        <!-- CAUSA: a busca ocupava toda a base flex e empurrava exportacao/limpeza para uma segunda linha. -->
-        <!-- FIX: os tres controles mantem largura propria e permanecem alinhados horizontalmente. -->
-        <div style="display:flex; align-items:center; justify-content:flex-end; gap:var(--space-2); flex-wrap:nowrap; flex:0 0 auto;">
-            <!-- Campo de Busca em Tempo Real -->
-            <div class="input-group input-group-sm" style="width:320px; min-width:260px; flex:0 0 320px;">
-                <span class="input-group-text"><i data-lucide="search"></i></span>
-                <input type="text" id="filtroTextoColab" class="form-control"
-                       placeholder="Buscar por nome, matrícula, CPF, e-mail..."
-                       >
-                <button class="btn btn-outline-secondary" type="button" id="btnLimparTextoColab" data-action="limpar-texto" style="display:none;">
-                    <i data-lucide="x"></i>
-                </button>
-            </div>
-
+        <div class="cv-table-actions">
             {% if current_user.role == 'admin' %}
             <div class="cv-export-group">
                 <button type="button" class="btn btn-outline-secondary btn-sm" data-action="exportar" data-formato="csv" title="Exportar colaboradores filtrados para planilha executiva CSV">
@@ -117,7 +104,18 @@
     <!-- Filtros de Setor por Botões -->
     <!-- Filtros de Base e Setor por Botões -->
     <!-- CAUSA: a cor clara fixa ignorava o tema ativo. FIX: a superfície agora usa os tokens dos dois temas. -->
-    <div style="background:var(--surface-hover); border-bottom:1px solid var(--border); padding:var(--space-3) var(--space-4); display:flex; align-items:center; gap:var(--space-2); flex-wrap:wrap;">
+    <div class="cv-table-toolbar">
+        <div class="cv-table-toolbar-main">
+            <div class="input-group input-group-sm cv-table-search">
+                <span class="input-group-text"><i data-lucide="search"></i></span>
+                <input type="text" id="filtroTextoColab" class="form-control"
+                       placeholder="Buscar por nome, matrícula, CPF, e-mail...">
+                <button class="btn btn-outline-secondary" type="button" id="btnLimparTextoColab" data-action="limpar-texto" style="display:none;">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+        </div>
+        <div class="cv-table-filters">
         <span style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-right:4px;">
             Base:
         </span>
@@ -166,6 +164,7 @@
         <button type="button" class="btn btn-secondary btn-sm btn-filtro-setor" data-action="filtrar-setor" data-setor="Almoxarifado">
             Almoxarifado
         </button>
+        </div>
     </div>
 
     <!-- Tabela -->

@@ -62,17 +62,29 @@
     </div>
 </div>
 
-<!-- Barra de Busca & Filtros Rápidos -->
-<div class="surface-card" style="margin-bottom:var(--space-4); padding:var(--space-3) var(--space-4);">
-    <div style="display:flex; gap:var(--space-3); align-items:center; flex-wrap:wrap;">
-        <div style="flex:1; min-width:220px;">
-            <div class="input-group input-group-sm">
+<!-- Chamados de Solicitação de Equipamento (Feed Table) -->
+<div class="surface-card" style="margin-bottom:var(--space-5);">
+    <div class="surface-card-header cv-table-head">
+        <div class="cv-table-head-main">
+            <div class="cv-table-title-line">
+                <span class="cv-table-title">
+                Chamados de Solicitação de Equipamento
+                </span>
+                <span class="badge-notion badge-notion-gray">{{ solicitacoes|length }} chamado(s)</span>
+            </div>
+            <div class="cv-table-subtitle">Acompanhamento de requisições operacionais enviadas</div>
+        </div>
+    </div>
+
+    <div class="cv-table-toolbar">
+        <div class="cv-table-toolbar-main">
+            <div class="input-group input-group-sm cv-table-search">
                 <span class="input-group-text"><i data-lucide="search"></i></span>
                 <input type="text" id="filtroTexto" class="form-control"
                        placeholder="Buscar por chamado, equipamento, RDO, status..." oninput="aplicarFiltros()">
             </div>
         </div>
-        <div style="display:flex; align-items:center; gap:var(--space-2); flex-wrap:wrap;">
+        <div class="cv-table-filters">
             <span style="font-size:0.8125rem; color:var(--text-muted); font-family:var(--font-mono); text-transform:uppercase;">Status:</span>
             <div class="cv-filtro-group">
                 <button type="button" class="btn btn-secondary active" id="filtroBtn-Todos" data-action="filtrar-status" data-status="Todos">Todos</button>
@@ -81,19 +93,6 @@
                 <button type="button" class="btn btn-secondary" id="filtroBtn-Finalizada" data-action="filtrar-status" data-status="Finalizada">Finalizados</button>
             </div>
         </div>
-    </div>
-</div>
-
-<!-- Chamados de Solicitação de Equipamento (Feed Table) -->
-<div class="surface-card" style="margin-bottom:var(--space-5);">
-    <div class="surface-card-header" style="display:flex; justify-content:space-between; align-items:center;">
-        <div>
-            <div style="font-size:0.9375rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.04em; color:var(--text-primary);">
-                Chamados de Solicitação de Equipamento
-            </div>
-            <div style="font-size:0.8125rem; color:var(--text-muted); margin-top:2px;">Acompanhamento de requisições operacionais enviadas</div>
-        </div>
-        <span class="badge-notion badge-notion-gray">{{ solicitacoes|length }} chamado(s)</span>
     </div>
 
     <div style="overflow-x:auto;">
@@ -246,14 +245,16 @@
 
 <!-- Cautelas Emitidas & Termos de Responsabilidade -->
 <div id="containerTabela" class="surface-card" style="margin-bottom:var(--space-4);">
-    <div class="surface-card-header" style="display:flex; justify-content:space-between; align-items:center;">
-        <div>
-            <div style="font-size:0.9375rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.04em; color:var(--text-primary);">
+    <div class="surface-card-header cv-table-head">
+        <div class="cv-table-head-main">
+            <div class="cv-table-title-line">
+                <span class="cv-table-title">
                 Cautelas Emitidas &amp; Termos de Responsabilidade
+                </span>
+                <span class="badge-notion badge-notion-gray">{{ chamados|length }} cautela(s)</span>
             </div>
-            <div style="font-size:0.8125rem; color:var(--text-muted); margin-top:2px;">Histórico individual de termos assinados</div>
+            <div class="cv-table-subtitle">Histórico individual de termos assinados</div>
         </div>
-        <span class="badge-notion badge-notion-gray">{{ chamados|length }} cautela(s)</span>
     </div>
 
     <div style="overflow-x:auto;">

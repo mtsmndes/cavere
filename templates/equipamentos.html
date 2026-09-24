@@ -77,8 +77,8 @@
 
 <!-- Painel Principal de Inventário e Filtros -->
 <div class="surface-card" style="margin-bottom:var(--space-5);">
-    <div class="surface-card-header" style="padding:18px 20px; flex-wrap:wrap; gap:var(--space-3);">
-        <div>
+    <div class="surface-card-header cv-table-head">
+        <div class="cv-table-head-main">
             <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
                 <span style="font-size:0.875rem; font-weight:700; color:var(--text-primary); text-transform:uppercase; letter-spacing:0.05em; font-family:var(--font-mono); line-height:1.2;">
                     Tabela de Ativos e Equipamentos
@@ -92,7 +92,7 @@
             </div>
         </div>
 
-        <div style="display:flex; align-items:center; gap:var(--space-2);">
+        <div class="cv-table-actions">
             {% if current_user.role == 'admin' %}
             <div class="cv-export-group">
                 <button type="button" class="btn btn-outline-secondary btn-sm" data-action="exportar" data-formato="csv" title="Exportar equipamentos filtrados para planilha executiva CSV">
@@ -125,8 +125,8 @@
 
     <!-- Barra de Filtros Avançados -->
     <!-- CAUSA: a barra mantinha um fundo claro fixo no modo escuro. FIX: usa o token de superfície do tema. -->
-    <div style="background:var(--surface-hover); border-bottom:1px solid var(--border); padding:var(--space-4);">
-        <div class="row g-2 align-items-center">
+    <div class="cv-table-toolbar">
+        <div class="row g-2 align-items-end w-100">
             <!-- Busca Geral -->
             <div class="col-12 col-md-4">
                 <label class="form-label" style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px;">

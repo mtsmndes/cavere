@@ -80,9 +80,9 @@
 <!-- Fila de Solicitações Operacionais (Feed Card) -->
 <div class="surface-card" style="margin-bottom:var(--space-5);" id="secaoSolicitacoes">
     <!-- Barra Superior: Título à esquerda e Ações/Exportar à direita -->
-    <div class="surface-card-header"
+    <div class="surface-card-header cv-table-head"
         style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--space-3); padding:16px 20px; border-bottom:1px solid var(--border-subtle);">
-        <div>
+        <div class="cv-table-head-main">
             <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
                 <span
                     style="font-size:0.875rem; font-weight:700; color:var(--text-primary); text-transform:uppercase; letter-spacing:0.05em; font-family:var(--font-mono); line-height:1.2;">
@@ -95,7 +95,7 @@
                 pelos coordenadores de campo</div>
         </div>
 
-        <div style="display:flex; align-items:center; gap:var(--space-2);">
+        <div class="cv-table-actions">
             {% if current_user.role == 'admin' %}
             <div class="cv-export-group">
                 <button type="button" class="btn btn-outline-secondary btn-sm" data-action="exportar-chamados"
@@ -143,10 +143,10 @@
     </div>
 
     <!-- Barra de Filtros e Pesquisa da Fila: Espaçosa, responsiva e imune a quebras forçadas de layout -->
-    <div class="fila-controles-bar"
+    <div class="fila-controles-bar cv-table-toolbar"
         style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--space-2); padding:12px 20px; background:var(--bg-subtle, rgba(255,255,255,0.02)); border-bottom:1px solid var(--border-subtle);">
-        <div style="display:flex; align-items:center; gap:var(--space-2); flex-wrap:wrap; flex:1; min-width:280px;">
-            <div class="input-group input-group-sm" style="min-width:210px; max-width:290px;">
+        <div class="cv-table-toolbar-main">
+            <div class="input-group input-group-sm cv-table-search">
                 <span class="input-group-text"><i data-lucide="search"></i></span>
                 <input type="text" id="buscaSolicitacoesAdmin" class="form-control"
                     placeholder="Buscar chamado, coord, base..." value="{{ request.args.get('busca', '') }}">
@@ -173,7 +173,7 @@
             </div>
         </div>
 
-        <div class="cv-filtro-group d-none d-md-inline-flex" role="group" id="grupoFiltroBaseAdmin"
+        <div class="cv-filtro-group cv-table-filters d-none d-md-inline-flex" role="group" id="grupoFiltroBaseAdmin"
             title="Filtrar chamados por Base">
             <button type="button" class="btn btn-secondary active" data-action="filtrar-chamados-base"
                 data-base="todas">
@@ -379,9 +379,8 @@
 
 <!-- Seção: Lista de Equipamentos & Inventário da Base no Dashboard do Administrador -->
 <div class="surface-card" style="margin-bottom:var(--space-5);" id="secaoInventarioAdmin">
-    <div class="surface-card-header"
-        style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--space-3); padding:18px 20px;">
-        <div>
+    <div class="surface-card-header cv-table-head">
+        <div class="cv-table-head-main">
             <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
                 <span
                     style="font-size:0.875rem; font-weight:700; color:var(--text-primary); text-transform:uppercase; letter-spacing:0.05em; font-family:var(--font-mono); line-height:1.2;">
@@ -395,37 +394,12 @@
             </div>
         </div>
 
-        <!-- CAUSA: a largura flexivel da busca fazia o acesso ao painel completo quebrar para uma segunda linha. -->
-        <!-- FIX: busca, filtros, exportacao e painel completo mantem bases fixas em uma unica linha horizontal. -->
-        <div style="display:flex; align-items:center; justify-content:flex-end; gap:var(--space-2); flex-wrap:nowrap; flex:0 0 auto;">
-            <div class="input-group input-group-sm" style="width:270px; min-width:210px; flex:0 0 270px;">
-                <span class="input-group-text"><i data-lucide="search"></i></span>
-                <input type="text" id="buscaEquipAdminDash" class="form-control"
-                    placeholder="Buscar modelo, SN, base..." oninput="filtrarEquipamentosAdminDash()">
-                <button class="btn btn-outline-secondary" type="button" id="btnLimparBuscaEquipDash"
-                    data-action="limpar-busca-equip" style="display:none;" title="Limpar busca">
-                    <i data-lucide="x"></i>
-                </button>
-            </div>
-
-            <div class="cv-filtro-group" role="group" id="grupoFiltroBaseEquipDash" title="Filtrar por Base">
-                <button type="button" class="btn btn-secondary active" data-action="filtrar-equip-base"
-                    data-base="todas">Todas</button>
-                <button type="button" class="btn btn-secondary" data-action="filtrar-equip-base"
-                    data-base="Tank">Tank</button>
-                <button type="button" class="btn btn-secondary" data-action="filtrar-equip-base"
-                    data-base="TDBR">TDBR</button>
-                <button type="button" class="btn btn-secondary" data-action="filtrar-equip-base"
-                    data-base="Repair">Repair</button>
-                <button type="button" class="btn btn-secondary" data-action="filtrar-equip-base"
-                    data-base="Central">Central</button>
-            </div>
-
+        <div class="cv-table-actions">
             {% if current_user.role == 'admin' %}
             <div class="cv-export-group">
                 <button type="button" class="btn btn-outline-secondary btn-sm" data-action="exportar-equip"
                     data-formato="csv" title="Exportar resumo de ativos filtrados para planilha executiva CSV">
-                    <i data-lucide="download"></i> Exportar
+                    <i data-lucide="download"></i> Exportar Dados
                 </button>
                 <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle dropdown-toggle-split"
                     data-bs-toggle="dropdown" aria-expanded="false" title="Formatos de exportação">
@@ -454,6 +428,27 @@
                 title="Abrir página completa com todos os filtros avançados">
                 <i data-lucide="external-link"></i> Painel Completo
             </a>
+        </div>
+    </div>
+
+    <div class="cv-table-toolbar">
+        <div class="cv-table-toolbar-main">
+            <div class="input-group input-group-sm cv-table-search">
+                <span class="input-group-text"><i data-lucide="search"></i></span>
+                <input type="text" id="buscaEquipAdminDash" class="form-control"
+                    placeholder="Buscar modelo, SN, base..." oninput="filtrarEquipamentosAdminDash()">
+                <button class="btn btn-outline-secondary" type="button" id="btnLimparBuscaEquipDash"
+                    data-action="limpar-busca-equip" style="display:none;" title="Limpar busca">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+        </div>
+        <div class="cv-filtro-group cv-table-filters" role="group" id="grupoFiltroBaseEquipDash" title="Filtrar por Base">
+            <button type="button" class="btn btn-secondary active" data-action="filtrar-equip-base" data-base="todas">Todas</button>
+            <button type="button" class="btn btn-secondary" data-action="filtrar-equip-base" data-base="Tank">Tank</button>
+            <button type="button" class="btn btn-secondary" data-action="filtrar-equip-base" data-base="TDBR">TDBR</button>
+            <button type="button" class="btn btn-secondary" data-action="filtrar-equip-base" data-base="Repair">Repair</button>
+            <button type="button" class="btn btn-secondary" data-action="filtrar-equip-base" data-base="Central">Central</button>
         </div>
     </div>
 
@@ -701,8 +696,9 @@
             </div>
 
             <div class="modal-body" style="padding:var(--space-4);">
-                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
-                    <div class="input-group input-group-sm" style="flex:1; min-width:220px;">
+                <div class="cv-table-toolbar" style="padding-left:0; padding-right:0; padding-top:0; min-height:auto; background:transparent;">
+                    <div class="cv-table-toolbar-main">
+                    <div class="input-group input-group-sm cv-table-search">
                         <span class="input-group-text"><i data-lucide="search"></i></span>
                         <input type="text" id="buscaModalInventario" class="form-control"
                             placeholder="Filtrar ativo por tipo, modelo, SN ou base...">
@@ -711,6 +707,8 @@
                             <i data-lucide="x"></i>
                         </button>
                     </div>
+                    </div>
+                    <div class="cv-table-filters">
                     <div class="cv-filtro-group" id="grupoFiltroBaseInventario" role="group"
                         title="Filtrar inventário por Base">
                         <button type="button" class="btn btn-secondary active" data-action="filtrar-inv-base"
@@ -723,6 +721,7 @@
                             data-base="Repair">Repair</button>
                         <button type="button" class="btn btn-secondary" data-action="filtrar-inv-base"
                             data-base="Central">Central</button>
+                    </div>
                     </div>
                 </div>
 
