@@ -1,6 +1,8 @@
 Cavere.db
 *.db
 *.pdf
+*.log
+pdf_camera.png
 __pycache__/
 *.py[cod]
 venv/
@@ -13,4 +15,4 @@ metaware-logo-particles/
 shader-gradient-component/
 .env
 .secret_key
-tests/
+tests/

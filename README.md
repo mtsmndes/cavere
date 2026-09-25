@@ -60,9 +60,8 @@ cavere/
 ├── .gitignore                  # Arquivos e pastas ignorados pelo Git
 ├── Cavere.db                   # Banco de dados SQLite (gerado automaticamente)
 ├── Cautelas/                   # Diretório de armazenamento dos PDFs de termos gerados
-├── static/                     # Arquivos estáticos (CSS, scripts e shaders)
-│   └── vendor/
-│       └── paper-shaders.js
+├── static/                     # Arquivos estáticos usados nas cautelas
+│   └── pdf/                    # Logotipos e rodapé dos PDFs
 └── templates/                  # Templates HTML Jinja2
     ├── base.html               # Layout base e navegação
     ├── index.html              # Dashboard operacional de cautelas
