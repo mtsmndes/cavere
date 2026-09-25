@@ -41,7 +41,7 @@
             <div class="cv-glance-header">
                 <span class="cv-glance-label">Pendentes</span>
             </div>
-            <div class="cv-glance-value" style="color:#b45309;">{{ contadores.get('Pendente', 0) }}</div>
+            <div class="cv-glance-value" style="color:#8D9700;">{{ contadores.get('Pendente', 0) }}</div>
         </div>
     </div>
     <div class="col-sm-6 col-lg-3">
@@ -63,14 +63,13 @@
 </div>
 
 <!-- Chamados de Solicitação de Equipamento (Feed Table) -->
-<div class="surface-card" style="margin-bottom:var(--space-5);">
+<div class="surface-card cv-table-card" style="margin-bottom:var(--space-5);">
     <div class="surface-card-header cv-table-head">
         <div class="cv-table-head-main">
             <div class="cv-table-title-line">
                 <span class="cv-table-title">
                 Chamados de Solicitação de Equipamento
                 </span>
-                <span class="badge-notion badge-notion-gray">{{ solicitacoes|length }} chamado(s)</span>
             </div>
             <div class="cv-table-subtitle">Acompanhamento de requisições operacionais enviadas</div>
         </div>
@@ -95,7 +94,7 @@
         </div>
     </div>
 
-    <div style="overflow-x:auto;">
+    <div class="table-responsive">
         {% if solicitacoes %}
         <table class="table table-hover align-middle table-enterprise cv-table-uniform mb-0" id="tabelaSolicitacoes">
             <thead>
@@ -177,17 +176,7 @@
                     <td>
                         <div style="display:flex; align-items:center; gap:5px; margin-bottom:3px; flex-wrap:wrap;">
                             {% if s.tipo_uso == 'Base' %}
-                                {% if s.base == 'Tank' or 'tank' in (s.plataforma|lower) %}
-                                <span class="badge-notion badge-notion-blue" style="font-size:0.65rem; padding:1px 6px;">Tank</span>
-                                {% elif s.base == 'TDBR' or 'tdbr' in (s.plataforma|lower) %}
-                                <span class="badge-notion badge-notion-orange" style="font-size:0.65rem; padding:1px 6px;">TDBR</span>
-                                {% elif s.base == 'Repair' or 'repair' in (s.plataforma|lower) %}
-                                <span class="badge-notion badge-notion-green" style="font-size:0.65rem; padding:1px 6px;">Repair</span>
-                                {% elif 'central' in (s.plataforma|lower) %}
-                                <span class="badge-notion badge-notion-gray" style="font-size:0.65rem; padding:1px 6px;">Central</span>
-                                {% else %}
-                                <span class="badge-notion badge-notion-purple" style="font-size:0.65rem; padding:1px 6px;"><i data-lucide="building-2" class="me-1" style="width:11px;height:11px;"></i>Base</span>
-                                {% endif %}
+                                <span class="badge-notion badge-notion-gray" style="font-size:0.65rem; padding:1px 6px;"><i data-lucide="building-2" class="me-1" style="width:11px;height:11px;"></i>{{ s.base }}</span>
                             {% else %}
                                 <span class="badge-notion badge-notion-blue" style="font-size:0.65rem; padding:1px 6px;"><i data-lucide="anchor" class="me-1" style="width:11px;height:11px;"></i>Operação</span>
                             {% endif %}
@@ -244,20 +233,19 @@
 </div>
 
 <!-- Cautelas Emitidas & Termos de Responsabilidade -->
-<div id="containerTabela" class="surface-card" style="margin-bottom:var(--space-4);">
+<div id="containerTabela" class="surface-card cv-table-card" style="margin-bottom:var(--space-4);">
     <div class="surface-card-header cv-table-head">
         <div class="cv-table-head-main">
             <div class="cv-table-title-line">
                 <span class="cv-table-title">
                 Cautelas Emitidas &amp; Termos de Responsabilidade
                 </span>
-                <span class="badge-notion badge-notion-gray">{{ chamados|length }} cautela(s)</span>
             </div>
             <div class="cv-table-subtitle">Histórico individual de termos assinados</div>
         </div>
     </div>
 
-    <div style="overflow-x:auto;">
+    <div class="table-responsive">
         {% if chamados %}
         <table class="table table-hover align-middle table-enterprise cv-table-uniform mb-0" id="tabelaCautelas">
             <thead>

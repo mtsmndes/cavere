@@ -1,5 +1,17 @@
 {% extends "base.html" %}
 {% block content %}
+<style>
+    /* CAUSA: cada linha reutilizava .surface-card e recebia a sombra ampla destinada aos painéis principais. */
+    /* FIX: a linha de equipamento usa somente uma elevação curta e discreta. */
+    /* ATENÇÃO: mantenha .surface-card apenas no contêiner externo do formulário. */
+    .cv-equipment-line {
+        box-shadow: 0 1px 4px rgba(11, 13, 10, 0.045);
+    }
+
+    html[data-theme="dark"] .cv-equipment-line {
+        box-shadow: 0 1px 3px rgba(11, 13, 10, 0.24);
+    }
+</style>
 <div style="max-width:820px; margin:0 auto;">
 
     <div class="cv-breadcrumb">
@@ -42,25 +54,15 @@
                     <!-- Container com as linhas de equipamentos -->
                     <div id="containerEquipamentos" style="display:flex; flex-direction:column; gap:var(--space-3);">
                         <!-- Linha 1 (Padrão) -->
-                        <div class="linha-equipamento surface-card" style="padding:var(--space-3); border:1px solid var(--border); border-radius:3px; background:rgba(255,255,255,0.015);">
+                        <div class="linha-equipamento cv-equipment-line" style="padding:var(--space-3); border:1px solid var(--border); border-radius:3px; background:rgba(245, 247, 242, 0.015);">
                             <div class="row g-3 align-items-end">
                                 <div class="col-md-7">
                                     <label class="form-label">Tipo de Equipamento <span style="color:var(--status-danger-text);">*</span></label>
-                                    <select class="form-select select-tipo" name="tipo_equipamento" required>
+                                    <select class="form-select select-tipo" name="tipo_equipamento" data-action="alternar-outro-equipamento" required>
                                         <option value="" disabled selected>Selecione o tipo de equipamento...</option>
-                                        <option value="Celular">Celular</option>
-                                        <option value="Câmera">Câmera</option>
-                                        <option value="Notebook">Notebook</option>
-                                        <option value="Monitor">Monitor</option>
-                                        <option value="Teclado">Teclado</option>
-                                        <option value="Mouse">Mouse</option>
-                                        <option value="Headset">Headset</option>
-                                        <option value="Tablet">Tablet</option>
-                                        <option value="Rádio Comunicador">Rádio Comunicador</option>
-                                        <option value="Detector de Gás">Detector de Gás</option>
-                                        <option value="Nobreak / Estabilizador">Nobreak / Estabilizador</option>
-                                        <option value="Periféricos / Acessórios">Periféricos / Acessórios</option>
-                                        <option value="Outro">Outro</option>
+                                        {% for tipo in tipos_equipamentos %}
+                                        <option value="{{ tipo }}">{{ tipo }}</option>
+                                        {% endfor %}
                                     </select>
                                 </div>
                                 <div class="col-md-4 col-sm-10">
@@ -74,6 +76,11 @@
                                     <button type="button" class="btn btn-outline-danger btn-sm btn-remover-linha" data-action="remover-linha" style="display:none; width:36px; height:36px; padding:0; align-items:center; justify-content:center;" title="Remover este equipamento">
                                         <i data-lucide="trash-2" style="width:16px; height:16px;"></i>
                                     </button>
+                                </div>
+                                <div class="col-12 campo-outro-equipamento d-none">
+                                    <label class="form-label">Qual equipamento você precisa? <span style="color:var(--status-danger-text);">*</span></label>
+                                    <input type="text" class="form-control input-outro-equipamento" name="tipo_equipamento_outro"
+                                        maxlength="80" placeholder="Digite o nome do equipamento">
                                 </div>
                             </div>
                         </div>
@@ -129,7 +136,7 @@
                         {% else %}
                         <div class="col-md-12" style="margin-bottom:var(--space-3);">
                             <label class="form-label" style="margin-bottom:var(--space-2);">Setor Solicitante &amp; Base Designada</label>
-                            <div class="d-flex align-items-center flex-wrap gap-3 p-2.5 px-3 surface-card" style="border:1px solid var(--border); border-radius:4px; background:rgba(255,255,255,0.02); min-height:42px;">
+                            <div class="d-flex align-items-center flex-wrap gap-3 p-2.5 px-3 surface-card" style="border:1px solid var(--border); border-radius:4px; background:rgba(245, 247, 242, 0.02); min-height:42px;">
                                 <div style="display:inline-flex; align-items:center; gap:6px; font-size:0.875rem; line-height:1.2;">
                                     <i data-lucide="briefcase" style="width:16px; height:16px; color:var(--lime); flex-shrink:0;"></i>
                                     <span style="color:var(--text-muted); font-size:0.875rem; font-weight:500;">Setor:</span>
@@ -225,7 +232,7 @@
                                     <option value="FPSO Almirante Barroso">
                                     <option value="Plataforma Mexilhão (PMX)">
                                     <option value="Campo de Búzios">
-                                    <option value="Base Niterói - Frente Externa">
+                                    <option value="Frente Externa">
                                     <option value="Navio de Apoio Skandi">
                                     <option value="Terminal Ilha d'Água">
                                     <option value="Terminal Aquaviário de Angra dos Reis (TEBIG)">
@@ -251,18 +258,11 @@
                                     <button type="button" class="btn btn-secondary active py-1" data-action="filtrar-destino" data-base="todas" id="btnBaseTodas" title="Exibir todas as opções organizadas por base">
                                         Todas
                                     </button>
-                                    <button type="button" class="btn btn-secondary py-1" data-action="filtrar-destino" data-base="Tank" id="btnBaseTank" title="Base Tank (Niterói - Tank Cleaning)">
-                                        🛢️ Tank
+                                    {% for base in bases_operacionais %}
+                                    <button type="button" class="btn btn-secondary py-1" data-action="filtrar-destino" data-base="{{ base }}" title="{{ base }}">
+                                        {{ base }}
                                     </button>
-                                    <button type="button" class="btn btn-secondary py-1" data-action="filtrar-destino" data-base="TDBR" id="btnBaseTdbr" title="Base TDBR (Inspeções / Macaé)">
-                                        🔍 TDBR
-                                    </button>
-                                    <button type="button" class="btn btn-secondary py-1" data-action="filtrar-destino" data-base="Repair" id="btnBaseRepair" title="Base Repair (Reparo Naval e Manutenção)">
-                                        🛠️ Repair
-                                    </button>
-                                    <button type="button" class="btn btn-secondary py-1" data-action="filtrar-destino" data-base="Central" id="btnBaseCentral" title="Escritório Central e Outras Instalações">
-                                        🏢 Central/Outros
-                                    </button>
+                                    {% endfor %}
                                 </div>
 
                                 <!-- Select com Seções (<optgroup>) por Base -->
@@ -271,47 +271,18 @@
                                     <select class="form-select" id="selectDestinoBase" onchange="aoMudarDestinoBase(this)">
                                         <option value="" disabled selected>Selecione a base e o setor atendido...</option>
                                         
-                                        <optgroup label="🛢️ TANK (Base Niterói - Tank Cleaning)" data-base="Tank">
-                                            <option value="Tank - TI (Tecnologia da Informação)">Tank - TI (Tecnologia da Informação)</option>
-                                            <option value="Tank - Operações">Tank - Operações</option>
-                                            <option value="Tank - QSMS">Tank - QSMS</option>
-                                            <option value="Tank - Planejamento">Tank - Planejamento</option>
-                                            <option value="Tank - Compras">Tank - Compras</option>
-                                            <option value="Tank - Financeiro">Tank - Financeiro</option>
-                                            <option value="Tank - Almoxarifado">Tank - Almoxarifado</option>
-                                            <option value="Tank - Pátio / Operacional">Tank - Pátio / Operacional</option>
+                                        {% for base in bases_operacionais %}
+                                        <optgroup label="{{ base }}" data-base="{{ base }}">
+                                            <option value="{{ base }} - TI (Tecnologia da Informação)">{{ base }} - TI (Tecnologia da Informação)</option>
+                                            <option value="{{ base }} - Operações">{{ base }} - Operações</option>
+                                            <option value="{{ base }} - QSMS">{{ base }} - QSMS</option>
+                                            <option value="{{ base }} - Planejamento">{{ base }} - Planejamento</option>
+                                            <option value="{{ base }} - Compras">{{ base }} - Compras</option>
+                                            <option value="{{ base }} - Financeiro">{{ base }} - Financeiro</option>
+                                            <option value="{{ base }} - Almoxarifado">{{ base }} - Almoxarifado</option>
+                                            <option value="{{ base }} - Pátio / Operacional">{{ base }} - Pátio / Operacional</option>
                                         </optgroup>
-
-                                        <optgroup label="🔍 TDBR (TDBR Inspections / Macaé)" data-base="TDBR">
-                                            <option value="TDBR - TI (Tecnologia da Informação)">TDBR - TI (Tecnologia da Informação)</option>
-                                            <option value="TDBR - Operações / Inspeções">TDBR - Operações / Inspeções</option>
-                                            <option value="TDBR - QSMS">TDBR - QSMS</option>
-                                            <option value="TDBR - Planejamento">TDBR - Planejamento</option>
-                                            <option value="TDBR - Compras">TDBR - Compras</option>
-                                            <option value="TDBR - Financeiro">TDBR - Financeiro</option>
-                                            <option value="TDBR - Almoxarifado">TDBR - Almoxarifado</option>
-                                            <option value="TDBR - Laboratório / Drones">TDBR - Laboratório / Drones</option>
-                                        </optgroup>
-
-                                        <optgroup label="🛠️ REPAIR (Reparo e Manutenção Naval / Industrial)" data-base="Repair">
-                                            <option value="Repair - TI (Tecnologia da Informação)">Repair - TI (Tecnologia da Informação)</option>
-                                            <option value="Repair - Oficina / Reparo">Repair - Oficina / Reparo</option>
-                                            <option value="Repair - Operações">Repair - Operações</option>
-                                            <option value="Repair - QSMS">Repair - QSMS</option>
-                                            <option value="Repair - Planejamento">Repair - Planejamento</option>
-                                            <option value="Repair - Compras">Repair - Compras</option>
-                                            <option value="Repair - Financeiro">Repair - Financeiro</option>
-                                            <option value="Repair - Almoxarifado">Repair - Almoxarifado</option>
-                                            <option value="Repair - Bancada de Testes / Manutenção">Repair - Bancada de Testes / Manutenção</option>
-                                            <option value="Repair - Pátio / Operacional">Repair - Pátio / Operacional</option>
-                                        </optgroup>
-
-                                        <optgroup label="🏢 ESCRITÓRIO CENTRAL &amp; OUTROS" data-base="Central">
-                                            <option value="Escritório Central - Recepção">Escritório Central - Recepção</option>
-                                            <option value="Escritório Central - Diretoria / Administrativo">Escritório Central - Diretoria / Administrativo</option>
-                                            <option value="Posto Avançado Macaé">Posto Avançado Macaé</option>
-                                            <option value="Outro">Outro (Digitar manualmente...)</option>
-                                        </optgroup>
+                                        {% endfor %}
                                     </select>
                                 </div>
 
@@ -321,7 +292,7 @@
                                         <span class="input-group-text"><i data-lucide="edit-3"></i></span>
                                         <input type="text" class="form-control" id="inputOutroPostoBase" placeholder="Especifique a base e setor de destino..." oninput="aoDigitarOutroPosto(this.value)">
                                     </div>
-                                    <div class="form-text" style="font-size:0.72rem;">Ex: Base Macaé - Sala de Engenharia, Galpão 02, etc.</div>
+                                    <div class="form-text" style="font-size:0.72rem;">Ex: C-TANK - Sala de Engenharia, Galpão 02, etc.</div>
                                 </div>
 
                                 <div class="form-text" id="destinoBaseAjuda">Selecione a base e o setor atendido de uso contínuo.</div>
@@ -336,12 +307,6 @@
                                     <select class="form-select" id="selectDestinoBaseOperacoes" onchange="aoMudarDestinoBaseOperacoes(this)">
                                         <option value="{{ base_padrao }} - Operações" selected>{{ base_padrao }} - Operações</option>
                                         <option value="{{ base_padrao }} - Pátio / Operacional">{{ base_padrao }} - Pátio / Operacional</option>
-                                        {% if base_padrao == 'Repair' %}
-                                        <option value="Repair - Oficina / Reparo">Repair - Oficina / Reparo</option>
-                                        <option value="Repair - Bancada de Testes / Manutenção">Repair - Bancada de Testes / Manutenção</option>
-                                        {% elif base_padrao == 'TDBR' %}
-                                        <option value="TDBR - Laboratório / Drones">TDBR - Laboratório / Drones</option>
-                                        {% endif %}
                                     </select>
                                 </div>
                                 <div class="form-text">Destino operacional interno na Base {{ base_padrao }}. Sua base já foi vinculada automaticamente.</div>
@@ -427,23 +392,23 @@
         "FPSO Almirante Barroso",
         "Plataforma Mexilhão (PMX)",
         "Campo de Búzios",
-        "Base Niterói - Frente Externa",
+        "Frente Externa",
         "Navio de Apoio Skandi",
         "Terminal Ilha d'Água",
         "Terminal Aquaviário de Angra dos Reis (TEBIG)"
     ];
 
-    const SUGESTOES_BASE = [
-        "Base Niterói (Ambipar) - TI (Tecnologia da Informação)",
-        "Base Niterói (Ambipar) - Operações",
-        "Base Niterói (Ambipar) - QSMS",
-        "Base Niterói (Ambipar) - Planejamento",
-        "Base Niterói (Ambipar) - Compras",
-        "Base Niterói (Ambipar) - Financeiro",
-        "Base Niterói (Ambipar) - Almoxarifado",
-        "Escritório Central - Recepção",
-        "Posto Avançado Macaé"
-    ];
+    const BASES_OPERACIONAIS = {{ bases_operacionais|list|tojson }};
+    const SUGESTOES_BASE = BASES_OPERACIONAIS.flatMap(base => [
+        `${base} - TI (Tecnologia da Informação)`,
+        `${base} - Operações`,
+        `${base} - QSMS`,
+        `${base} - Planejamento`,
+        `${base} - Compras`,
+        `${base} - Financeiro`,
+        `${base} - Almoxarifado`,
+        `${base} - Pátio / Operacional`
+    ]);
 
     function atualizarBotoesRemocao() {
         const container = document.getElementById('containerEquipamentos');
@@ -469,6 +434,23 @@
         });
     }
 
+    // CAUSA: a opção Outro não permitia identificar o item efetivamente solicitado.
+    // FIX: cada linha revela seu próprio campo livre e o torna obrigatório somente quando necessário.
+    // ATENÇÃO: o nome do campo deve permanecer alinhado à mesma posição das listas de tipo e quantidade.
+    function alternarOutroEquipamento(select) {
+        const linha = select.closest('.linha-equipamento');
+        if (!linha) return;
+        const campo = linha.querySelector('.campo-outro-equipamento');
+        const input = linha.querySelector('.input-outro-equipamento');
+        const exibir = select.value === 'Outro';
+        if (campo) campo.classList.toggle('d-none', !exibir);
+        if (input) {
+            input.required = exibir;
+            if (!exibir) input.value = '';
+            if (exibir) input.focus();
+        }
+    }
+
     function adicionarLinhaEquipamento() {
         const container = document.getElementById('containerEquipamentos');
         if (!container) return;
@@ -479,6 +461,12 @@
         if (sel) sel.selectedIndex = 0;
         const inp = novaLinha.querySelector('.input-qtd');
         if (inp) inp.value = '1';
+        const outro = novaLinha.querySelector('.input-outro-equipamento');
+        if (outro) {
+            outro.value = '';
+            outro.required = false;
+        }
+        novaLinha.querySelector('.campo-outro-equipamento')?.classList.add('d-none');
         container.appendChild(novaLinha);
         atualizarBotoesRemocao();
         if (window.lucide) {
@@ -509,7 +497,7 @@
     const _cfg = document.getElementById('solicitacaoConfig')?.dataset || {};
     const isTI = _cfg.isTi === 'true';
     const isOperacoes = _cfg.isOperacoes === 'true';
-    const basePadraoUsuario = _cfg.basePadrao || 'Tank';
+    const basePadraoUsuario = _cfg.basePadrao || 'C-TANK';
     const setorPadraoUsuario = _cfg.setorPadrao || 'Operações';
 
     let tipoUsoAtual = 'Operação';
@@ -539,25 +527,15 @@
             if (campoOutro) campoOutro.style.display = 'none';
             document.getElementById('plataforma').value = val;
             
-            // Define base operacional correspondente
-            if (val.startsWith('Tank')) {
-                document.getElementById('baseOperacional').value = 'Tank';
-            } else if (val.startsWith('TDBR')) {
-                document.getElementById('baseOperacional').value = 'TDBR';
-            } else if (val.startsWith('Repair')) {
-                document.getElementById('baseOperacional').value = 'Repair';
-            } else if (val.startsWith('Escritório Central')) {
-                document.getElementById('baseOperacional').value = 'Escritório Central';
-            } else {
-                document.getElementById('baseOperacional').value = 'Base';
-            }
+            const grupoBase = select.options[select.selectedIndex]?.parentElement;
+            document.getElementById('baseOperacional').value = grupoBase?.dataset?.base || basePadraoUsuario;
         }
     }
 
     function aoDigitarOutroPosto(val) {
         document.getElementById('plataforma').value = val.trim();
         const baseAtual = baseSelecionadaFiltro !== 'todas' ? baseSelecionadaFiltro : 'Base';
-        document.getElementById('baseOperacional').value = baseAtual === 'Central' ? 'Escritório Central' : baseAtual;
+        document.getElementById('baseOperacional').value = baseAtual;
     }
 
     function filtrarBaseDestino(base, botao) {
@@ -573,10 +551,7 @@
         const badge = document.getElementById('badgeBaseSelecionada');
         if (badge) {
             if (base === 'todas') badge.textContent = 'Todas as Bases';
-            else if (base === 'Tank') badge.textContent = '🛢️ Base Tank';
-            else if (base === 'TDBR') badge.textContent = '🔍 Base TDBR';
-            else if (base === 'Repair') badge.textContent = '🛠️ Base Repair';
-            else if (base === 'Central') badge.textContent = '🏢 Escritório Central';
+            else badge.textContent = base;
         }
 
         const select = document.getElementById('selectDestinoBase');
@@ -731,6 +706,11 @@
         if (btnAdd) adicionarLinhaEquipamento();
         const btnDest = e.target.closest('[data-action="filtrar-destino"]');
         if (btnDest) filtrarBaseDestino(btnDest.getAttribute('data-base'), btnDest);
+    });
+
+    document.addEventListener('change', function(e) {
+        const select = e.target.closest('[data-action="alternar-outro-equipamento"]');
+        if (select) alternarOutroEquipamento(select);
     });
     
 </script>

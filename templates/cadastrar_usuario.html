@@ -127,10 +127,9 @@
                             <div class="input-group">
                                 <span class="input-group-text"><i data-lucide="building-2"></i></span>
                                 <select class="form-select" name="base" id="campoBase" required>
-                                    <option value="Tank" selected>Tank (Base Niterói - C-Tank)</option>
-                                    <option value="TDBR">TDBR (Macaé / Inspeções Técnicas)</option>
-                                    <option value="Repair">Repair (Naval / Reparos Industriais)</option>
-                                    <option value="Escritório Central">Escritório Central (Recepção / ADM)</option>
+                                    {% for base in bases_operacionais %}
+                                    <option value="{{ base }}" {% if loop.first %}selected{% endif %}>{{ base }}</option>
+                                    {% endfor %}
                                 </select>
                             </div>
                             <div class="form-text" style="font-size:0.75rem;">Base operacional do colaborador.</div>

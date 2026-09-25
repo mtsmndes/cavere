@@ -31,20 +31,19 @@
                             style="color:var(--status-danger-text);">*</span></label>
                     <select class="form-select" name="tipo" id="tipo" required onchange="verificarTipo()">
                         <option value="" disabled selected>Selecione o tipo de equipamento...</option>
-                        <option value="Notebook">Notebook</option>
-                        <option value="Celular">Celular</option>
-                        <option value="Monitor">Monitor</option>
-                        <option value="Câmera">Câmera</option>
-                        <option value="Rádio Comunicador">Rádio Comunicador</option>
-                        <option value="Detector de Gás">Detector de Gás</option>
-                        <option value="Tablet">Tablet</option>
-                        <option value="Teclado">Teclado</option>
-                        <option value="Mouse">Mouse</option>
-                        <option value="Headset">Headset</option>
-                        <option value="Nobreak / Estabilizador">Nobreak / Estabilizador</option>
-                        <option value="Periféricos / Acessórios">Periféricos / Acessórios</option>
-                        <option value="Outro">Outro</option>
+                        {% for tipo in tipos_equipamentos %}
+                        <option value="{{ tipo }}">{{ tipo }}</option>
+                        {% endfor %}
                     </select>
+                </div>
+
+                <!-- FIX: o catálogo unificado precisa registrar o nome real quando a opção for "Outro". -->
+                <div id="bloco-tipo-outro" style="display:none; margin-bottom:var(--space-4);">
+                    <label class="form-label" for="tipo_outro">Qual equipamento? <span
+                            style="color:var(--status-danger-text);">*</span></label>
+                    <input type="text" class="form-control" name="tipo_outro" id="tipo_outro" maxlength="60"
+                        placeholder="Digite o tipo de equipamento necessário">
+                    <div class="form-text">Esse nome será exibido no inventário e usado para definir o termo de cautela.</div>
                 </div>
 
                 <!-- Modelo do Equipamento -->
@@ -81,10 +80,9 @@
                     <label class="form-label" for="base">Base Operacional / Alocação do Ativo <span
                             style="color:var(--status-danger-text);">*</span></label>
                     <select class="form-select" name="base" id="base" required>
-                        <option value="Tank" selected>Tank (Base Niterói - C-Tank)</option>
-                        <option value="TDBR">TDBR (Macaé / Inspeções Técnicas)</option>
-                        <option value="Repair">Repair (Naval / Reparos Industriais)</option>
-                        <option value="Escritório Central">Escritório Central (Recepção / Administrativo)</option>
+                        {% for base in bases_operacionais %}
+                        <option value="{{ base }}" {% if loop.first %}selected{% endif %}>{{ base }}</option>
+                        {% endfor %}
                     </select>
                     <div class="form-text">Define a qual base ou divisão o equipamento pertence no inventário.</div>
                 </div>
@@ -351,7 +349,7 @@
                             <div>
                                 <label class="form-label" for="radio_canais">Canais Programados</label>
                                 <input type="text" class="form-control" name="radio_canais" id="radio_canais"
-                                    placeholder="Ex: 16 Canais / Canal 1 Base Tank">
+                                    placeholder="Ex: 16 Canais / Canal 1 C-TANK">
                             </div>
                         </div>
                     </div>
@@ -424,6 +422,8 @@
         let blocoMonitor = document.getElementById('bloco-monitor');
         let blocoRadio = document.getElementById('bloco-radio');
         let blocoGas = document.getElementById('bloco-gas');
+        let blocoTipoOutro = document.getElementById('bloco-tipo-outro');
+        let campoTipoOutro = document.getElementById('tipo_outro');
 
         let isNotebook = tipo === 'notebook' || tipo.includes('notebook') || tipo.includes('laptop');
         let isCelular = tipo === 'celular' || tipo.includes('celular')
@@ -437,6 +437,14 @@
         blocoMonitor.style.display = isMonitor ? 'block' : 'none';
         blocoRadio.style.display = isRadio ? 'block' : 'none';
         blocoGas.style.display = isGas ? 'block' : 'none';
+
+        // FIX: exibe e torna obrigatório o detalhamento somente para a opção "Outro".
+        let isOutro = tipo === 'outro';
+        blocoTipoOutro.style.display = isOutro ? 'block' : 'none';
+        campoTipoOutro.required = isOutro;
+        if (!isOutro) {
+            campoTipoOutro.value = '';
+        }
 
         if (window.lucide) {
             lucide.createIcons();

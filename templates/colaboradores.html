@@ -1,6 +1,67 @@
 {% extends "base.html" %}
 {% block content %}
 
+<style>
+    /* CAUSA: a linha expandida também era o último td da tabela e herdava alinhamento à direita e nowrap da coluna Ações. */
+    /* FIX: o painel Mais Dados neutraliza essas regras e organiza os três grupos em cartões alinhados pela esquerda. */
+    /* ATENÇÃO: mantenha o escopo em .linha-detalhe-colaborador para não alterar as ações das linhas principais. */
+    .table-enterprise .linha-detalhe-colaborador > td {
+        min-width: 0 !important;
+        padding: 0 !important;
+        text-align: left !important;
+        white-space: normal !important;
+    }
+
+    .table-enterprise .linha-detalhe-colaborador > td > .cv-colab-details-shell {
+        width: 100%;
+        margin-left: 0 !important;
+        padding: 18px 20px;
+        text-align: left;
+        white-space: normal;
+    }
+
+    .cv-colab-details-grid {
+        align-items: stretch;
+    }
+
+    .cv-colab-details-grid > [class*="col-"] {
+        display: flex;
+    }
+
+    .cv-colab-details-card {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        width: 100%;
+        min-width: 0;
+        text-align: left;
+    }
+
+    .cv-colab-details-card > div:last-child {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 14px !important;
+        width: 100%;
+    }
+
+    .cv-colab-details-card > div:last-child > div {
+        min-width: 0;
+        text-align: left;
+    }
+
+    .cv-colab-details-card a,
+    .cv-colab-details-card code,
+    .cv-colab-details-card span {
+        max-width: 100%;
+    }
+
+    @media (max-width: 767.98px) {
+        .table-enterprise .linha-detalhe-colaborador > td > .cv-colab-details-shell {
+            padding: 14px;
+        }
+    }
+</style>
+
 <!-- Hero / Page Banner -->
 <div class="cv-page-banner">
     <div>
@@ -52,15 +113,12 @@
 </div>
 
 <!-- Tabela de Colaboradores -->
-<div class="surface-card" style="margin-bottom:var(--space-5);">
+<div class="surface-card cv-table-card" style="margin-bottom:var(--space-5);">
     <div class="surface-card-header cv-table-head">
         <div class="cv-table-head-main">
             <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
                 <span style="font-size:0.875rem; font-weight:700; color:var(--text-primary); text-transform:uppercase; letter-spacing:0.05em; font-family:var(--font-mono); line-height:1.2;">
                     Quadro Geral de Colaboradores
-                </span>
-                <span class="badge-notion badge-notion-gray" id="badgeContadorColab" style="font-size:0.75rem; padding:2px 8px; font-weight:600;">
-                    {{ colaboradores|length }} cadastrado(s)
                 </span>
             </div>
             <div style="font-size:0.8125rem; color:var(--text-muted);">
@@ -101,74 +159,54 @@
         </div>
     </div>
 
-    <!-- Filtros de Setor por Botões -->
-    <!-- Filtros de Base e Setor por Botões -->
-    <!-- CAUSA: a cor clara fixa ignorava o tema ativo. FIX: a superfície agora usa os tokens dos dois temas. -->
+    <!-- CAUSA: os filtros de colaboradores usavam botões em duas linhas, divergindo do inventário. -->
+    <!-- FIX: busca e seletores adotam a mesma grade horizontal, rótulos e controles da tabela de equipamentos. -->
     <div class="cv-table-toolbar">
-        <div class="cv-table-toolbar-main">
-            <div class="input-group input-group-sm cv-table-search">
-                <span class="input-group-text"><i data-lucide="search"></i></span>
-                <input type="text" id="filtroTextoColab" class="form-control"
-                       placeholder="Buscar por nome, matrícula, CPF, e-mail...">
-                <button class="btn btn-outline-secondary" type="button" id="btnLimparTextoColab" data-action="limpar-texto" style="display:none;">
-                    <i data-lucide="x"></i>
-                </button>
+        <div class="row g-2 align-items-end w-100">
+            <div class="col-12 col-md-6">
+                <label class="form-label" for="filtroTextoColab" style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px;">
+                    Buscar Nome / Matrícula / CPF / E-mail
+                </label>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text"><i data-lucide="search"></i></span>
+                    <input type="text" id="filtroTextoColab" class="form-control"
+                           placeholder="Digite nome, matrícula, CPF ou e-mail...">
+                    <button class="btn btn-outline-secondary" type="button" id="btnLimparTextoColab" data-action="limpar-texto" style="display:none;">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
             </div>
-        </div>
-        <div class="cv-table-filters">
-        <span style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-right:4px;">
-            Base:
-        </span>
-        <button type="button" class="btn btn-secondary btn-sm btn-filtro-base active" data-action="filtrar-base" data-base="todas">
-            Todas
-        </button>
-        <button type="button" class="btn btn-secondary btn-sm btn-filtro-base" data-action="filtrar-base" data-base="Tank">
-            Tank
-        </button>
-        <button type="button" class="btn btn-secondary btn-sm btn-filtro-base" data-action="filtrar-base" data-base="TDBR">
-            TDBR
-        </button>
-        <button type="button" class="btn btn-secondary btn-sm btn-filtro-base" data-action="filtrar-base" data-base="Repair">
-            Repair
-        </button>
-        <button type="button" class="btn btn-secondary btn-sm btn-filtro-base" data-action="filtrar-base" data-base="Central">
-            Escritório Central
-        </button>
-
-        <span style="border-left:1px solid var(--border); height:16px; margin:0 4px;"></span>
-
-        <span style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-right:4px;">
-            Setor:
-        </span>
-        <button type="button" class="btn btn-secondary btn-sm btn-filtro-setor active" data-action="filtrar-setor" data-setor="todos">
-            Todos [{{ colaboradores|length }}]
-        </button>
-        <button type="button" class="btn btn-secondary btn-sm btn-filtro-setor" data-action="filtrar-setor" data-setor="Operações">
-            Operações
-        </button>
-        <button type="button" class="btn btn-secondary btn-sm btn-filtro-setor" data-action="filtrar-setor" data-setor="TI">
-            TI
-        </button>
-        <button type="button" class="btn btn-secondary btn-sm btn-filtro-setor" data-action="filtrar-setor" data-setor="QSMS">
-            QSMS
-        </button>
-        <button type="button" class="btn btn-secondary btn-sm btn-filtro-setor" data-action="filtrar-setor" data-setor="Planejamento">
-            Planejamento
-        </button>
-        <button type="button" class="btn btn-secondary btn-sm btn-filtro-setor" data-action="filtrar-setor" data-setor="Compras">
-            Compras
-        </button>
-        <button type="button" class="btn btn-secondary btn-sm btn-filtro-setor" data-action="filtrar-setor" data-setor="Financeiro">
-            Financeiro
-        </button>
-        <button type="button" class="btn btn-secondary btn-sm btn-filtro-setor" data-action="filtrar-setor" data-setor="Almoxarifado">
-            Almoxarifado
-        </button>
+            <div class="col-6 col-md-3">
+                <label class="form-label" for="selectBaseColab" style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px;">
+                    Base Operacional
+                </label>
+                <select class="form-select form-select-sm" id="selectBaseColab">
+                    <option value="todas" selected>Todas as Bases</option>
+                    {% for base in bases_operacionais %}
+                    <option value="{{ base }}">{{ base }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-6 col-md-3">
+                <label class="form-label" for="selectSetorColab" style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px;">
+                    Setor
+                </label>
+                <select class="form-select form-select-sm" id="selectSetorColab">
+                    <option value="todos" selected>Todos os Setores [{{ colaboradores|length }}]</option>
+                    <option value="Operações">Operações</option>
+                    <option value="TI">TI</option>
+                    <option value="QSMS">QSMS</option>
+                    <option value="Planejamento">Planejamento</option>
+                    <option value="Compras">Compras</option>
+                    <option value="Financeiro">Financeiro</option>
+                    <option value="Almoxarifado">Almoxarifado</option>
+                </select>
+            </div>
         </div>
     </div>
 
     <!-- Tabela -->
-    <div style="overflow-x:auto;">
+    <div class="table-responsive">
         {% if colaboradores %}
         <table class="table table-hover align-middle table-enterprise cv-table-uniform mb-0" id="tabelaColaboradores">
             <thead>
@@ -178,7 +216,7 @@
                     <th>Base</th>
                     <th>Setor</th>
                     <th class="text-center">Chamados</th>
-                    <th class="text-center pe-4" style="min-width:150px;">Ações</th>
+                    <th class="text-center pe-4" style="min-width:190px;">Ações</th>
                 </tr>
             </thead>
             <tbody>
@@ -219,24 +257,14 @@
 
                     <td>
                         <div style="display:inline-flex; align-items:center; gap:4px;">
-                            <code style="font-size:0.8125rem; font-weight:700; color:var(--text-primary); background:rgba(0,0,0,0.04); padding:2px 6px; border-radius:2px; border:1px solid var(--border);">
+                            <code style="font-size:0.8125rem; font-weight:700; color:var(--text-primary); background:rgba(11, 13, 10, 0.04); padding:2px 6px; border-radius:2px; border:1px solid var(--border);">
                                 {{ c.matricula }}
                             </code>
                         </div>
                     </td>
 
                     <td>
-                        {% if c.base == 'Tank' %}
-                        <span class="badge-notion badge-notion-blue"><i data-lucide="map-pin" style="width:11px; height:11px; margin-right:3px;"></i>Tank</span>
-                        {% elif c.base == 'TDBR' %}
-                        <span class="badge-notion badge-notion-purple"><i data-lucide="map-pin" style="width:11px; height:11px; margin-right:3px;"></i>TDBR</span>
-                        {% elif c.base == 'Repair' %}
-                        <span class="badge-notion badge-notion-orange"><i data-lucide="wrench" style="width:11px; height:11px; margin-right:3px;"></i>Repair</span>
-                        {% elif 'Central' in c.base %}
-                        <span class="badge-notion badge-notion-gray"><i data-lucide="building" style="width:11px; height:11px; margin-right:3px;"></i>Central</span>
-                        {% else %}
                         <span class="badge-notion badge-notion-gray"><i data-lucide="map-pin" style="width:11px; height:11px; margin-right:3px;"></i>{{ c.base }}</span>
-                        {% endif %}
                     </td>
 
                     <td>
@@ -282,18 +310,31 @@
                                title="Ver chamados de {{ c.nome_completo }} no painel">
                                 <i data-lucide="eye" style="width:13px; height:13px;"></i>
                             </a>
+
+                            {% if c.role != 'admin' %}
+                            <form method="POST" action="{{ url_for('excluir_colaborador', id_colaborador=c.id) }}"
+                                  data-confirm-delete="Remover definitivamente {{ c.nome_completo }}, seu acesso, solicitações e cautelas vinculadas?"
+                                  style="display:inline-block; margin:0;">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="cv-btn-action cv-btn-action-secondary"
+                                        style="height:28px; width:30px; padding:0; cursor:pointer;"
+                                        title="Excluir coordenador/solicitante">
+                                    <i data-lucide="trash-2" style="width:13px; height:13px; color:var(--status-danger-text);"></i>
+                                </button>
+                            </form>
+                            {% endif %}
                         </div>
                     </td>
                 </tr>
 
                 <!-- Linha Expansível de Detalhes do Colaborador -->
-                <tr id="detalhes-colab-{{ c.id }}" class="linha-detalhe-colaborador d-none" data-parent-id="{{ c.id }}" style="background: rgba(0,0,0,0.015);">
+                <tr id="detalhes-colab-{{ c.id }}" class="linha-detalhe-colaborador d-none" data-parent-id="{{ c.id }}" style="background: rgba(11, 13, 10, 0.015);">
                     <td colspan="6" class="p-0 border-0">
-                        <div style="padding: 16px 24px; background: var(--surface-hover); border-bottom: 1px solid var(--border); border-top: 1px dashed var(--border);">
-                            <div class="row g-3">
+                        <div class="cv-colab-details-shell" style="background: var(--surface-hover); border-bottom: 1px solid var(--border); border-top: 1px dashed var(--border);">
+                            <div class="row g-3 cv-colab-details-grid">
                                 <!-- Card 1: Identificação & Documentos -->
                                 <div class="col-md-4">
-                                    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 14px; height: 100%; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+                                    <div class="cv-colab-details-card" style="background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 14px; height: 100%; box-shadow: 0 1px 3px rgba(11, 13, 10, 0.02);">
                                         <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 12px; font-weight: 600; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">
                                             <i data-lucide="id-card" style="width: 14px; height: 14px; color: var(--primary);"></i>
                                             Identificação & Acesso
@@ -302,7 +343,7 @@
                                             <div>
                                                 <span style="color: var(--text-muted); display: block; font-size: 0.72rem; margin-bottom: 2px;">CPF do Colaborador:</span>
                                                 <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
-                                                    <code style="font-family: var(--font-mono); font-size: 0.875rem; font-weight: 700; color: var(--text-primary); background: rgba(0,0,0,0.03); padding: 2px 6px; border-radius: 3px;">
+                                                    <code style="font-family: var(--font-mono); font-size: 0.875rem; font-weight: 700; color: var(--text-primary); background: rgba(11, 13, 10, 0.03); padding: 2px 6px; border-radius: 3px;">
                                                         {{ c.cpf }}
                                                     </code>
                                                     {% if c.cpf and c.cpf != 'Não informado' %}
@@ -314,7 +355,7 @@
                                             </div>
                                             <div>
                                                 <span style="color: var(--text-muted); display: block; font-size: 0.72rem; margin-bottom: 2px;">Matrícula Geral:</span>
-                                                <code style="font-size: 0.8125rem; font-weight: 600; color: var(--text-primary); background: rgba(0,0,0,0.03); padding: 2px 6px; border-radius: 3px;">
+                                                <code style="font-size: 0.8125rem; font-weight: 600; color: var(--text-primary); background: rgba(11, 13, 10, 0.03); padding: 2px 6px; border-radius: 3px;">
                                                     {{ c.matricula }}
                                                 </code>
                                             </div>
@@ -335,7 +376,7 @@
 
                                 <!-- Card 2: Contatos & Notificações -->
                                 <div class="col-md-4">
-                                    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 14px; height: 100%; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+                                    <div class="cv-colab-details-card" style="background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 14px; height: 100%; box-shadow: 0 1px 3px rgba(11, 13, 10, 0.02);">
                                         <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 12px; font-weight: 600; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">
                                             <i data-lucide="phone-call" style="width: 14px; height: 14px; color: var(--primary);"></i>
                                             Canais de Comunicação
@@ -378,7 +419,7 @@
 
                                 <!-- Card 3: Operação & Histórico de Cautelas -->
                                 <div class="col-md-4">
-                                    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 14px; height: 100%; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+                                    <div class="cv-colab-details-card" style="background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 14px; height: 100%; box-shadow: 0 1px 3px rgba(11, 13, 10, 0.02);">
                                         <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 12px; font-weight: 600; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">
                                             <i data-lucide="activity" style="width: 14px; height: 14px; color: var(--primary);"></i>
                                             Alocação & Cautelas
@@ -387,17 +428,7 @@
                                             <div>
                                                 <span style="color: var(--text-muted); display: block; font-size: 0.72rem; margin-bottom: 2px;">Base Operacional Vinculada:</span>
                                                 <div style="margin-top: 2px;">
-                                                    {% if c.base == 'Tank' %}
-                                                    <span class="badge-notion badge-notion-blue"><i data-lucide="map-pin" class="me-1"></i>Base Tank</span>
-                                                    {% elif c.base == 'TDBR' %}
-                                                    <span class="badge-notion badge-notion-purple"><i data-lucide="map-pin" class="me-1"></i>Base TDBR</span>
-                                                    {% elif c.base == 'Repair' %}
-                                                    <span class="badge-notion badge-notion-orange"><i data-lucide="wrench" class="me-1"></i>Base Repair</span>
-                                                    {% elif 'Central' in c.base %}
-                                                    <span class="badge-notion badge-notion-gray"><i data-lucide="building" class="me-1"></i>Base Central</span>
-                                                    {% else %}
                                                     <span class="badge-notion badge-notion-gray"><i data-lucide="map-pin" class="me-1"></i>{{ c.base }}</span>
-                                                    {% endif %}
                                                 </div>
                                             </div>
                                             <div>
@@ -539,7 +570,7 @@
         if (textNode) textNode.textContent = ' Copiado!';
         if (iconEl) {
             iconEl.setAttribute('data-lucide', 'check');
-            iconEl.style.color = '#10b981';
+            iconEl.style.color = '#CEDC00';
             if (window.lucide) lucide.createIcons();
         }
         setTimeout(() => {
@@ -607,11 +638,6 @@
             }
         }
 
-        const badgeContador = document.getElementById('badgeContadorColab');
-        if (badgeContador) {
-            badgeContador.textContent = `${visiveis} colaborador(es) exibido(s)`;
-        }
-
         const infoRodape = document.getElementById('infoRodapeContagemColab');
         if (infoRodape) {
             const strongVis = document.createElement('strong');
@@ -632,20 +658,6 @@
         }
     }
 
-    function filtrarPorBase(base, btn) {
-        baseFiltroAtivo = base;
-        document.querySelectorAll('.btn-filtro-base').forEach(b => b.classList.remove('active'));
-        if (btn) btn.classList.add('active');
-        aplicarFiltrosColaboradores();
-    }
-
-    function filtrarPorSetor(setor, btn) {
-        setorFiltroAtivo = setor;
-        document.querySelectorAll('.btn-filtro-setor').forEach(b => b.classList.remove('active'));
-        if (btn) btn.classList.add('active');
-        aplicarFiltrosColaboradores();
-    }
-
     function limparTextoColab() {
         document.getElementById('filtroTextoColab').value = '';
         aplicarFiltrosColaboradores();
@@ -655,24 +667,31 @@
         document.getElementById('filtroTextoColab').value = '';
         setorFiltroAtivo = 'todos';
         baseFiltroAtivo = 'todas';
-        document.querySelectorAll('.btn-filtro-base').forEach(b => {
-            if (b.getAttribute('data-base') === 'todas') {
-                b.classList.add('active');
-            } else {
-                b.classList.remove('active');
-            }
-        });
-        document.querySelectorAll('.btn-filtro-setor').forEach(b => {
-            if (b.getAttribute('data-setor') === 'todos') {
-                b.classList.add('active');
-            } else {
-                b.classList.remove('active');
-            }
-        });
+        document.getElementById('selectBaseColab').value = 'todas';
+        document.getElementById('selectSetorColab').value = 'todos';
         aplicarFiltrosColaboradores();
     }
 
     document.addEventListener('DOMContentLoaded', function() {
+        // CAUSA: os novos controles padronizados precisam atualizar os mesmos estados usados pela exportação.
+        // FIX: eventos de input/change centralizam busca, base e setor sem atributos JS inline.
+        document.getElementById('filtroTextoColab')?.addEventListener('input', aplicarFiltrosColaboradores);
+        document.getElementById('selectBaseColab')?.addEventListener('change', function() {
+            baseFiltroAtivo = this.value;
+            aplicarFiltrosColaboradores();
+        });
+        document.getElementById('selectSetorColab')?.addEventListener('change', function() {
+            setorFiltroAtivo = this.value;
+            aplicarFiltrosColaboradores();
+        });
+        // CAUSA: exclusão definitiva não pode ocorrer por clique acidental.
+        // FIX: todos os formulários de remoção exigem confirmação explícita antes do POST com CSRF.
+        document.querySelectorAll('form[data-confirm-delete]').forEach(function(formulario) {
+            formulario.addEventListener('submit', function(evento) {
+                const mensagem = formulario.getAttribute('data-confirm-delete') || 'Confirmar exclusão definitiva?';
+                if (!window.confirm(mensagem)) evento.preventDefault();
+            });
+        });
         if (window.lucide) {
             lucide.createIcons();
         }
@@ -782,10 +801,6 @@
             resetarFiltrosColab();
         } else if (action === 'navegar-solicitacoes') {
             window.location.href = '/meus-chamados';
-        } else if (action === 'filtrar-base') {
-            filtrarPorBase(el.getAttribute('data-base'), el);
-        } else if (action === 'filtrar-setor') {
-            filtrarPorSetor(el.getAttribute('data-setor'), el);
         } else if (action === 'limpar-texto') {
             limparTextoColab();
         } else if (action === 'exportar') {

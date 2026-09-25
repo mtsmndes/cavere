@@ -7,6 +7,7 @@ import re
 import base64
 import secrets
 import hmac
+import unicodedata
 from functools import wraps
 from contextlib import contextmanager
 from datetime import datetime, timedelta
@@ -123,6 +124,52 @@ login_manager.login_view = 'login'
 login_manager.login_message = "Por favor, faça login para acessar esta página."
 login_manager.login_message_category = "warning"
 
+# CAUSA: nomes e descrições de bases estavam duplicados entre backend, filtros e formulários.
+# FIX: um catálogo único mantém exatamente os nomes oficiais em todas as telas.
+# ATENÇÃO: alterações futuras na relação de bases devem ser feitas somente nesta constante.
+BASES_OPERACIONAIS = (
+    'C-TANK',
+    'C-SAFETY',
+    'REPAIR (PLIMSOLL)',
+    'TERRA DRONE',
+    'ETE – CABO PE',
+    'WASTE AL (VM)',
+    'PCTR-MA',
+    'PCTR-CATU',
+    'PCTR-MOSSORÓ',
+    'OIL RECOVERY',
+)
+BASE_PADRAO = BASES_OPERACIONAIS[0]
+BASES_LEGADAS = {
+    'tank': 'C-TANK',
+    'tdbr': 'TERRA DRONE',
+    'repair': 'REPAIR (PLIMSOLL)',
+}
+
+# CAUSA: cadastro e solicitação mantinham listas independentes e fora de ordem.
+# FIX: um catálogo alfabético único abastece os dois formulários.
+# ATENÇÃO: "Outro" continua abrindo o campo livre em ambas as telas.
+TIPOS_EQUIPAMENTOS = (
+    'Câmera',
+    'Câmera EX',
+    'Celular',
+    'Headset',
+    'Monitor',
+    'Mouse',
+    'Notebook',
+    'Outro',
+    'Teclado',
+)
+
+
+def normalizar_base_operacional(base, fallback=BASE_PADRAO):
+    """Retorna o nome oficial da base, aceitando aliases legados conhecidos."""
+    valor = str(base or '').strip()
+    if not valor:
+        return fallback
+    oficial = BASES_LEGADAS.get(valor.casefold(), valor)
+    return oficial if oficial in BASES_OPERACIONAIS else fallback
+
 
 # --- ESQUEMAS DE VALIDAÇÃO DE DADOS (Pydantic / Schema Hardening - OWASP A03 / IEC 62443) ---
 
@@ -141,7 +188,7 @@ class EquipamentoSchema(BaseModel):
     patrimonio_sn: str = Field(default='', max_length=100)
     imei_1: str = Field(default='', max_length=30)
     imei_2: str = Field(default='', max_length=30)
-    base: str = Field(default='Tank', max_length=50)
+    base: str = Field(default=BASE_PADRAO, max_length=50)
     alugado: int = Field(default=0, ge=0, le=1)
     empresa_locadora: str = Field(default='', max_length=100)
 
@@ -154,7 +201,7 @@ class NovoUsuarioSchema(BaseModel):
     senha: str = Field(..., min_length=4, max_length=128)
     role: str = Field(default='coordenador', pattern=r'^(admin|coordenador)$')
     nome_completo: str = Field(default='', max_length=100)
-    base: str = Field(default='Tank', max_length=50)
+    base: str = Field(default=BASE_PADRAO, max_length=50)
     setor: str = Field(default='Operações', max_length=50)
 
 def validate_schema(model_cls, data):
@@ -191,7 +238,7 @@ class Usuario(UserMixin):
         self.senha_hash = senha_hash
         self.role = role
         self.trocar_senha = trocar_senha
-        self.base = base or 'Tank'
+        self.base = normalizar_base_operacional(base)
         self.setor = setor or ''
         self.nome_completo = nome_completo or username
 
@@ -203,11 +250,11 @@ class Usuario(UserMixin):
     def base_nome(self):
         b = getattr(self, 'base', None)
         if not b:
-            return 'Tank (Niterói)'
+            return BASE_PADRAO
         b_clean = str(b).strip()
         b_lower = b_clean.lower()
         if b_lower in ('tank', 'niterói', 'niteroi'):
-            return 'Tank (Niterói)'
+            return BASE_PADRAO
         return b_clean
 
 
@@ -252,7 +299,7 @@ def load_user(user_id):
         senha_hash=dados[2],
         role=dados[3],
         trocar_senha=trocar,
-        base=base_user or 'Tank',
+        base=normalizar_base_operacional(base_user),
         setor=setor_user,
         nome_completo=nome_user
     )
@@ -291,7 +338,7 @@ def inicializar_banco():
             imei_1 TEXT,
             imei_2 TEXT,
             status TEXT DEFAULT 'Disponível',
-            base TEXT DEFAULT 'Tank',
+            base TEXT DEFAULT 'C-TANK',
             alugado INTEGER DEFAULT 0,
             empresa_locadora TEXT DEFAULT '',
             processador TEXT DEFAULT '',
@@ -313,7 +360,7 @@ def inicializar_banco():
             matricula TEXT DEFAULT '',
             email TEXT DEFAULT '',
             celular TEXT DEFAULT '',
-            base TEXT DEFAULT 'Tank'
+            base TEXT DEFAULT 'C-TANK'
         )
     ''')
 
@@ -360,7 +407,7 @@ def inicializar_banco():
     colunas_equip = [col[1] for col in cursor.fetchall()]
     if colunas_equip:
         if 'base' not in colunas_equip:
-            cursor.execute("ALTER TABLE equipamentos ADD COLUMN base TEXT DEFAULT 'Tank'")
+            cursor.execute("ALTER TABLE equipamentos ADD COLUMN base TEXT DEFAULT 'C-TANK'")
         if 'alugado' not in colunas_equip:
             cursor.execute("ALTER TABLE equipamentos ADD COLUMN alugado INTEGER DEFAULT 0")
         if 'empresa_locadora' not in colunas_equip:
@@ -395,7 +442,7 @@ def inicializar_banco():
     colunas_coord = [col[1] for col in cursor.fetchall()]
     if colunas_coord:
         if 'base' not in colunas_coord:
-            cursor.execute("ALTER TABLE coordenadores ADD COLUMN base TEXT DEFAULT 'Tank'")
+            cursor.execute("ALTER TABLE coordenadores ADD COLUMN base TEXT DEFAULT 'C-TANK'")
         if 'setor' not in colunas_coord:
             cursor.execute("ALTER TABLE coordenadores ADD COLUMN setor TEXT DEFAULT 'Operações'")
         if 'cpf' not in colunas_coord:
@@ -417,6 +464,14 @@ def inicializar_banco():
                 if not cp and cm_str.isdigit() and len(cm_str) == 11:
                     cursor.execute("UPDATE coordenadores SET cpf = ? WHERE id = ? AND (cpf IS NULL OR cpf = '')", (cm_str, c_id))
 
+    # Normaliza somente aliases com equivalência conhecida; demais dados não são descartados.
+    for tabela in ('equipamentos', 'coordenadores', 'solicitacoes'):
+        for legado, oficial in BASES_LEGADAS.items():
+            cursor.execute(
+                f"UPDATE {tabela} SET base = ? WHERE LOWER(TRIM(base)) = ?",
+                (oficial, legado),
+            )
+
     conexao.commit()
     conexao.close()
 
@@ -425,26 +480,24 @@ inicializar_banco()
 
 def inferir_base_operacional(plataforma, tipo_uso, base_informada=''):
     """
-    Identifica a base operacional (Tank, TDBR, Repair, Escritório Central ou Operação)
+    Identifica uma base do catálogo oficial ou o uso em operação
     com base no parâmetro informado ou no texto de destino.
     """
     if base_informada and base_informada.strip():
         b = base_informada.strip()
-        if b in ('Tank', 'TDBR', 'Repair', 'Escritório Central', 'Operação'):
+        if b in BASES_OPERACIONAIS:
             return b
     if tipo_uso == 'Operação':
         return 'Operação'
     p = (plataforma or '').strip()
     p_lower = p.lower()
-    if p_lower.startswith('tank') or 'tank' in p_lower or 'niterói' in p_lower:
-        return 'Tank'
-    if p_lower.startswith('tdbr') or 'tdbr' in p_lower:
-        return 'TDBR'
-    if p_lower.startswith('repair') or 'repair' in p_lower:
-        return 'Repair'
-    if 'central' in p_lower or 'recepção' in p_lower:
-        return 'Escritório Central'
-    return 'Base'
+    for base in BASES_OPERACIONAIS:
+        if p_lower.startswith(base.casefold()) or base.casefold() in p_lower:
+            return base
+    for legado, oficial in BASES_LEGADAS.items():
+        if p_lower.startswith(legado) or legado in p_lower:
+            return oficial
+    return BASE_PADRAO
 
 
 # --- SISTEMA DE DEFESA ANTI-CSRF ---
@@ -458,7 +511,12 @@ def gerar_csrf_token():
 @app.context_processor
 def inject_csrf_token():
     """Disponibiliza {{ csrf_token() }} para renderização em todos os templates."""
-    return dict(csrf_token=gerar_csrf_token)
+    return dict(
+        csrf_token=gerar_csrf_token,
+        bases_operacionais=BASES_OPERACIONAIS,
+        tipos_equipamentos=TIPOS_EQUIPAMENTOS,
+        nome_base=normalizar_base_operacional,
+    )
 
 
 # --- SISTEMA DE DEFESA CONTRA FORÇA BRUTA & RATE LIMITING NO LOGIN ---
@@ -618,7 +676,7 @@ def erro_servidor(e):
 
 # --- REGRAS DE CADASTRO DE USUÁRIOS E SENHAS ---
 
-def salvar_novo_usuario(username, senha_pura, role='coordenador', id_personalizado=None, nome_completo=None, cpf_matricula=None, setor='Operações', trocar_senha=1, cpf=None, matricula=None, email=None, celular=None, base='Tank'):
+def salvar_novo_usuario(username, senha_pura, role='coordenador', id_personalizado=None, nome_completo=None, cpf_matricula=None, setor='Operações', trocar_senha=1, cpf=None, matricula=None, email=None, celular=None, base=BASE_PADRAO):
     """
     Cadastra um novo usuário no banco com senha criptografada via scrypt.
     Se o papel for 'coordenador', cadastra atomicamente em 'usuarios' e 'coordenadores' com o MESMO ID.
@@ -645,7 +703,7 @@ def salvar_novo_usuario(username, senha_pura, role='coordenador', id_personaliza
             return False, "O Nome Completo do coordenador / solicitante é obrigatório."
         nome_completo = nome_completo.strip()[:100]
         setor = (setor or 'Operações').strip()[:50]
-        base = (base or 'Tank').strip()[:50]
+        base = normalizar_base_operacional(base)
 
         # Tratamento e validação de CPF (11 dígitos)
         cpf_raw = (cpf or cpf_matricula or '').strip()
@@ -901,8 +959,70 @@ def formatar_nome_pdf_cautela(rdo, sn):
     return f"Cautela_{rdo_safe}_{sn_safe}.pdf"
 
 
+def normalizar_chave_equipamento(tipo):
+    """Normaliza o tipo para decisões internas sem alterar o nome exibido no documento."""
+    texto = unicodedata.normalize('NFKD', str(tipo or ''))
+    return ''.join(ch for ch in texto if not unicodedata.combining(ch)).casefold().strip()
+
+
+# CAUSA: toda cautela usava as mesmas cláusulas, independentemente do equipamento e do destino.
+# FIX: a regra central escolhe um dos três conteúdos, mantendo uma única estrutura visual de PDF.
+# ATENÇÃO: tipo_uso='Base' significa permanência interna; qualquer outro valor representa embarque/operação.
+def selecionar_modelo_cautela(tipo, tipo_uso='Base'):
+    """Seleciona PDF 1, 2 ou 3 conforme categoria e destino definidos pelo negócio."""
+    chave = normalizar_chave_equipamento(tipo)
+    fica_na_base = normalizar_chave_equipamento(tipo_uso) == 'base'
+    if 'camera' in chave:
+        return 2
+    if any(nome in chave for nome in ('notebook', 'laptop', 'macbook')):
+        return 1 if fica_na_base else 3
+    if any(nome in chave for nome in ('celular', 'smartphone', 'telefone', 'mouse', 'teclado', 'monitor', 'headset')):
+        return 1
+    return 1 if fica_na_base else 2
+
+
+def obter_conteudo_modelo_cautela(modelo_pdf):
+    """Mantém textos variáveis separados da estrutura visual única dos termos."""
+    clausulas_pdf_1 = [
+        'O equipamento deverá ser utilizado única e exclusivamente a serviço da <strong>EMPRESA</strong>, em razão da atividade exercida pelo(a) <strong>USUÁRIO(A)</strong>;',
+        'O(A) <strong>USUÁRIO(A)</strong> ficará responsável pela guarda, uso e conservação do equipamento, cabendo-lhe zelar por sua integridade e bom funcionamento;',
+        'O(A) <strong>USUÁRIO(A)</strong> detém apenas a detenção do equipamento, para fins de uso exclusivo na prestação de serviços, e não a sua propriedade, sendo terminantemente vedados o empréstimo, a locação, a cessão ou o repasse a terceiros, sem autorização prévia e expressa da <strong>EMPRESA</strong>;',
+        'O(A) <strong>USUÁRIO(A)</strong> deverá comunicar imediatamente ao setor responsável qualquer anormalidade, avaria, mau funcionamento, perda, furto ou roubo do equipamento;',
+        'A <strong>EMPRESA</strong> garante suporte técnico, manutenção e, quando necessário, substituição do equipamento sem qualquer ônus ao(à) <strong>USUÁRIO(A)</strong>, exceto quando o dano decorrer comprovadamente de mau uso, negligência, imprudência ou descumprimento das condições aqui previstas;',
+        'Não será atribuída responsabilidade ao(à) <strong>USUÁRIO(A)</strong> por desgaste natural decorrente do uso regular, defeito de fabricação, caso fortuito ou força maior;',
+        'Ao término da prestação de serviço, do contrato individual de trabalho, ou mediante solicitação da <strong>EMPRESA</strong>, o(a) <strong>USUÁRIO(A)</strong> compromete-se a devolver o equipamento em perfeito estado no mesmo dia em que for comunicado ou comunique seu desligamento, resguardado o desgaste natural decorrente do uso normal.'
+    ]
+    clausulas_pdf_2 = [
+        'O equipamento deverá ser utilizado única e exclusivamente a serviço da <strong>EMPRESA</strong>, tendo em vista a atividade a ser exercida pelo(a) colaborador(a);',
+        'O(A) colaborador(a) ficará responsável pelo uso e pela conservação do equipamento;',
+        'Ao término da operação, o(a) colaborador(a) compromete-se a devolver o equipamento em perfeito estado, resguardado o desgaste natural decorrente do uso regular;',
+        'Em caso de extravio ou danos que provoquem a perda total ou parcial do bem, o(a) colaborador(a) deverá ressarcir a proprietária pelos prejuízos ocasionados, quando comprovada sua responsabilidade.'
+    ]
+    # CAUSA: acrescentar dois itens completos ao modelo 1 obrigava nove condições a disputar a mesma página.
+    # FIX: os requisitos do notebook foram integrados às cláusulas equivalentes, preservando conteúdo e sete itens legíveis.
+    clausulas_pdf_3 = [
+        'O notebook deverá ser utilizado única e exclusivamente a serviço da <strong>EMPRESA</strong>, em razão da atividade exercida pelo(a) <strong>USUÁRIO(A)</strong>, e permanecer na unidade ou plataforma para a qual foi solicitado;',
+        'O(A) <strong>USUÁRIO(A)</strong> ficará responsável pela guarda, uso e conservação do equipamento, cabendo-lhe zelar por sua integridade e bom funcionamento;',
+        # CAUSA: notebooks embarcados têm alta rotatividade entre os integrantes da mesma operação.
+        # FIX: o PDF 3 não restringe empréstimo, repasse ou transferência interna; os demais modelos mantêm suas regras.
+        'O(A) <strong>USUÁRIO(A)</strong> deverá comunicar imediatamente ao setor responsável qualquer anormalidade, avaria, mau funcionamento, perda, furto ou roubo do equipamento;',
+        'A <strong>EMPRESA</strong> garante suporte técnico e manutenção. Para manutenção preventiva, o notebook deverá retornar ao setor responsável no prazo máximo de 2 (dois) meses, contado da entrega, ou antes quando solicitado;',
+        'Não será atribuída responsabilidade ao(à) <strong>USUÁRIO(A)</strong> por desgaste natural decorrente do uso regular, defeito de fabricação, caso fortuito ou força maior;',
+        # CAUSA: o vínculo de devolução deve acompanhar a operação/plataforma, nunca o contrato ou a pessoa responsável.
+        # FIX: combina o encerramento operacional do texto anterior com a gestão do ativo pela empresa/base.
+        'Ao término da operação na unidade ou plataforma, ou mediante solicitação da <strong>EMPRESA</strong> ou da base responsável pelo ativo, o notebook deverá ser disponibilizado para devolução, transferência ou manutenção, em perfeito estado, resguardado o desgaste natural decorrente do uso normal.'
+    ]
+    modelos = {
+        1: ('Termo de Responsabilidade e Cautela de Equipamento', clausulas_pdf_1, False),
+        2: ('Termo de Responsabilidade de Equipamento em Operação', clausulas_pdf_2, True),
+        3: ('Termo de Responsabilidade de Notebook em Operação', clausulas_pdf_3, True),
+    }
+    return modelos.get(modelo_pdf, modelos[1])
+
+
 def gerar_pdf_termo(rdo, sn, tipo, modelo, imei1, imei2, nome_coord, cpf_coord, data_str=None,
-                    processador='', memoria_ram='', armazenamento='', sistema_operacional='', especificacoes=''):
+                    processador='', memoria_ram='', armazenamento='', sistema_operacional='', especificacoes='',
+                    tipo_uso='Base', destino=''):
     """
     Gera o termo corporativo de responsabilidade em uma página A4.
     A identificação técnica é adaptada à categoria do equipamento sem alterar as cláusulas jurídicas.
@@ -917,6 +1037,15 @@ def gerar_pdf_termo(rdo, sn, tipo, modelo, imei1, imei2, nome_coord, cpf_coord, 
     s_imei2 = html.escape(str(imei2 or 'N/A'))
     s_nome = html.escape(str(nome_coord or 'Responsável'))
     s_cpf = html.escape(str(cpf_coord or 'N/A'))
+    modelo_pdf = selecionar_modelo_cautela(tipo, tipo_uso)
+    classe_modelo_pdf = f'pdf-model-{modelo_pdf}'
+    titulo_documento, clausulas_documento, exibir_destino = obter_conteudo_modelo_cautela(modelo_pdf)
+    clausulas_html = ''.join(f'<li>{clausula}</li>' for clausula in clausulas_documento)
+    s_destino = html.escape(str(destino or rdo or 'Operação'))
+    bloco_destino = (
+        f'<div class="operation-destination"><strong>Destino da operação:</strong> {s_destino}</div>'
+        if exibir_destino else ''
+    )
     logo_pdf = imagem_pdf_data_uri('ambipar-logo.png')
     rodape_pdf = imagem_pdf_data_uri('ambipar-footer.png')
     data_documento = str(data_str or '').strip()
@@ -984,6 +1113,7 @@ def gerar_pdf_termo(rdo, sn, tipo, modelo, imei1, imei2, nome_coord, cpf_coord, 
             .technical-table {{ width: 92%; margin: -4mm auto 6mm; border-collapse: collapse; }}
             .technical-table th {{ width: 29%; padding: 1.4mm; background: #edf4e8; border: 1px solid #999; font-size: 7pt; text-align: left; }}
             .technical-table td {{ padding: 1.4mm; border: 1px solid #999; font-size: 7.8pt; }}
+            .operation-destination {{ width: 92%; margin: -2mm auto 5mm; padding: 2.2mm 3mm; border-left: 2px solid #8D9700; background: #f4f6ef; font-size: 8.2pt; }}
             h2 {{ margin: 0 0 3mm; font-size: 10pt; text-transform: uppercase; }}
             ol {{ margin: 0; padding-left: 5mm; }}
             li {{ margin: 0 0 2mm; padding-left: 1mm; text-align: justify; font-size: 8.3pt; line-height: 1.24; }}
@@ -999,24 +1129,19 @@ def gerar_pdf_termo(rdo, sn, tipo, modelo, imei1, imei2, nome_coord, cpf_coord, 
             .footer-info {{ position: absolute; left: 28mm; bottom: 7mm; font-size: 6.5pt; font-weight: 700; line-height: 1.3; }}
         </style>
     </head>
-    <body>
+    <body class="{classe_modelo_pdf}">
         <div class="brand"><img src="{logo_pdf}" alt="Ambipar"></div>
-        <h1>Termo de Responsabilidade e Cautela de Equipamento</h1>
+        <h1>{titulo_documento}</h1>
 
         <p class="opening"><strong>AMBIPAR RESPONSE TANK CLEANING S/A</strong>, localizada na Rua Manoel Pacheco de Carvalho, nº 102 – Galpão, Centro, Niterói/RJ, inscrita no CNPJ sob o nº 18.591.097/0001-10, <strong>ENTREGA</strong>, neste ato, ao(à) colaborador(a) <strong>{s_nome}</strong>, portador(a) do CPF nº <strong>{s_cpf}</strong>, doravante denominado(a) simplesmente <strong>“USUÁRIO(A)”</strong>, o equipamento abaixo descrito, destinado ao uso exclusivo em suas atividades profissionais, sob as seguintes condições:</p>
 
         {tabela_identificacao}
         {tabela_tecnica}
+        {bloco_destino}
 
         <h2>Condições</h2>
         <ol>
-            <li>O equipamento deverá ser utilizado única e exclusivamente a serviço da <strong>EMPRESA</strong>, em razão da atividade exercida pelo(a) <strong>USUÁRIO(A)</strong>;</li>
-            <li>O(A) <strong>USUÁRIO(A)</strong> ficará responsável pela guarda, uso e conservação do equipamento, cabendo-lhe zelar por sua integridade e bom funcionamento;</li>
-            <li>O(A) <strong>USUÁRIO(A)</strong> detém apenas a detenção do equipamento, para fins de uso exclusivo na prestação de serviços, e não a sua propriedade, sendo terminantemente vedados o empréstimo, a locação, a cessão ou o repasse a terceiros, sem autorização prévia e expressa da <strong>EMPRESA</strong>;</li>
-            <li>O(A) <strong>USUÁRIO(A)</strong> deverá comunicar imediatamente ao setor responsável qualquer anormalidade, avaria, mau funcionamento, perda, furto ou roubo do equipamento;</li>
-            <li>A <strong>EMPRESA</strong> garante suporte técnico, manutenção e, quando necessário, substituição do equipamento sem qualquer ônus ao(à) <strong>USUÁRIO(A)</strong>, exceto quando o dano decorrer comprovadamente de mau uso, negligência, imprudência ou descumprimento das condições aqui previstas;</li>
-            <li>Não será atribuída responsabilidade ao(à) <strong>USUÁRIO(A)</strong> por desgaste natural decorrente do uso regular, defeito de fabricação, caso fortuito ou força maior;</li>
-            <li>Ao término da prestação de serviço, do contrato individual de trabalho, ou mediante solicitação da <strong>EMPRESA</strong>, o(a) <strong>USUÁRIO(A)</strong> compromete-se a devolver o equipamento em perfeito estado no mesmo dia em que for comunicado ou comunique seu desligamento, resguardado o desgaste natural decorrente do uso normal.</li>
+            {clausulas_html}
         </ol>
 
         <div class="place-date">Niterói/RJ, {s_data}.</div>
@@ -1045,7 +1170,11 @@ def gerar_pdf_termo(rdo, sn, tipo, modelo, imei1, imei2, nome_coord, cpf_coord, 
     nome_arquivo = formatar_nome_pdf_cautela(rdo, sn)
     caminho_arquivo = os.path.join('Cautelas', nome_arquivo)
     with suprimir_warnings_glib():
-        HTML(string=html_content, url_fetcher=seguro_url_fetcher).write_pdf(caminho_arquivo)
+        # FIX: renderização explícita permite validar a paginação do termo antes de gravá-lo.
+        documento_pdf = HTML(string=html_content, url_fetcher=seguro_url_fetcher).render()
+        if modelo_pdf == 3 and len(documento_pdf.pages) != 1:
+            raise RuntimeError('O modelo 3 deve ser gerado em uma única página A4.')
+        documento_pdf.write_pdf(caminho_arquivo)
     return nome_arquivo
 
 
@@ -1064,7 +1193,7 @@ def cadastrar_usuario():
         email = request.form.get('email', '').strip()
         celular = request.form.get('celular', '').strip()
         setor = request.form.get('setor', 'Operações').strip()
-        base = request.form.get('base', 'Tank').strip()
+        base = normalizar_base_operacional(request.form.get('base'))
         trocar_senha = 1 if request.form.get('trocar_senha') == '1' else 0
 
         if not username or not senha:
@@ -1080,7 +1209,7 @@ def cadastrar_usuario():
             nome_completo=nome_completo if role == 'coordenador' else None,
             cpf_matricula=cpf if role == 'coordenador' else None,
             setor=setor if role == 'coordenador' else 'Operações',
-            base=base if role == 'coordenador' else 'Tank',
+            base=base if role == 'coordenador' else BASE_PADRAO,
             trocar_senha=trocar_senha,
             cpf=cpf if role == 'coordenador' else None,
             matricula=matricula if role == 'coordenador' else None,
@@ -1100,10 +1229,14 @@ def obter_categoria_equipamento(texto):
     """Identifica a categoria padronizada do equipamento a partir do nome ou descrição."""
     if not texto:
         return 'outro'
-    t = texto.lower()
+    t = normalizar_chave_equipamento(texto)
     if any(k in t for k in ['celular', 'smartphone', 'telefone', 'ptt', 'iphone']):
         return 'celular'
-    if any(k in t for k in ['camera', 'câmera', 'kodak', 'pixpro', 'fotogr', 'filmagem', 'gopro']):
+    # CAUSA: "Câmera" e "Câmera EX" recebiam a mesma categoria e podiam atender uma à outra.
+    # FIX: equipamentos EX recebem categoria própria antes da regra genérica de câmera.
+    if re.search(r'\bcamera\s+ex\b', t):
+        return 'camera_ex'
+    if any(k in t for k in ['camera', 'kodak', 'pixpro', 'fotogr', 'filmagem', 'gopro']):
         return 'camera'
     if any(k in t for k in ['notebook', 'laptop', 'computador', 'pc', 'macbook']):
         return 'notebook'
@@ -1115,11 +1248,11 @@ def obter_categoria_equipamento(texto):
         return 'monitor'
     if any(k in t for k in ['headset', 'fone', 'headphone', 'auricular']):
         return 'headset'
-    if any(k in t for k in ['radio', 'rádio', 'comunicador', 'vhf', 'uhf', 'ht', 'transceptor']):
+    if any(k in t for k in ['radio', 'comunicador', 'vhf', 'uhf', 'ht', 'transceptor']):
         return 'radio'
     if any(k in t for k in ['tablet', 'ipad', 'rugged']):
         return 'tablet'
-    if any(k in t for k in ['detector', 'multigás', 'multigas', 'gás', 'gas']):
+    if any(k in t for k in ['detector', 'multigas', 'gas']):
         return 'detector'
     return 'outro'
 
@@ -1132,9 +1265,10 @@ def tipos_sao_compativeis(tipo_equip, tipo_solicitado):
     cat2 = obter_categoria_equipamento(tipo_solicitado)
     if cat1 != 'outro' and cat2 != 'outro':
         return cat1 == cat2
-    t1 = tipo_equip.lower().strip()
-    t2 = tipo_solicitado.lower().strip()
-    return t1 in t2 or t2 in t1 or cat1 == cat2
+    t1 = normalizar_chave_equipamento(tipo_equip)
+    t2 = normalizar_chave_equipamento(tipo_solicitado)
+    # FIX: duas categorias livres não são automaticamente equivalentes; o nome também precisa corresponder.
+    return t1 in t2 or t2 in t1
 
 
 # --- ROTAS PRINCIPAIS DO SISTEMA (Acesso Restrito ao Administrador) ---
@@ -1148,7 +1282,7 @@ def home():
     
     cursor.execute('''
         SELECT id, tipo, modelo, patrimonio_sn, imei_1, imei_2, status, 
-               COALESCE(base, 'Tank') AS base,
+               COALESCE(base, 'C-TANK') AS base,
                COALESCE(alugado, 0) AS alugado,
                COALESCE(empresa_locadora, '') AS empresa_locadora,
                COALESCE(processador, '') AS processador,
@@ -1172,7 +1306,7 @@ def home():
             'imei_2': eq[5],
             'status': eq[6],
             'categoria': obter_categoria_equipamento(eq[1]),
-            'base': eq[7] or 'Tank',
+            'base': normalizar_base_operacional(eq[7]),
             'alugado': bool(eq[8]) if len(eq) > 8 else False,
             'empresa_locadora': eq[9] if len(eq) > 9 else '',
             'is_notebook': is_notebook,
@@ -1182,6 +1316,12 @@ def home():
             'sistema_operacional': eq[13] if len(eq) > 13 else '',
             'especificacoes': eq[14] if len(eq) > 14 else ''
         })
+    # FIX: o seletor de atendimento recebe os ativos em ordem alfabética por tipo e modelo.
+    equipamentos.sort(key=lambda item: (
+        normalizar_chave_equipamento(item['tipo']),
+        normalizar_chave_equipamento(item['modelo']),
+        item['id'],
+    ))
     
     cursor.execute('SELECT id, nome_completo, cpf_matricula FROM coordenadores ORDER BY id DESC')
     coordenadores_raw = cursor.fetchall()
@@ -1286,7 +1426,7 @@ def home():
                COALESCE(s.base, '') AS base_solicitacao,
                COALESCE(s.plataforma, '') AS plataforma_solicitacao,
                COALESCE(s.tipo_uso, 'Operação') AS tipo_uso_solicitacao,
-               COALESCE(e.base, 'Tank') AS base_equipamento
+               COALESCE(e.base, 'C-TANK') AS base_equipamento
         FROM cautelas c
         LEFT JOIN equipamentos e ON c.id_equipamento = e.id
         LEFT JOIN coordenadores co ON c.id_coordenador = co.id
@@ -1300,12 +1440,12 @@ def home():
         base_sol = cr[10] if len(cr) > 10 and cr[10] else ''
         plat_sol = cr[11] if len(cr) > 11 and cr[11] else ''
         tipo_uso_sol = cr[12] if len(cr) > 12 and cr[12] else 'Operação'
-        base_eq = cr[13] if len(cr) > 13 and cr[13] else 'Tank'
+        base_eq = normalizar_base_operacional(cr[13] if len(cr) > 13 else None)
 
         if cr[9]:  # id_solicitacao
             base_cautela = base_sol if base_sol else inferir_base_operacional(plat_sol, tipo_uso_sol)
         else:
-            base_cautela = base_eq or 'Tank'
+            base_cautela = base_eq or BASE_PADRAO
 
         cautelas.append({
             'id': cr[0],
@@ -1500,15 +1640,17 @@ def novo_equipamento():
 @admin_required
 def salvar_equipamento():
     tipo = (request.form.get('tipo') or '').strip()[:60]
+    # CAUSA: o cadastro antigo persistia "Outro" em vez do equipamento digitado pelo usuário.
+    # FIX: substitui a opção genérica pelo nome real antes da validação e da gravação.
+    if tipo == 'Outro':
+        tipo = (request.form.get('tipo_outro') or '').strip()[:60]
     modelo = (request.form.get('modelo') or '').strip()[:80]
     patrimonio = (request.form.get('patrimonio') or '').strip()[:60]
     patrimonio = patrimonio if patrimonio else None
 
     imei1 = (request.form.get('imei1') or '').strip()[:30]
     imei2 = (request.form.get('imei2') or '').strip()[:30]
-    base = (request.form.get('base') or 'Tank').strip()[:40]
-    if base not in ('Tank', 'TDBR', 'Repair', 'Escritório Central'):
-        base = 'Tank'
+    base = normalizar_base_operacional(request.form.get('base'))
     
     alugado_val = request.form.get('alugado')
     alugado = 1 if alugado_val in ('1', 'on', 'true', 'sim') else 0
@@ -1603,7 +1745,7 @@ def lista_equipamentos():
     cursor = conexao.cursor()
     cursor.execute('''
         SELECT id, tipo, modelo, patrimonio_sn, imei_1, imei_2, status, 
-               COALESCE(base, 'Tank') AS base,
+               COALESCE(base, 'C-TANK') AS base,
                COALESCE(alugado, 0) AS alugado,
                COALESCE(empresa_locadora, '') AS empresa_locadora,
                COALESCE(processador, '') AS processador,
@@ -1650,7 +1792,7 @@ def lista_equipamentos():
             'imei_1': r[4] or '',
             'imei_2': r[5] or '',
             'status': status,
-            'base': r[7] or 'Tank',
+            'base': normalizar_base_operacional(r[7]),
             'alugado': alugado,
             'empresa_locadora': r[9] or '',
             'processador': r[10] or '',
@@ -1674,6 +1816,65 @@ def lista_equipamentos():
     return render_template('equipamentos.html', equipamentos=equipamentos, metricas=metricas)
 
 
+@app.route('/equipamentos/<int:id_equipamento>/excluir', methods=['POST'])
+@login_required
+@admin_required
+def excluir_equipamento(id_equipamento):
+    """Remove definitivamente um ativo sem vínculos de auditoria."""
+    conexao = get_db_connection()
+    cursor = conexao.cursor()
+    try:
+        cursor.execute('SELECT tipo, modelo FROM equipamentos WHERE id = ?', (id_equipamento,))
+        equipamento = cursor.fetchone()
+        if not equipamento:
+            flash('Equipamento não encontrado ou já removido.', 'warning')
+            return redirect(url_for('lista_equipamentos'))
+
+        # CAUSA: a rota recusava todo ativo com cautela; por isso apenas o primeiro registro sem vínculo era apagado.
+        # FIX: a exclusão administrativa remove as cautelas dependentes na mesma transação e recalcula chamados abertos.
+        # ATENÇÃO: a confirmação da interface informa que a remoção inclui os vínculos do equipamento.
+        cursor.execute(
+            'SELECT DISTINCT id_solicitacao FROM cautelas WHERE id_equipamento = ? AND id_solicitacao IS NOT NULL',
+            (id_equipamento,),
+        )
+        solicitacoes_afetadas = [linha[0] for linha in cursor.fetchall()]
+        cursor.execute('SELECT COUNT(*) FROM cautelas WHERE id_equipamento = ?', (id_equipamento,))
+        total_cautelas = cursor.fetchone()[0]
+        cursor.execute('DELETE FROM cautelas WHERE id_equipamento = ?', (id_equipamento,))
+        cursor.execute('DELETE FROM equipamentos WHERE id = ?', (id_equipamento,))
+
+        for id_solicitacao in solicitacoes_afetadas:
+            cursor.execute('SELECT quantidade, status FROM solicitacoes WHERE id = ?', (id_solicitacao,))
+            solicitacao = cursor.fetchone()
+            if not solicitacao or solicitacao[1] not in ('Pendente', 'Em Atendimento', 'Esperando Entrega'):
+                continue
+            cursor.execute(
+                'SELECT COUNT(*) FROM cautelas WHERE id_solicitacao = ? AND data_hora_devolucao IS NULL',
+                (id_solicitacao,),
+            )
+            total_ativos = cursor.fetchone()[0]
+            novo_status = 'Pendente' if total_ativos == 0 else (
+                'Esperando Entrega' if total_ativos >= solicitacao[0] else 'Em Atendimento'
+            )
+            cursor.execute('UPDATE solicitacoes SET status = ? WHERE id = ?', (novo_status, id_solicitacao))
+
+        conexao.commit()
+        flash(
+            f"Equipamento '{equipamento[0]} - {equipamento[1]}' e {total_cautelas} cautela(s) "
+            'vinculada(s) removidos definitivamente.',
+            'success',
+        )
+    except sqlite3.IntegrityError:
+        conexao.rollback()
+        flash('Não foi possível excluir o equipamento porque existem registros vinculados.', 'warning')
+    except Exception:
+        conexao.rollback()
+        flash('Não foi possível excluir o equipamento. Nenhum dado foi alterado.', 'danger')
+    finally:
+        conexao.close()
+    return redirect(url_for('lista_equipamentos'))
+
+
 @app.route('/colaboradores')
 @login_required
 @admin_required
@@ -1690,7 +1891,7 @@ def colaboradores():
                COALESCE(u.username, '') AS username,
                COALESCE(c.cpf_matricula, '') AS cpf_matricula,
                (SELECT COUNT(*) FROM solicitacoes s WHERE s.id_coordenador = c.id) AS total_solicitacoes,
-               COALESCE(c.base, 'Tank') AS base,
+               COALESCE(c.base, 'C-TANK') AS base,
                COALESCE(u.role, 'coordenador') AS role,
                (SELECT COUNT(*) FROM solicitacoes s WHERE s.id_coordenador = c.id AND s.status = 'Pendente') AS solicitacoes_pendentes
         FROM coordenadores c
@@ -1720,7 +1921,7 @@ def colaboradores():
 
         setor_val = r[6] or 'Operações'
         setores_ativos.add(setor_val)
-        base_val = r[10] or 'Tank'
+        base_val = normalizar_base_operacional(r[10])
         bases_ativas.add(base_val)
         qtd_sol = r[9] or 0
         total_chamados += qtd_sol
@@ -1748,6 +1949,63 @@ def colaboradores():
     }
     
     return render_template('colaboradores.html', colaboradores=lista_colaboradores, metricas=metricas)
+
+
+@app.route('/colaboradores/<int:id_colaborador>/excluir', methods=['POST'])
+@login_required
+@admin_required
+def excluir_colaborador(id_colaborador):
+    """Remove coordenador/solicitante e seu login quando não há histórico vinculado."""
+    conexao = get_db_connection()
+    cursor = conexao.cursor()
+    try:
+        cursor.execute('''
+            SELECT c.nome_completo, COALESCE(u.role, 'coordenador')
+            FROM coordenadores c
+            LEFT JOIN usuarios u ON u.id = c.id
+            WHERE c.id = ?
+        ''', (id_colaborador,))
+        colaborador = cursor.fetchone()
+        if not colaborador:
+            flash('Coordenador/solicitante não encontrado ou já removido.', 'warning')
+            return redirect(url_for('colaboradores'))
+        if colaborador[1] == 'admin' or id_colaborador == current_user.id:
+            flash('Contas administrativas não podem ser excluídas por esta operação.', 'warning')
+            return redirect(url_for('colaboradores'))
+
+        # CAUSA: o bloqueio de vínculos fazia a segunda exclusão parecer inoperante.
+        # FIX: cautelas, solicitações, cadastro e login são removidos atomicamente pelo administrador.
+        # ATENÇÃO: equipamentos que estavam com o solicitante retornam ao status Disponível.
+        cursor.execute('SELECT COUNT(*) FROM solicitacoes WHERE id_coordenador = ?', (id_colaborador,))
+        total_solicitacoes = cursor.fetchone()[0]
+        cursor.execute('SELECT COUNT(*) FROM cautelas WHERE id_coordenador = ?', (id_colaborador,))
+        total_cautelas = cursor.fetchone()[0]
+        cursor.execute('''
+            SELECT DISTINCT id_equipamento FROM cautelas
+            WHERE id_coordenador = ? AND data_hora_devolucao IS NULL
+        ''', (id_colaborador,))
+        equipamentos_em_uso = [linha[0] for linha in cursor.fetchall() if linha[0] is not None]
+        cursor.execute('DELETE FROM cautelas WHERE id_coordenador = ?', (id_colaborador,))
+        cursor.execute('DELETE FROM solicitacoes WHERE id_coordenador = ?', (id_colaborador,))
+        for id_equipamento in equipamentos_em_uso:
+            cursor.execute("UPDATE equipamentos SET status = 'Disponível' WHERE id = ?", (id_equipamento,))
+        cursor.execute('DELETE FROM coordenadores WHERE id = ?', (id_colaborador,))
+        cursor.execute("DELETE FROM usuarios WHERE id = ? AND role = 'coordenador'", (id_colaborador,))
+        conexao.commit()
+        flash(
+            f"Coordenador/solicitante '{colaborador[0]}', {total_solicitacoes} solicitação(ões) e "
+            f'{total_cautelas} cautela(s) removidos definitivamente.',
+            'success',
+        )
+    except sqlite3.IntegrityError:
+        conexao.rollback()
+        flash('Não foi possível excluir o coordenador porque existem registros vinculados.', 'warning')
+    except Exception:
+        conexao.rollback()
+        flash('Não foi possível excluir o coordenador. Nenhum dado foi alterado.', 'danger')
+    finally:
+        conexao.close()
+    return redirect(url_for('colaboradores'))
 
 
 @app.route('/devolver/<int:id_equipamento>', methods=['POST'])
@@ -1820,7 +2078,7 @@ def historico():
     conexao = get_db_connection()
     cursor = conexao.cursor()
     
-    base_usuario = 'Tank'
+    base_usuario = BASE_PADRAO
     setor_usuario = 'Operações'
     id_coordenador = current_user.id
 
@@ -1832,7 +2090,7 @@ def historico():
         coord_row = cursor.fetchone()
         if coord_row:
             id_coordenador = coord_row[0]
-            base_usuario = coord_row[1] or 'Tank'
+            base_usuario = normalizar_base_operacional(coord_row[1])
             setor_usuario = coord_row[2] or 'Operações'
 
         cursor.execute('''
@@ -1843,7 +2101,7 @@ def historico():
                    COALESCE(s.base, '') AS base_solicitacao,
                    COALESCE(s.plataforma, '') AS plataforma_solicitacao,
                    COALESCE(s.tipo_uso, 'Operação') AS tipo_uso_solicitacao,
-                   COALESCE(e.base, 'Tank') AS base_equipamento
+                   COALESCE(e.base, 'C-TANK') AS base_equipamento
             FROM cautelas c
             LEFT JOIN equipamentos e ON c.id_equipamento = e.id
             LEFT JOIN coordenadores co ON c.id_coordenador = co.id
@@ -1861,7 +2119,7 @@ def historico():
                    COALESCE(s.base, '') AS base_solicitacao,
                    COALESCE(s.plataforma, '') AS plataforma_solicitacao,
                    COALESCE(s.tipo_uso, 'Operação') AS tipo_uso_solicitacao,
-                   COALESCE(e.base, 'Tank') AS base_equipamento
+                   COALESCE(e.base, 'C-TANK') AS base_equipamento
             FROM cautelas c
             LEFT JOIN equipamentos e ON c.id_equipamento = e.id
             LEFT JOIN coordenadores co ON c.id_coordenador = co.id
@@ -1880,12 +2138,12 @@ def historico():
         base_sol = cr[10] if len(cr) > 10 and cr[10] else ''
         plat_sol = cr[11] if len(cr) > 11 and cr[11] else ''
         tipo_uso_sol = cr[12] if len(cr) > 12 and cr[12] else 'Operação'
-        base_eq = cr[13] if len(cr) > 13 and cr[13] else 'Tank'
+        base_eq = normalizar_base_operacional(cr[13] if len(cr) > 13 else None)
 
         if cr[9]:  # id_solicitacao
             base_cautela = base_sol if base_sol else inferir_base_operacional(plat_sol, tipo_uso_sol)
         else:
-            base_cautela = base_eq or 'Tank'
+            base_cautela = base_eq or BASE_PADRAO
 
         # Se for coordenador (não-admin), restringe os registros exibidos estritamente à sua base cadastrada
         if current_user.role == 'coordenador':
@@ -1950,11 +2208,13 @@ def download_cautela(filename):
                c.data_hora_saida,
                COALESCE(e.processador, ''), COALESCE(e.memoria_ram, ''),
                COALESCE(e.armazenamento, ''), COALESCE(e.sistema_operacional, ''),
-               COALESCE(e.especificacoes, '')
+               COALESCE(e.especificacoes, ''),
+               COALESCE(s.tipo_uso, 'Base'), COALESCE(s.plataforma, '')
         FROM cautelas c
         LEFT JOIN equipamentos e ON c.id_equipamento = e.id
         LEFT JOIN coordenadores co ON c.id_coordenador = co.id
         LEFT JOIN usuarios u ON c.id_coordenador = u.id
+        LEFT JOIN solicitacoes s ON c.id_solicitacao = s.id
         ORDER BY c.id_cautela DESC
     ''')
     todas_cautelas = cursor.fetchall()
@@ -1999,9 +2259,10 @@ def download_cautela(filename):
     arquivo_alvo = None
     if cautela_info:
         try:
-            c_id, id_coord, rdo_v, sn_v, tipo, modelo, imei1, imei2, nome_c, cpf_c, dt_saida, proc, ram, arm, so, esp = cautela_info
+            c_id, id_coord, rdo_v, sn_v, tipo, modelo, imei1, imei2, nome_c, cpf_c, dt_saida, proc, ram, arm, so, esp, tipo_uso, destino_operacao = cautela_info
             nome_gerado = gerar_pdf_termo(rdo_v, sn_v, tipo or 'Equipamento', modelo or '', imei1, imei2, nome_c, cpf_c, dt_saida,
-                                          processador=proc, memoria_ram=ram, armazenamento=arm, sistema_operacional=so, especificacoes=esp)
+                                          processador=proc, memoria_ram=ram, armazenamento=arm, sistema_operacional=so,
+                                          especificacoes=esp, tipo_uso=tipo_uso, destino=destino_operacao)
             if os.path.exists(os.path.join(caminho_dir, nome_gerado)):
                 arquivo_alvo = nome_gerado
         except Exception as e:
@@ -2067,7 +2328,7 @@ def meus_chamados():
                COALESCE(s.base, '') AS base_solicitacao,
                COALESCE(s.plataforma, '') AS plataforma_solicitacao,
                COALESCE(s.tipo_uso, 'Operação') AS tipo_uso_solicitacao,
-               COALESCE(e.base, 'Tank') AS base_equipamento
+               COALESCE(e.base, 'C-TANK') AS base_equipamento
         FROM cautelas c
         LEFT JOIN equipamentos e ON c.id_equipamento = e.id
         LEFT JOIN coordenadores co ON c.id_coordenador = co.id
@@ -2165,9 +2426,9 @@ def meus_chamados():
         base_sol = reg[10] if len(reg) > 10 and reg[10] else ''
         plat_sol = reg[11] if len(reg) > 11 and reg[11] else ''
         tipo_uso_sol = reg[12] if len(reg) > 12 and reg[12] else 'Operação'
-        base_eq = reg[13] if len(reg) > 13 and reg[13] else 'Tank'
+        base_eq = normalizar_base_operacional(reg[13] if len(reg) > 13 else None)
 
-        base_cautela = base_sol if base_sol else (inferir_base_operacional(plat_sol, tipo_uso_sol) if plat_sol else (base_eq or 'Tank'))
+        base_cautela = base_sol if base_sol else (inferir_base_operacional(plat_sol, tipo_uso_sol) if plat_sol else (base_eq or BASE_PADRAO))
 
         if data_devolucao:
             status = 'Devolvido'
@@ -2221,31 +2482,31 @@ def solicitar_equipamento():
 
     id_coordenador = current_user.id
     cursor.execute('''
-        SELECT id, nome_completo, COALESCE(setor, 'Operações'), COALESCE(base, 'Tank') FROM coordenadores 
+        SELECT id, nome_completo, COALESCE(setor, 'Operações'), COALESCE(base, 'C-TANK') FROM coordenadores
         WHERE id = ? OR LOWER(nome_completo) = LOWER(?) OR LOWER(cpf_matricula) = LOWER(?)
     ''', (current_user.id, current_user.username, current_user.username))
     coord_row = cursor.fetchone()
     nome_coordenador = current_user.username
     setor_padrao = 'Operações'
-    base_padrao = 'Tank'
+    base_padrao = BASE_PADRAO
     if coord_row:
         id_coordenador = coord_row[0]
         nome_coordenador = coord_row[1]
         setor_padrao = coord_row[2] if len(coord_row) > 2 and coord_row[2] else 'Operações'
-        base_padrao = coord_row[3] if len(coord_row) > 3 and coord_row[3] else 'Tank'
+        base_padrao = normalizar_base_operacional(coord_row[3] if len(coord_row) > 3 else None)
     else:
         # Se for um usuário sem registro na tabela de coordenadores (ex: admin), cadastra para respeitar FK
         cursor.execute('SELECT id FROM coordenadores WHERE id = ?', (current_user.id,))
         if not cursor.fetchone():
             cursor.execute('''
                 INSERT INTO coordenadores (id, nome_completo, cpf_matricula, setor, base)
-                VALUES (?, ?, ?, 'TI (Tecnologia da Informação)', 'Tank')
-            ''', (current_user.id, current_user.username, f"ADM{current_user.id:06d}"))
+                VALUES (?, ?, ?, 'TI (Tecnologia da Informação)', ?)
+            ''', (current_user.id, current_user.username, f"ADM{current_user.id:06d}", BASE_PADRAO))
             conexao.commit()
         id_coordenador = current_user.id
         nome_coordenador = current_user.username
         setor_padrao = 'TI (Tecnologia da Informação)'
-        base_padrao = 'Tank'
+        base_padrao = BASE_PADRAO
 
     setor_lower = (setor_padrao or '').lower()
     is_ti = ('ti' in setor_lower or 'tecnologia' in setor_lower) or (current_user.role == 'admin')
@@ -2253,6 +2514,7 @@ def solicitar_equipamento():
 
     if request.method == 'POST':
         tipos = request.form.getlist('tipo_equipamento') or request.form.getlist('tipo_equipamento[]')
+        tipos_outros = request.form.getlist('tipo_equipamento_outro') or request.form.getlist('tipo_equipamento_outro[]')
         quantidades = request.form.getlist('quantidade') or request.form.getlist('quantidade[]')
         destinatario = (request.form.get('destinatario') or '').strip()[:100]
         tipo_uso = (request.form.get('tipo_uso') or 'Operação').strip()[:30]
@@ -2299,8 +2561,15 @@ def solicitar_equipamento():
         justificativa = (request.form.get('justificativa') or '').strip()[:500]
 
         itens_solicitados = []
-        for t, q in zip(tipos, quantidades):
+        outro_invalido = False
+        for indice, (t, q) in enumerate(zip(tipos, quantidades)):
             t_clean = (t or '').strip()[:100]
+            if t_clean == 'Outro':
+                descricao_outro = (tipos_outros[indice] if indice < len(tipos_outros) else '').strip()[:80]
+                if not descricao_outro:
+                    outro_invalido = True
+                    continue
+                t_clean = descricao_outro
             try:
                 q_int = int(q)
             except (ValueError, TypeError):
@@ -2309,6 +2578,11 @@ def solicitar_equipamento():
                 if q_int > 100:
                     q_int = 100
                 itens_solicitados.append((t_clean, q_int))
+
+        if outro_invalido:
+            flash("Informe qual equipamento você precisa em todas as linhas marcadas como 'Outro'.", "warning")
+            conexao.close()
+            return render_template('solicitar_equipamento.html', nome_coordenador=nome_coordenador, id_coordenador=id_coordenador, setor_padrao=setor_padrao, base_padrao=base_padrao, is_ti=is_ti, is_operacoes=is_operacoes)
 
         if not itens_solicitados or not destinatario or not plataforma:
             destino_txt = "unidade operacional" if tipo_uso == 'Operação' else "local/base"

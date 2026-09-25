@@ -46,7 +46,7 @@
             <div class="cv-glance-header">
                 <span class="cv-glance-label">Alugados</span>
             </div>
-            <div class="cv-glance-value" style="color:#7e22ce;">{{ metricas.alugados }}</div>
+            <div class="cv-glance-value" style="color:#8D9700;">{{ metricas.alugados }}</div>
         </div>
     </div>
     <div class="col-sm-6 col-lg-2">
@@ -76,15 +76,12 @@
 </div>
 
 <!-- Painel Principal de Inventário e Filtros -->
-<div class="surface-card" style="margin-bottom:var(--space-5);">
+<div class="surface-card cv-table-card" style="margin-bottom:var(--space-5);">
     <div class="surface-card-header cv-table-head">
         <div class="cv-table-head-main">
             <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
                 <span style="font-size:0.875rem; font-weight:700; color:var(--text-primary); text-transform:uppercase; letter-spacing:0.05em; font-family:var(--font-mono); line-height:1.2;">
                     Tabela de Ativos e Equipamentos
-                </span>
-                <span class="badge-notion badge-notion-gray" id="badgeContadorFiltrado" style="font-size:0.75rem; padding:2px 8px; font-weight:600;">
-                    {{ equipamentos|length }} ativos
                 </span>
             </div>
             <div style="font-size:0.8125rem; color:var(--text-muted);">
@@ -170,10 +167,9 @@
                 </label>
                 <select class="form-select form-select-sm" id="selectBaseEquip" onchange="aplicarFiltrosEquipamentos()">
                     <option value="todas" selected>Todas as Bases</option>
-                    <option value="Tank">Tank (Niterói)</option>
-                    <option value="TDBR">TDBR (Macaé)</option>
-                    <option value="Repair">Repair (Naval)</option>
-                    <option value="Escritório Central">Escritório Central</option>
+                    {% for base in bases_operacionais %}
+                    <option value="{{ base }}">{{ base }}</option>
+                    {% endfor %}
                 </select>
             </div>
 
@@ -204,7 +200,7 @@
     </div>
 
     <!-- Tabela de Inventário -->
-    <div style="overflow-x:auto;">
+    <div class="table-responsive">
         {% if equipamentos %}
         <table class="table table-hover align-middle table-enterprise cv-table-uniform mb-0" id="tabelaListaEquipamentos">
             <thead>
@@ -214,7 +210,7 @@
                     <th>Patrimônio / Serial (SN)</th>
                     <th>Base Operacional</th>
                     <th>Status</th>
-                    <th class="text-center pe-4" style="min-width:130px;">Ação</th>
+                    <th class="text-center pe-4" style="min-width:180px;">Ações</th>
                 </tr>
             </thead>
             <tbody>
@@ -289,7 +285,7 @@
                         <div style="display:flex; flex-direction:column; gap:2px;">
                             <div>
                                 {% if eq.patrimonio_sn %}
-                                <code style="font-size:0.8125rem; font-weight:700; color:var(--text-primary); background:rgba(0,0,0,0.04); padding:2px 6px; border-radius:2px; border:1px solid var(--border);">
+                                <code style="font-size:0.8125rem; font-weight:700; color:var(--text-primary); background:rgba(11, 13, 10, 0.04); padding:2px 6px; border-radius:2px; border:1px solid var(--border);">
                                     {{ eq.patrimonio_sn }}
                                 </code>
                                 {% else %}
@@ -307,27 +303,9 @@
                     </td>
 
                     <td>
-                        {% if eq.base == 'Tank' %}
-                        <span class="badge-notion badge-notion-blue">
-                            <i data-lucide="map-pin" style="width:12px; height:12px; margin-right:3px;"></i>Tank
-                        </span>
-                        {% elif eq.base == 'TDBR' %}
-                        <span class="badge-notion badge-notion-purple">
-                            <i data-lucide="map-pin" style="width:12px; height:12px; margin-right:3px;"></i>TDBR
-                        </span>
-                        {% elif eq.base == 'Repair' %}
-                        <span class="badge-notion badge-notion-orange">
-                            <i data-lucide="wrench" style="width:12px; height:12px; margin-right:3px;"></i>Repair
-                        </span>
-                        {% elif 'Central' in eq.base %}
-                        <span class="badge-notion badge-notion-gray">
-                            <i data-lucide="building" style="width:12px; height:12px; margin-right:3px;"></i>Central
-                        </span>
-                        {% else %}
                         <span class="badge-notion badge-notion-gray">
                             <i data-lucide="map-pin" style="width:12px; height:12px; margin-right:3px;"></i>{{ eq.base }}
                         </span>
-                        {% endif %}
                         {% if eq.alugado %}
                         <div style="margin-top:2px;">
                             <span class="badge-notion badge-notion-purple" style="font-size:0.68rem; padding:1px 5px;" title="Locadora: {{ eq.empresa_locadora }}">
@@ -352,6 +330,7 @@
                     </td>
 
                     <td class="text-center pe-4">
+                        <div style="display:inline-flex; align-items:center; justify-content:center; gap:6px;">
                         {% if eq.status in ('Em Operação', 'Em Operacao') %}
                         <form method="POST" action="/devolver/{{ eq.id }}" style="display:inline-block; margin:0;">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -364,6 +343,17 @@
                             <i data-lucide="check" class="text-success me-1"></i> No Estoque
                         </span>
                         {% endif %}
+                        <form method="POST" action="{{ url_for('excluir_equipamento', id_equipamento=eq.id) }}"
+                              data-confirm-delete="Remover definitivamente {{ eq.tipo }} - {{ eq.modelo }} e todas as cautelas vinculadas?"
+                              style="display:inline-block; margin:0;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="cv-btn-action cv-btn-action-secondary"
+                                    style="height:28px; width:30px; padding:0; cursor:pointer;"
+                                    title="Excluir equipamento do banco de dados">
+                                <i data-lucide="trash-2" style="width:13px; height:13px; color:var(--status-danger-text);"></i>
+                            </button>
+                        </form>
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}
@@ -427,7 +417,7 @@
 
             let condTexto = (!termo || busca.includes(termo));
             let condTipo = (tipoSel === 'todos' || tipo === tipoSel || (tipoSel === 'notebook' && isNotebook));
-            let condBase = (baseSel === 'todas' || base === baseSel || (baseSel === 'Central' && base.includes('Central')));
+            let condBase = (baseSel === 'todas' || base === baseSel);
             let condProp = (propSel === 'todas' || propriedade === propSel);
             let condStatus = (statusSel === 'todos' || status.toLowerCase().includes(statusSel.toLowerCase()));
 
@@ -446,11 +436,6 @@
             } else {
                 linhaVazia.classList.add('d-none');
             }
-        }
-
-        const badgeContador = document.getElementById('badgeContadorFiltrado');
-        if (badgeContador) {
-            badgeContador.textContent = `${visiveis} ativo(s) filtrado(s)`;
         }
 
         const infoRodape = document.getElementById('infoRodapeContagem');
@@ -499,6 +484,14 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
+        // CAUSA: exclusão definitiva não pode ocorrer por clique acidental.
+        // FIX: exige confirmação antes de enviar o POST administrativo protegido por CSRF.
+        document.querySelectorAll('form[data-confirm-delete]').forEach(function(formulario) {
+            formulario.addEventListener('submit', function(evento) {
+                const mensagem = formulario.getAttribute('data-confirm-delete') || 'Confirmar exclusão definitiva?';
+                if (!window.confirm(mensagem)) evento.preventDefault();
+            });
+        });
         if (window.lucide) {
             lucide.createIcons();
         }

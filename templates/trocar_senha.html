@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#f8fafc">
+    <meta name="theme-color" content="#F5F7F2">
     <meta name="description" content="Cavere — Primeiro Acesso e Redefinição de Senha Administrativa. Ambipar Industrial.">
     <title>Definir Nova Senha • Cavere Ambipar</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,20 +17,20 @@
             --font-mono: 'JetBrains Mono', monospace;
 
             /* Paleta Ambipar Industrial Light */
-            --background: #f8fafc;
-            --background-card: #ffffff;
-            --background-input: #ffffff;
-            --border: #e2e8f0;
-            --border-hover: #cbd5e1;
+            --background: #F5F7F2;
+            --background-card: #F5F7F2;
+            --background-input: #F5F7F2;
+            --border: #F5F7F2;
+            --border-hover: #F5F7F2;
             --border-focus: #CEDC00;
 
-            --text-primary: #0f172a;
-            --text-secondary: #475569;
-            --text-muted: #64748b;
+            --text-primary: #0B0D0A;
+            --text-secondary: #0B0D0A;
+            --text-muted: #CEDC00;
 
             --lime: #CEDC00;
-            --lime-hover: #b8c500;
-            --lime-dark: #484f00;
+            --lime-hover: #CEDC00;
+            --lime-dark: #8D9700;
             --lime-glow: rgba(206, 220, 0, 0.45);
             --lime-surface: rgba(206, 220, 0, 0.12);
 
@@ -66,7 +66,7 @@
             justify-content: center;
             min-height: 100vh;
             padding: 24px 16px;
-            background-color: #ffffff;
+            background-color: #F5F7F2;
             background-image: 
                 radial-gradient(circle at 92% 8%, rgba(206, 220, 0, 0.12) 0%, transparent 42%),
                 radial-gradient(circle at 8% 92%, rgba(206, 220, 0, 0.10) 0%, transparent 42%);
@@ -83,7 +83,7 @@
             z-index: 0;
             pointer-events: none;
             overflow: hidden;
-            background: #ffffff;
+            background: #F5F7F2;
         }
 
         .shader-canvas-container canvas {
@@ -100,7 +100,7 @@
             height: 100vh;
             z-index: 1;
             pointer-events: none;
-            background: radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.0) 65%);
+            background: radial-gradient(ellipse at 50% 50%, rgba(245, 247, 242, 0.4) 0%, rgba(245, 247, 242, 0.0) 65%);
         }
 
         .auth-container {
@@ -154,7 +154,7 @@
         }
 
         .brand-highlight {
-            color: #484f00;
+            color: #8D9700;
             font-weight: 700;
         }
 
@@ -188,7 +188,7 @@
             font-family: var(--font-mono);
             margin-bottom: 12px;
             border: 1px solid var(--border);
-            box-shadow: 0 4px 16px -4px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+            box-shadow: 0 4px 16px -4px rgba(11, 13, 10, 0.06), 0 1px 3px rgba(11, 13, 10, 0.04);
             position: relative;
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
@@ -219,7 +219,7 @@
 
         .auth-alert-close:hover {
             opacity: 1;
-            background-color: rgba(0, 0, 0, 0.08);
+            background-color: rgba(11, 13, 10, 0.08);
         }
 
         .auth-alert-close:active {
@@ -237,57 +237,57 @@
 
         /* Ambipar Technical Color System for Notifications */
         .auth-alert-info {
-            color: #303700 !important;
+            color: #8D9700 !important;
             border-color: rgba(206, 220, 0, 0.55) !important;
-            border-left: 3.5px solid #a6b500 !important;
-            background: rgba(251, 253, 230, 0.95) !important;
+            border-left: 3.5px solid #CEDC00 !important;
+            background: rgba(245, 247, 242, 0.95) !important;
         }
         .auth-alert-info i,
         .auth-alert-info svg {
-            color: #556000 !important;
+            color: #8D9700 !important;
         }
 
         .auth-alert-success {
-            color: #14532d !important;
-            border-color: #bbf7d0 !important;
-            border-left: 3.5px solid #16a34a !important;
-            background: rgba(240, 253, 244, 0.95) !important;
+            color: #8D9700 !important;
+            border-color: #E5ED66 !important;
+            border-left: 3.5px solid #CEDC00 !important;
+            background: rgba(245, 247, 242, 0.95) !important;
         }
         .auth-alert-success i,
         .auth-alert-success svg {
-            color: #16a34a !important;
+            color: #CEDC00 !important;
         }
 
         .auth-alert-warning {
-            color: #78350f !important;
-            border-color: #fde68a !important;
-            border-left: 3.5px solid #d97706 !important;
-            background: rgba(255, 251, 235, 0.95) !important;
+            color: #8D9700 !important;
+            border-color: #E5ED66 !important;
+            border-left: 3.5px solid #CEDC00 !important;
+            background: rgba(245, 247, 242, 0.95) !important;
         }
         .auth-alert-warning i,
         .auth-alert-warning svg {
-            color: #d97706 !important;
+            color: #CEDC00 !important;
         }
 
         .auth-alert-danger {
-            color: #7f1d1d !important;
-            border-color: #fecaca !important;
-            border-left: 3.5px solid #dc2626 !important;
-            background: rgba(254, 242, 242, 0.95) !important;
+            color: #8D9700 !important;
+            border-color: #E5ED66 !important;
+            border-left: 3.5px solid #8D9700 !important;
+            background: rgba(245, 247, 242, 0.95) !important;
         }
         .auth-alert-danger i,
         .auth-alert-danger svg {
-            color: #dc2626 !important;
+            color: #8D9700 !important;
         }
 
         .auth-card {
             width: 100%;
-            background: rgba(255, 255, 255, 0.92);
+            background: rgba(245, 247, 242, 0.92);
             backdrop-filter: blur(14px);
             -webkit-backdrop-filter: blur(14px);
-            border: 1px solid rgba(226, 232, 240, 0.95);
+            border: 1px solid rgba(245, 247, 242, 0.95);
             border-radius: 8px;
-            box-shadow: 0 20px 45px -12px rgba(15, 23, 42, 0.08), 0 2px 6px rgba(15, 23, 42, 0.04);
+            box-shadow: 0 20px 45px -12px rgba(11, 13, 10, 0.08), 0 2px 6px rgba(11, 13, 10, 0.04);
             overflow: hidden;
         }
 
@@ -321,10 +321,10 @@
             align-items: flex-start;
             gap: 10px;
             padding: 10px 12px;
-            background: #fffbeb;
-            border: 1px solid #fef08a;
+            background: #F5F7F2;
+            border: 1px solid #E5ED66;
             border-radius: var(--radius);
-            color: #92400e;
+            color: #8D9700;
             font-size: 0.775rem;
             margin-bottom: 20px;
             line-height: 1.4;
@@ -358,7 +358,7 @@
         }
 
         .cv-input-box:focus-within {
-            border-color: #a3bd00 !important;
+            border-color: #CEDC00 !important;
             box-shadow: 0 0 0 3px rgba(206, 220, 0, 0.28) !important;
         }
 
@@ -374,7 +374,7 @@
         }
 
         .cv-input-box:focus-within .cv-input-icon {
-            color: #484f00;
+            color: #8D9700;
         }
 
         .cv-input-field {
@@ -392,7 +392,11 @@
         }
 
         .cv-input-field::placeholder {
-            color: #94a3b8;
+            /* CAUSA: placeholders herdavam o verde de destaque e competiam visualmente com a ação principal. */
+            /* FIX: textos de orientação usam o cinza padrão do sistema. */
+            /* ATENÇÃO: mantenha o verde reservado para ações e estados ativos. */
+            color: #A8AEA4;
+            opacity: 1;
             font-size: 0.8125rem;
         }
 
@@ -435,7 +439,7 @@
             width: 100%;
             height: 42px;
             background: var(--lime);
-            color: #050505;
+            color: #0B0D0A;
             border: none;
             border-radius: var(--radius);
             font-size: 0.875rem;
@@ -464,7 +468,7 @@
 
         .auth-card-footer {
             padding: 12px 24px;
-            background: #f8fafc;
+            background: #F5F7F2;
             border-top: 1px solid var(--border);
             display: flex;
             align-items: center;
@@ -489,24 +493,24 @@
 
         /* CAVERE liquid glass alignment */
         body {
-            background: #ffffff;
+            background: #F5F7F2;
             background-image: 
                 radial-gradient(circle at 92% 8%, rgba(206, 220, 0, 0.12) 0%, transparent 42%),
                 radial-gradient(circle at 8% 92%, rgba(206, 220, 0, 0.10) 0%, transparent 42%);
         }
         .shader-canvas-container {
-            background: #ffffff;
+            background: #F5F7F2;
         }
         .shader-overlay {
-            background: radial-gradient(ellipse at 50% 50%, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.0) 65%);
+            background: radial-gradient(ellipse at 50% 50%, rgba(245, 247, 242, 0.4) 0%, rgba(245, 247, 242, 0.0) 65%);
         }
         .auth-card {
             position: relative;
             isolation: isolate;
-            background: linear-gradient(145deg, rgba(255,255,255,0.58), rgba(255,255,255,0.3));
-            border: 1px solid rgba(255,255,255,0.84);
+            background: linear-gradient(145deg, rgba(245, 247, 242, 0.58), rgba(245, 247, 242, 0.3));
+            border: 1px solid rgba(245, 247, 242, 0.84);
             border-radius: 20px;
-            box-shadow: 0 30px 75px -30px rgba(15,23,42,0.32), inset 2px 2px 0 rgba(255,255,255,0.7), inset -2px -2px 0 rgba(15,23,42,0.06);
+            box-shadow: 0 30px 75px -30px rgba(11, 13, 10, 0.32), inset 2px 2px 0 rgba(245, 247, 242, 0.7), inset -2px -2px 0 rgba(11, 13, 10, 0.06);
             backdrop-filter: blur(22px) saturate(175%);
             -webkit-backdrop-filter: blur(22px) saturate(175%);
         }
@@ -517,21 +521,198 @@
             z-index: 0;
             pointer-events: none;
             border-radius: inherit;
-            background: linear-gradient(135deg, rgba(255,255,255,0.56), transparent 24% 76%, rgba(206,220,0,0.08));
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.9);
+            background: linear-gradient(135deg, rgba(245, 247, 242, 0.56), transparent 24% 76%, rgba(206, 220, 0, 0.08));
+            box-shadow: inset 0 1px 0 rgba(245, 247, 242, 0.9);
         }
         .auth-card-body,
         .auth-card-footer { position: relative; z-index: 1; }
-        .auth-card-footer { background: rgba(255,255,255,0.35); border-color: rgba(255,255,255,0.72); }
+        .auth-card-footer { background: rgba(245, 247, 242, 0.35); border-color: rgba(245, 247, 242, 0.72); }
         .cv-input-box {
-            background: rgba(255,255,255,0.58);
-            border-color: rgba(255,255,255,0.9);
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 1px 3px rgba(15,23,42,0.08);
+            background: rgba(245, 247, 242, 0.58);
+            border-color: rgba(245, 247, 242, 0.9);
+            box-shadow: inset 0 1px 0 rgba(245, 247, 242, 0.9), 0 1px 3px rgba(11, 13, 10, 0.08);
             backdrop-filter: blur(12px) saturate(135%);
             -webkit-backdrop-filter: blur(12px) saturate(135%);
         }
+
+        /* Mantém o primeiro acesso no mesmo sistema visual da tela de login. */
+        :root { --radius: 9px; }
+        body {
+            background-color: #F5F7F2;
+            background-image: none;
+            min-height: 100svh;
+        }
+        .shader-overlay {
+            background: radial-gradient(ellipse at 50% 50%, rgba(245, 247, 242, 0.3) 0%, rgba(245, 247, 242, 0.08) 35%, transparent 64%);
+        }
+        .auth-container {
+            max-width: 430px;
+            margin: 0 auto;
+            justify-content: center;
+        }
+        .auth-brand {
+            width: 100%;
+            margin: 0 auto 30px;
+            position: relative;
+        }
+        .auth-brand-lockup {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .auth-brand-identity {
+            width: 100%;
+            min-width: 0;
+            text-align: center;
+        }
+        .auth-brand-overline {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            margin-bottom: 10px;
+            color: #CEDC00;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            line-height: 1;
+            text-transform: uppercase;
+        }
+        .auth-logo-text {
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            font-size: clamp(4.15rem, 12vw, 5.25rem);
+            font-weight: 850;
+            letter-spacing: -0.07em;
+            line-height: 0.88;
+            margin: 0;
+        }
+        .brand-meta {
+            display: flex;
+            width: 100%;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 14px;
+            font-family: var(--font-sans);
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: none;
+            letter-spacing: 0;
+            white-space: nowrap;
+        }
+        .brand-meta::before,
+        .brand-meta::after {
+            content: '';
+            height: 1px;
+            flex: 1;
+            border-radius: 99px;
+        }
+        .brand-meta::before { background: linear-gradient(90deg, transparent, var(--lime)); }
+        .brand-meta::after { background: linear-gradient(90deg, rgba(11, 13, 10, 0.24), transparent); }
+        .auth-card {
+            transform: translateZ(0);
+            background: linear-gradient(145deg, rgba(245, 247, 242, 0.5), rgba(245, 247, 242, 0.22));
+            border: 1px solid rgba(245, 247, 242, 0.82);
+            border-radius: 22px;
+            box-shadow: 0 32px 80px -30px rgba(11, 13, 10, 0.34), 0 12px 30px -18px rgba(11, 13, 10, 0.2), inset 2px 2px 0 rgba(245, 247, 242, 0.72), inset -2px -2px 0 rgba(11, 13, 10, 0.07), inset 0 0 34px rgba(245, 247, 242, 0.15);
+            backdrop-filter: blur(20px) saturate(185%) contrast(105%);
+            -webkit-backdrop-filter: blur(20px) saturate(185%) contrast(105%);
+        }
+        .auth-card-body { padding: 32px; }
+        .auth-card-title {
+            font-family: var(--font-sans);
+            font-size: 1.3rem;
+            font-weight: 680;
+            text-transform: none;
+            letter-spacing: -0.035em;
+        }
+        .auth-card-desc { font-size: 0.84rem; line-height: 1.55; }
+        .form-label {
+            font-family: var(--font-sans);
+            text-transform: none;
+            letter-spacing: 0;
+        }
+        .cv-input-box {
+            height: 44px;
+            background: rgba(245, 247, 242, 0.5);
+            border-color: rgba(245, 247, 242, 0.88);
+            border-radius: 9px;
+            box-shadow: inset 0 1px 0 rgba(245, 247, 242, 0.9), 0 1px 3px rgba(11, 13, 10, 0.09);
+        }
+        .cv-input-box:focus-within { box-shadow: 0 0 0 3px rgba(206, 220, 0, 0.16) !important; }
+        .cv-input-field { padding: 0 14px; }
+        .cv-input-field[type="password"]::-ms-reveal,
+        .cv-input-field[type="password"]::-ms-clear { display: none; width: 0; height: 0; }
+        .btn-submit {
+            height: 44px;
+            border-radius: 9px;
+            font-family: var(--font-sans);
+            text-transform: none;
+            letter-spacing: 0;
+            box-shadow: none;
+        }
+        .btn-submit:hover { box-shadow: 0 9px 22px rgba(206, 220, 0, 0.18); transform: translateY(-1px); }
+        .password-checklist { margin-top: 8px; }
+        .auth-system-footer {
+            width: 100%;
+            padding: 0;
+            font-family: var(--font-sans);
+            color: #0B0D0A;
+            background: transparent;
+            border: 0;
+            border-radius: 0;
+            box-shadow: none;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            text-shadow: 0 1px 1px rgba(245, 247, 242, 0.95), 0 0 10px rgba(245, 247, 242, 0.9), 0 1px 2px rgba(11, 13, 10, 0.14);
+        }
+        .auth-system-security { margin-top: 6px; font-size: 0.7rem; color: var(--text-muted); }
+        .auth-logout-link { color: var(--text-secondary); text-decoration: none; font-weight: 600; }
+        .auth-logout-link:hover { color: var(--text-primary); }
+        @media (max-width: 480px) {
+            .auth-card-body { padding: 26px 20px; }
+            .auth-brand { margin-bottom: 26px; }
+            .auth-logo-text { font-size: clamp(3.45rem, 17vw, 4.25rem); }
+            .brand-meta { margin-top: 12px; font-size: 0.76rem; gap: 7px; }
+        }
         @media (prefers-reduced-motion: reduce) {
             .password-texture-fold { animation: none !important; }
+        }
+        /* CAUSA: a troca de senha mantinha cores independentes da identidade visual principal. */
+        /* FIX: reutiliza preto, cinza, branco e os três tons institucionais de verde. */
+        :root {
+            --background: #F5F7F2;
+            --background-card: #F5F7F2;
+            --background-input: #F5F7F2;
+            --border: rgba(168, 174, 164, 0.34);
+            --border-hover: rgba(168, 174, 164, 0.55);
+            --border-focus: #CEDC00;
+            --text-primary: #0B0D0A;
+            --text-secondary: #A8AEA4;
+            --text-muted: #A8AEA4;
+            --lime: #CEDC00;
+            --lime-hover: #E5ED66;
+        }
+
+        .auth-alert-info,
+        .auth-alert-success,
+        .auth-alert-warning,
+        .auth-alert-danger {
+            color: #0B0D0A !important;
+            background: rgba(206, 220, 0, 0.12) !important;
+            border-color: rgba(141, 151, 0, 0.45) !important;
+        }
+
+        .auth-alert-info i,
+        .auth-alert-success i,
+        .auth-alert-warning i,
+        .auth-alert-danger i,
+        .auth-alert-info svg,
+        .auth-alert-success svg,
+        .auth-alert-warning svg,
+        .auth-alert-danger svg {
+            color: #8D9700 !important;
         }
     </style>
 </head>
@@ -640,9 +821,9 @@
             return [r,g,b];
         }
         /* ASSUMI: mesma paleta do login — verde pastel muito claro e luminoso */
-        var c0 = hexToVec3('#e5f782'); /* verde-lima etéreo */
-        var c1 = hexToVec3('#f2fbc0'); /* quase branco-lima luminoso */
-        var c2 = hexToVec3('#def56b'); /* verde-lima pastel delicado */
+        var c0 = hexToVec3('#E5ED66'); /* verde-lima etéreo */
+        var c1 = hexToVec3('#E5ED66'); /* quase branco-lima luminoso */
+        var c2 = hexToVec3('#E5ED66'); /* verde-lima pastel delicado */
 
         var uTime       = gl.getUniformLocation(prog, 'uTime');
         var uAmplitude  = gl.getUniformLocation(prog, 'uAmplitude');
@@ -712,44 +893,24 @@
         {% endwith %}
 
         <div class="auth-brand">
-            <div class="auth-logo-particles-wrap" id="cavereLogoWrap">
-                <canvas id="cavereLogoCanvas" class="cavere-particles-canvas" aria-label="CAVERE"></canvas>
-                <h1 class="visually-hidden">CAVERE</h1>
-            </div>
-            <div class="brand-meta">
-                <span class="pulse-live"></span>
-                <span class="brand-highlight">Ambipar Industrial</span>
-                <span>//</span>
-                <span>Sistema T.I</span>
+            <div class="auth-brand-lockup">
+                <div class="auth-brand-identity">
+                    <div class="auth-brand-overline">Cautela &amp; Inventário</div>
+                    <h1 class="auth-logo-text">CAVERE</h1>
+                    <div class="brand-meta">
+                        <span class="brand-highlight">Ambipar Industrial</span>
+                        <span>//</span>
+                        <span>Sistema T.I</span>
+                    </div>
+                </div>
             </div>
         </div>
 
         <div class="auth-card">
             <div class="auth-card-body">
                 <div class="auth-card-heading">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                        {% if current_user.role == 'admin' %}
-                        <span class="badge" style="background:#f3e8ff; color:#7e22ce; border:1px solid #e9d5ff; font-size:0.75rem; font-weight:600; font-family:var(--font-mono);">
-                            <i data-lucide="shield" class="me-1" style="width:0.8rem; height:0.8rem;"></i>Admin: <strong>{{ current_user.username }}</strong>
-                        </span>
-                        {% else %}
-                        <span class="badge" style="background:#f1f5f9; color:#0f172a; border:1px solid #e2e8f0; font-size:0.75rem; font-weight:600; font-family:var(--font-mono);">
-                            <i data-lucide="badge-check" class="me-1" style="width:0.8rem; height:0.8rem; color:#484f00;"></i>Coordenador: <strong>{{ current_user.username }}</strong>
-                        </span>
-                        {% endif %}
-                        <span class="badge" style="background:#fef3c7; color:#b45309; border:1px solid #fde68a; font-size:0.7rem; font-weight:700; font-family:var(--font-mono);">
-                            1º ACESSO OBRIGATÓRIO
-                        </span>
-                    </div>
-                    <h2 class="auth-card-title">Redefinir Senha de Acesso</h2>
-                    <p class="auth-card-desc">Substitua a credencial padrão temporária antes de acessar o sistema operacional.</p>
-                </div>
-
-                <div class="policy-callout">
-                    <i data-lucide="shield-alert" class="flex-shrink-0 mt-1" style="width:1.1rem; height:1.1rem;"></i>
-                    <div>
-                        <strong>Diretriz de Segurança:</strong> Novos usuários devem cadastrar uma senha pessoal definitiva para liberar o acesso ao sistema.
-                    </div>
+                    <h2 class="auth-card-title">Definir nova senha</h2>
+                    <p class="auth-card-desc">Primeiro acesso de <strong>{{ current_user.username }}</strong>. Substitua a senha temporária para continuar.</p>
                 </div>
 
                 <form action="/trocar-senha" method="POST" id="formTrocarSenha">
@@ -758,11 +919,10 @@
                     <div class="form-group">
                         <label class="form-label" for="inputSenhaAtual">Senha Temporária Atual</label>
                         <div class="cv-input-box">
-                            <span class="cv-input-icon"><i data-lucide="key"></i></span>
                             <input type="password" class="cv-input-field" id="inputSenhaAtual" name="senha_atual"
                                    placeholder="Senha temporária fornecida pelo administrador" required autofocus autocomplete="current-password">
-                            <button type="button" class="btn-toggle-pw" data-action="toggle-pw" data-target="inputSenhaAtual" title="Exibir ou ocultar senha" tabindex="-1">
-                                <i data-lucide="eye"></i>
+                            <button type="button" class="btn-toggle-pw" data-action="toggle-pw" data-target="inputSenhaAtual" title="Exibir senha" aria-label="Exibir senha" aria-pressed="false">
+                                <i data-lucide="eye" class="icone-senha-exibir"></i><i data-lucide="eye-off" class="icone-senha-ocultar d-none"></i>
                             </button>
                         </div>
                     </div>
@@ -770,51 +930,43 @@
                     <div class="form-group">
                         <label class="form-label" for="inputNovaSenha">Nova Senha Definitiva</label>
                         <div class="cv-input-box">
-                            <span class="cv-input-icon"><i data-lucide="lock"></i></span>
                             <input type="password" class="cv-input-field" id="inputNovaSenha" name="nova_senha"
                                    placeholder="Digite sua nova senha segura" required autocomplete="new-password">
-                            <button type="button" class="btn-toggle-pw" data-action="toggle-pw" data-target="inputNovaSenha" title="Exibir ou ocultar senha" tabindex="-1">
-                                <i data-lucide="eye"></i>
+                            <button type="button" class="btn-toggle-pw" data-action="toggle-pw" data-target="inputNovaSenha" title="Exibir senha" aria-label="Exibir senha" aria-pressed="false">
+                                <i data-lucide="eye" class="icone-senha-exibir"></i><i data-lucide="eye-off" class="icone-senha-ocultar d-none"></i>
                             </button>
                         </div>
                         <div class="password-checklist">
-                            <span class="password-checklist-item"><i data-lucide="check" style="width:0.75rem; height:0.75rem; color:#484f00;"></i> Mínimo de 4 caracteres</span>
-                            <span class="password-checklist-item"><i data-lucide="check" style="width:0.75rem; height:0.75rem; color:#484f00;"></i> Diferente da senha temporária</span>
+                            <span class="password-checklist-item"><i data-lucide="check" style="width:0.75rem; height:0.75rem; color:#8D9700;"></i> Mínimo de 4 caracteres</span>
+                            <span class="password-checklist-item"><i data-lucide="check" style="width:0.75rem; height:0.75rem; color:#8D9700;"></i> Diferente da senha temporária</span>
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label" for="inputConfirmarSenha">Confirmar Nova Senha</label>
                         <div class="cv-input-box">
-                            <span class="cv-input-icon"><i data-lucide="check-circle"></i></span>
                             <input type="password" class="cv-input-field" id="inputConfirmarSenha" name="confirmar_senha"
                                    placeholder="Repita exatamente a nova senha" required autocomplete="new-password">
-                            <button type="button" class="btn-toggle-pw" data-action="toggle-pw" data-target="inputConfirmarSenha" title="Exibir ou ocultar senha" tabindex="-1">
-                                <i data-lucide="eye"></i>
+                            <button type="button" class="btn-toggle-pw" data-action="toggle-pw" data-target="inputConfirmarSenha" title="Exibir senha" aria-label="Exibir senha" aria-pressed="false">
+                                <i data-lucide="eye" class="icone-senha-exibir"></i><i data-lucide="eye-off" class="icone-senha-ocultar d-none"></i>
                             </button>
                         </div>
                     </div>
 
                     <button type="submit" class="btn-submit" id="btnSalvarSenha">
-                        <span>Salvar Nova Senha &amp; Liberar Acesso</span>
+                        <span>Salvar nova senha</span>
                         <i data-lucide="arrow-right" style="width:1.15rem; height:1.15rem;"></i>
                     </button>
                 </form>
-            </div>
-
-            <div class="auth-card-footer">
-                <span style="color:var(--text-muted);">Suporte:</span>
-                <a href="/logout" style="color:var(--text-secondary); text-decoration:none; font-weight:600; display:inline-flex; align-items:center; gap:4px;">
-                    <i data-lucide="log-out" style="width:0.9rem; height:0.9rem;"></i> Sair da conta
-                </a>
             </div>
         </div>
 
         <div class="auth-system-footer">
             <div><strong>Cavere</strong> &bull; Gestão e Controle Patrimonial</div>
-            <div style="font-size:0.7rem; color:var(--text-muted); margin-top:4px;">
+            <div class="auth-system-security">
                 Ambiente seguro com acesso restrito a colaboradores autorizados
             </div>
+            <div style="margin-top:6px;"><a href="/logout" class="auth-logout-link">Sair da conta</a></div>
         </div>
 
     </div>
@@ -828,20 +980,13 @@
         function toggleSenhaVisibilidade(inputId, btn) {
             const input = document.getElementById(inputId);
             if (input && btn) {
-                const icon = document.createElement('i');
-                if (input.type === 'password') {
-                    input.type = 'text';
-                    icon.setAttribute('data-lucide', 'eye-off');
-                    btn.setAttribute('title', 'Ocultar senha');
-                } else {
-                    input.type = 'password';
-                    icon.setAttribute('data-lucide', 'eye');
-                    btn.setAttribute('title', 'Exibir senha');
-                }
-                btn.replaceChildren(icon);
-                if (window.lucide) {
-                    lucide.createIcons();
-                }
+                const vaiExibir = input.type === 'password';
+                input.type = vaiExibir ? 'text' : 'password';
+                btn.querySelector('.icone-senha-exibir')?.classList.toggle('d-none', vaiExibir);
+                btn.querySelector('.icone-senha-ocultar')?.classList.toggle('d-none', !vaiExibir);
+                btn.setAttribute('title', vaiExibir ? 'Ocultar senha' : 'Exibir senha');
+                btn.setAttribute('aria-label', vaiExibir ? 'Ocultar senha' : 'Exibir senha');
+                btn.setAttribute('aria-pressed', vaiExibir ? 'true' : 'false');
             }
         }
 
@@ -854,7 +999,7 @@
                 spinner.className = 'spinner-border spinner-border-sm';
                 spinner.setAttribute('role', 'status');
                 spinner.setAttribute('aria-hidden', 'true');
-                spinner.style.color = '#050505';
+                spinner.style.color = '#0B0D0A';
                 const label = document.createElement('span');
                 label.textContent = 'Salvando nova credencial...';
                 btnSalvar.replaceChildren(spinner, label);
@@ -927,7 +1072,7 @@
                 if (!offCtx) return;
 
                 const fontSize = logicalWidth < 340 ? 44 : 50;
-                offCtx.fillStyle = '#000000';
+                offCtx.fillStyle = '#0B0D0A';
                 offCtx.textAlign = 'center';
                 offCtx.textBaseline = 'middle';
 
@@ -985,8 +1130,8 @@
                                 baseX: x,
                                 baseY: y,
                                 size: Math.random() * 0.3 + 1.65, // Dense, tightly joined points
-                                color: '#000000',
-                                scatteredColor: '#262626',
+                                color: '#0B0D0A',
+                                scatteredColor: '#0B0D0A',
                                 phase: Math.random() * Math.PI * 2
                             });
                         }

@@ -78,7 +78,7 @@
 </div>
 
 <!-- Fila de Solicitações Operacionais (Feed Card) -->
-<div class="surface-card" style="margin-bottom:var(--space-5);" id="secaoSolicitacoes">
+<div class="surface-card cv-table-card" style="margin-bottom:var(--space-5);" id="secaoSolicitacoes">
     <!-- Barra Superior: Título à esquerda e Ações/Exportar à direita -->
     <div class="surface-card-header cv-table-head"
         style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--space-3); padding:16px 20px; border-bottom:1px solid var(--border-subtle);">
@@ -88,8 +88,6 @@
                     style="font-size:0.875rem; font-weight:700; color:var(--text-primary); text-transform:uppercase; letter-spacing:0.05em; font-family:var(--font-mono); line-height:1.2;">
                     Fila de Solicitações Operacionais
                 </span>
-                <span class="badge-notion badge-notion-gray"
-                    style="font-size:0.75rem; padding:2px 8px; font-weight:600;">{{ solicitacoes|length }}</span>
             </div>
             <div style="font-size:0.8125rem; color:var(--text-muted); line-height:1.4;">Chamados de equipamentos abertos
                 pelos coordenadores de campo</div>
@@ -142,59 +140,51 @@
         </div>
     </div>
 
-    <!-- Barra de Filtros e Pesquisa da Fila: Espaçosa, responsiva e imune a quebras forçadas de layout -->
-    <div class="fila-controles-bar cv-table-toolbar"
-        style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--space-2); padding:12px 20px; background:var(--bg-subtle, rgba(255,255,255,0.02)); border-bottom:1px solid var(--border-subtle);">
-        <div class="cv-table-toolbar-main">
-            <div class="input-group input-group-sm cv-table-search">
-                <span class="input-group-text"><i data-lucide="search"></i></span>
-                <input type="text" id="buscaSolicitacoesAdmin" class="form-control"
-                    placeholder="Buscar chamado, coord, base..." value="{{ request.args.get('busca', '') }}">
-                <button class="btn btn-outline-secondary {% if not request.args.get('busca') %}d-none{% endif %}"
-                    type="button" id="btnLimparBuscaSolAdmin" data-action="limpar-busca-solicitacoes"
-                    title="Limpar busca">
-                    <i data-lucide="x"></i>
-                </button>
+    <!-- CAUSA: busca, status e base usavam grupos de botões desalinhados do padrão das demais tabelas. -->
+    <!-- FIX: a fila adota a mesma grade horizontal com rótulos superiores e seletores compactos. -->
+    <div class="fila-controles-bar cv-table-toolbar">
+        <div class="row g-2 align-items-end w-100">
+            <div class="col-12 col-md-6">
+                <label class="form-label" for="buscaSolicitacoesAdmin" style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px;">
+                    Buscar Chamado / Coordenador / Base
+                </label>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text"><i data-lucide="search"></i></span>
+                    <input type="text" id="buscaSolicitacoesAdmin" class="form-control"
+                        placeholder="Digite chamado, coordenador ou base..." value="{{ request.args.get('busca', '') }}">
+                    <button class="btn btn-outline-secondary {% if not request.args.get('busca') %}d-none{% endif %}"
+                        type="button" id="btnLimparBuscaSolAdmin" data-action="limpar-busca-solicitacoes"
+                        title="Limpar busca">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
             </div>
-
-            <div class="cv-filtro-group" role="group" id="grupoFiltroSolicitacoes">
-                <button type="button" class="btn btn-secondary active" id="filtroSol-todos"
-                    data-action="filtrar-chamados" data-filtro="todos">
-                    Todos [{{ solicitacoes|length }}]
-                </button>
-                <button type="button" class="btn btn-secondary" id="filtroSol-abertos" data-action="filtrar-chamados"
-                    data-filtro="abertos">
-                    Em Aberto
-                </button>
-                <button type="button" class="btn btn-secondary" id="filtroSol-finalizados"
-                    data-action="filtrar-chamados" data-filtro="finalizados">
-                    Finalizados
-                </button>
+            <div class="col-6 col-md-3">
+                <label class="form-label" for="selectStatusChamadosAdmin" style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px;">
+                    Status
+                </label>
+                <select class="form-select form-select-sm" id="selectStatusChamadosAdmin">
+                    <option value="todos" selected>Todos [{{ solicitacoes|length }}]</option>
+                    <option value="abertos">Em Aberto</option>
+                    <option value="finalizados">Finalizados</option>
+                </select>
             </div>
-        </div>
-
-        <div class="cv-filtro-group cv-table-filters d-none d-md-inline-flex" role="group" id="grupoFiltroBaseAdmin"
-            title="Filtrar chamados por Base">
-            <button type="button" class="btn btn-secondary active" data-action="filtrar-chamados-base"
-                data-base="todas">
-                Todas Bases
-            </button>
-            <button type="button" class="btn btn-secondary" data-action="filtrar-chamados-base" data-base="Tank">
-                Tank
-            </button>
-            <button type="button" class="btn btn-secondary" data-action="filtrar-chamados-base" data-base="TDBR">
-                TDBR
-            </button>
-            <button type="button" class="btn btn-secondary" data-action="filtrar-chamados-base" data-base="Repair">
-                Repair
-            </button>
-            <button type="button" class="btn btn-secondary" data-action="filtrar-chamados-base" data-base="Operação">
-                Operação
-            </button>
+            <div class="col-6 col-md-3">
+                <label class="form-label" for="selectBaseChamadosAdmin" style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px;">
+                    Base Operacional
+                </label>
+                <select class="form-select form-select-sm" id="selectBaseChamadosAdmin">
+                    <option value="todas" selected>Todas as Bases</option>
+                    <option value="Operação">Operação</option>
+                    {% for base in bases_operacionais %}
+                    <option value="{{ base }}">{{ base }}</option>
+                    {% endfor %}
+                </select>
+            </div>
         </div>
     </div>
 
-    <div style="overflow-x:auto;">
+    <div class="table-responsive">
         {% if solicitacoes %}
         <table class="table table-hover align-middle table-enterprise cv-table-uniform mb-0">
             <thead>
@@ -289,23 +279,9 @@
                     <td>
                         <div style="display:flex; align-items:center; gap:5px; margin-bottom:3px; flex-wrap:wrap;">
                             {% if s.tipo_uso == 'Base' %}
-                            {% if s.base == 'Tank' or 'tank' in (s.plataforma|lower) %}
-                            <span class="badge-notion badge-notion-blue"
-                                style="font-size:0.65rem; padding:1px 6px;">Tank</span>
-                            {% elif s.base == 'TDBR' or 'tdbr' in (s.plataforma|lower) %}
-                            <span class="badge-notion badge-notion-orange"
-                                style="font-size:0.65rem; padding:1px 6px;">TDBR</span>
-                            {% elif s.base == 'Repair' or 'repair' in (s.plataforma|lower) %}
-                            <span class="badge-notion badge-notion-green"
-                                style="font-size:0.65rem; padding:1px 6px;">Repair</span>
-                            {% elif 'central' in (s.plataforma|lower) %}
                             <span class="badge-notion badge-notion-gray"
-                                style="font-size:0.65rem; padding:1px 6px;">Central</span>
-                            {% else %}
-                            <span class="badge-notion badge-notion-purple"
                                 style="font-size:0.65rem; padding:1px 6px;"><i data-lucide="building-2" class="me-1"
-                                    style="width:11px;height:11px;"></i>Base</span>
-                            {% endif %}
+                                    style="width:11px;height:11px;"></i>{{ s.base }}</span>
                             {% else %}
                             <span class="badge-notion badge-notion-blue" style="font-size:0.65rem; padding:1px 6px;"><i
                                     data-lucide="anchor" class="me-1"
@@ -378,7 +354,7 @@
 </div>
 
 <!-- Seção: Lista de Equipamentos & Inventário da Base no Dashboard do Administrador -->
-<div class="surface-card" style="margin-bottom:var(--space-5);" id="secaoInventarioAdmin">
+<div class="surface-card cv-table-card" style="margin-bottom:var(--space-5);" id="secaoInventarioAdmin">
     <div class="surface-card-header cv-table-head">
         <div class="cv-table-head-main">
             <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
@@ -386,8 +362,6 @@
                     style="font-size:0.875rem; font-weight:700; color:var(--text-primary); text-transform:uppercase; letter-spacing:0.05em; font-family:var(--font-mono); line-height:1.2;">
                     Inventário de Equipamentos na Base
                 </span>
-                <span class="badge-notion badge-notion-gray" id="badgeContadorEquipDash"
-                    style="font-size:0.75rem; padding:2px 8px; font-weight:600;">{{ equipamentos|length }} ativos</span>
             </div>
             <div style="font-size:0.8125rem; color:var(--text-muted); line-height:1.4;">
                 Visão rápida de estoque, notebooks, ativos alugados e devoluções imediatas
@@ -431,28 +405,39 @@
         </div>
     </div>
 
+    <!-- CAUSA: o inventário resumido ainda usava botões laterais para Base. -->
+    <!-- FIX: busca e Base seguem a mesma grade e o mesmo seletor das tabelas completas. -->
     <div class="cv-table-toolbar">
-        <div class="cv-table-toolbar-main">
-            <div class="input-group input-group-sm cv-table-search">
-                <span class="input-group-text"><i data-lucide="search"></i></span>
-                <input type="text" id="buscaEquipAdminDash" class="form-control"
-                    placeholder="Buscar modelo, SN, base..." oninput="filtrarEquipamentosAdminDash()">
-                <button class="btn btn-outline-secondary" type="button" id="btnLimparBuscaEquipDash"
-                    data-action="limpar-busca-equip" style="display:none;" title="Limpar busca">
-                    <i data-lucide="x"></i>
-                </button>
+        <div class="row g-2 align-items-end w-100">
+            <div class="col-12 col-md-8">
+                <label class="form-label" for="buscaEquipAdminDash" style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px;">
+                    Buscar Modelo / Serial (SN) / Base
+                </label>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text"><i data-lucide="search"></i></span>
+                    <input type="text" id="buscaEquipAdminDash" class="form-control"
+                        placeholder="Digite modelo, serial ou base...">
+                    <button class="btn btn-outline-secondary" type="button" id="btnLimparBuscaEquipDash"
+                        data-action="limpar-busca-equip" style="display:none;" title="Limpar busca">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
             </div>
-        </div>
-        <div class="cv-filtro-group cv-table-filters" role="group" id="grupoFiltroBaseEquipDash" title="Filtrar por Base">
-            <button type="button" class="btn btn-secondary active" data-action="filtrar-equip-base" data-base="todas">Todas</button>
-            <button type="button" class="btn btn-secondary" data-action="filtrar-equip-base" data-base="Tank">Tank</button>
-            <button type="button" class="btn btn-secondary" data-action="filtrar-equip-base" data-base="TDBR">TDBR</button>
-            <button type="button" class="btn btn-secondary" data-action="filtrar-equip-base" data-base="Repair">Repair</button>
-            <button type="button" class="btn btn-secondary" data-action="filtrar-equip-base" data-base="Central">Central</button>
+            <div class="col-12 col-md-4">
+                <label class="form-label" for="selectBaseEquipAdminDash" style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px;">
+                    Base Operacional
+                </label>
+                <select class="form-select form-select-sm" id="selectBaseEquipAdminDash">
+                    <option value="todas" selected>Todas as Bases</option>
+                    {% for base in bases_operacionais %}
+                    <option value="{{ base }}">{{ base }}</option>
+                    {% endfor %}
+                </select>
+            </div>
         </div>
     </div>
 
-    <div style="overflow-x:auto;">
+    <div class="table-responsive">
         {% if equipamentos %}
         <table class="table table-hover align-middle table-enterprise cv-table-uniform mb-0"
             id="tabelaEquipamentosAdminDash">
@@ -489,7 +474,7 @@
                     <td>
                         {% if eq.patrimonio_sn %}
                         <code
-                            style="font-size:0.8125rem; font-weight:700; color:var(--text-primary); background:rgba(0,0,0,0.04); padding:2px 6px; border-radius:2px; border:1px solid var(--border);">
+                            style="font-size:0.8125rem; font-weight:700; color:var(--text-primary); background:rgba(11, 13, 10, 0.04); padding:2px 6px; border-radius:2px; border:1px solid var(--border);">
                             {{ eq.patrimonio_sn }}
                         </code>
                         {% else %}
@@ -548,7 +533,7 @@
     </div>
 
     <div class="surface-card-footer"
-        style="padding:10px 20px; background:#fafafa; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; font-size:0.8125rem;">
+        style="padding:10px 20px; display:flex; justify-content:space-between; align-items:center; font-size:0.8125rem;">
         <span class="text-muted" id="infoRodapeEquipDash">
             Total de <strong>{{ equipamentos|length }}</strong> equipamentos cadastrados na base.
         </span>
@@ -713,19 +698,15 @@
                         title="Filtrar inventário por Base">
                         <button type="button" class="btn btn-secondary active" data-action="filtrar-inv-base"
                             data-base="todas">Todas Bases</button>
+                        {% for base in bases_operacionais %}
                         <button type="button" class="btn btn-secondary" data-action="filtrar-inv-base"
-                            data-base="Tank">Tank</button>
-                        <button type="button" class="btn btn-secondary" data-action="filtrar-inv-base"
-                            data-base="TDBR">TDBR</button>
-                        <button type="button" class="btn btn-secondary" data-action="filtrar-inv-base"
-                            data-base="Repair">Repair</button>
-                        <button type="button" class="btn btn-secondary" data-action="filtrar-inv-base"
-                            data-base="Central">Central</button>
+                            data-base="{{ base }}">{{ base }}</button>
+                        {% endfor %}
                     </div>
                     </div>
                 </div>
 
-                <div style="overflow-x:auto; max-height:360px; overflow-y:auto;">
+                <div class="table-responsive" style="max-height:360px; overflow-y:auto;">
                     <table class="table table-hover align-middle table-enterprise mb-0" id="tabelaModalInventario">
                         <thead>
                             <tr>
@@ -757,21 +738,8 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% if eq.base == 'Tank' %}
-                                    <span class="badge-notion badge-notion-blue"><i data-lucide="map-pin"
-                                            class="me-1"></i>Tank</span>
-                                    {% elif eq.base == 'TDBR' %}
-                                    <span class="badge-notion badge-notion-purple"><i data-lucide="map-pin"
-                                            class="me-1"></i>TDBR</span>
-                                    {% elif eq.base == 'Repair' %}
-                                    <span class="badge-notion badge-notion-orange"><i data-lucide="wrench"
-                                            class="me-1"></i>Repair</span>
-                                    {% elif 'Central' in eq.base %}
-                                    <span class="badge-notion badge-notion-gray"><i data-lucide="building"
-                                            class="me-1"></i>Central</span>
-                                    {% else %}
-                                    <span class="badge-notion badge-notion-gray">{{ eq.base }}</span>
-                                    {% endif %}
+                                    <span class="badge-notion badge-notion-gray"><i data-lucide="map-pin"
+                                            class="me-1"></i>{{ eq.base }}</span>
                                 </td>
                                 <td>
                                     {% if eq.alugado %}
@@ -875,11 +843,8 @@
                 inputBusca.value = termoUrl;
             }
             filtroChamadosAtivo = 'todos';
-            document.querySelectorAll('#grupoFiltroSolicitacoes button').forEach(function (b) {
-                b.classList.remove('active');
-            });
-            const btnTodos = document.getElementById('filtroSol-todos');
-            if (btnTodos) btnTodos.classList.add('active');
+            const selectStatus = document.getElementById('selectStatusChamadosAdmin');
+            if (selectStatus) selectStatus.value = 'todos';
         }
 
         aplicarVisibilidadeChamados();
@@ -1154,13 +1119,10 @@
     let filtroChamadosAtivo = 'todos';
     let filtroBaseAdminAtivo = 'todas';
 
-    function filtrarChamadosPorBaseAdmin(base, btn) {
+    function filtrarChamadosPorBaseAdmin(base) {
         filtroBaseAdminAtivo = base;
-        const grupo = document.getElementById('grupoFiltroBaseAdmin');
-        if (grupo) {
-            grupo.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-        }
-        if (btn) btn.classList.add('active');
+        const selectBase = document.getElementById('selectBaseChamadosAdmin');
+        if (selectBase) selectBase.value = base;
         aplicarVisibilidadeChamados();
     }
 
@@ -1221,7 +1183,7 @@
                 }
             }
 
-            // Filtro de Base (Tank, TDBR, Repair, Operação)
+            // Filtro pelo catálogo oficial de bases ou por operação.
             if (deveExibir && filtroBaseAdminAtivo !== 'todas') {
                 if (filtroBaseAdminAtivo === 'Operação') {
                     if (tipoUsoRow !== 'Operação' && baseRow !== 'Operação') {
@@ -1255,12 +1217,8 @@
 
     function filtrarChamadosAdmin(tipo) {
         filtroChamadosAtivo = tipo;
-        document.querySelectorAll('#grupoFiltroSolicitacoes button').forEach(function (b) {
-            b.classList.remove('active');
-        });
-        const btn = document.getElementById('filtroSol-' + tipo);
-        if (btn) btn.classList.add('active');
-
+        const selectStatus = document.getElementById('selectStatusChamadosAdmin');
+        if (selectStatus) selectStatus.value = tipo;
         aplicarVisibilidadeChamados();
     }
 
@@ -1282,7 +1240,7 @@
             const base = linha.getAttribute('data-base') || '';
 
             let condTexto = (!termo || busca.includes(termo));
-            let condBase = (baseEquipDashAtiva === 'todas' || base === baseEquipDashAtiva || (baseEquipDashAtiva === 'Central' && base.includes('Central')));
+            let condBase = (baseEquipDashAtiva === 'todas' || base === baseEquipDashAtiva);
 
             if (condTexto && condBase) {
                 linha.style.display = '';
@@ -1301,11 +1259,6 @@
             }
         }
 
-        const badgeContador = document.getElementById('badgeContadorEquipDash');
-        if (badgeContador) {
-            badgeContador.textContent = `${visiveis} ativos`;
-        }
-
         const infoRodape = document.getElementById('infoRodapeEquipDash');
         if (infoRodape) {
             const strongVis = document.createElement('strong');
@@ -1322,10 +1275,10 @@
         }
     }
 
-    function filtrarEquipPorBaseDash(base, btn) {
+    function filtrarEquipPorBaseDash(base) {
         baseEquipDashAtiva = base;
-        document.querySelectorAll('#grupoFiltroBaseEquipDash button').forEach(b => b.classList.remove('active'));
-        if (btn) btn.classList.add('active');
+        const selectBase = document.getElementById('selectBaseEquipAdminDash');
+        if (selectBase) selectBase.value = base;
         filtrarEquipamentosAdminDash();
     }
 
@@ -1521,16 +1474,12 @@
             limparBuscaSolicitacoesAdmin();
         } else if (action === 'filtrar-chamados') {
             filtrarChamadosAdmin(el.getAttribute('data-filtro'));
-        } else if (action === 'filtrar-chamados-base') {
-            filtrarChamadosPorBaseAdmin(el.getAttribute('data-base'), el);
         } else if (action === 'exportar-chamados') {
             exportarChamadosAdmin(el.getAttribute('data-formato') || 'csv');
         } else if (action === 'atender-chamado') {
             abrirModalAtendimentoDoBotao(el);
         } else if (action === 'limpar-busca-equip') {
             limparBuscaEquipDash();
-        } else if (action === 'filtrar-equip-base') {
-            filtrarEquipPorBaseDash(el.getAttribute('data-base'), el);
         } else if (action === 'exportar-equip') {
             exportarEquipamentosDash(el.getAttribute('data-formato') || 'csv');
         } else if (action === 'limpar-atendimento') {
@@ -1543,10 +1492,22 @@
     });
 
     document.addEventListener('DOMContentLoaded', function () {
+        // CAUSA: os filtros do painel eram acionados somente pelos antigos grupos de botões.
+        // FIX: busca e seletores compartilham os mesmos estados e funções de filtragem/exportação.
         const inputBuscaAdmin = document.getElementById('buscaSolicitacoesAdmin');
         if (inputBuscaAdmin) {
             inputBuscaAdmin.addEventListener('input', aplicarVisibilidadeChamados);
         }
+        document.getElementById('selectStatusChamadosAdmin')?.addEventListener('change', function () {
+            filtrarChamadosAdmin(this.value);
+        });
+        document.getElementById('selectBaseChamadosAdmin')?.addEventListener('change', function () {
+            filtrarChamadosPorBaseAdmin(this.value);
+        });
+        document.getElementById('buscaEquipAdminDash')?.addEventListener('input', filtrarEquipamentosAdminDash);
+        document.getElementById('selectBaseEquipAdminDash')?.addEventListener('change', function () {
+            filtrarEquipPorBaseDash(this.value);
+        });
     });
 
 </script>

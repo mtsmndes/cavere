@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#f8fafc">
+    <meta name="theme-color" content="#F5F7F2">
     <meta name="description" content="Cavere — Sistema de Gestão e Controle de Cautelas de Equipamentos Operacionais. Ambipar Industrial.">
     <title>Acessar o Sistema • Cavere Ambipar</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,19 +17,19 @@
             --font-mono: 'JetBrains Mono', monospace;
 
             /* Paleta Ambipar Industrial Light */
-            --background: #f8fafc;
-            --background-card: #ffffff;
-            --background-input: #ffffff;
-            --border: #e2e8f0;
-            --border-hover: #cbd5e1;
+            --background: #F5F7F2;
+            --background-card: #F5F7F2;
+            --background-input: #F5F7F2;
+            --border: #F5F7F2;
+            --border-hover: #F5F7F2;
             --border-focus: #CEDC00;
 
-            --text-primary: #0f172a;
-            --text-secondary: #475569;
-            --text-muted: #64748b;
+            --text-primary: #0B0D0A;
+            --text-secondary: #0B0D0A;
+            --text-muted: #CEDC00;
 
             --lime: #CEDC00;
-            --lime-hover: #d8e800;
+            --lime-hover: #E5ED66;
             --lime-glow: rgba(206, 220, 0, 0.25);
             --lime-surface: rgba(206, 220, 0, 0.12);
 
@@ -65,7 +65,7 @@
             justify-content: center;
             min-height: 100vh;
             padding: 24px 16px;
-            background-color: #ffffff;
+            background-color: #F5F7F2;
             background-image: 
                 radial-gradient(circle at 92% 8%, rgba(206, 220, 0, 0.12) 0%, transparent 42%),
                 radial-gradient(circle at 8% 92%, rgba(206, 220, 0, 0.10) 0%, transparent 42%);
@@ -82,7 +82,7 @@
             z-index: 0;
             pointer-events: none;
             overflow: hidden;
-            background: #ffffff;
+            background: #F5F7F2;
         }
 
         .shader-canvas-container canvas {
@@ -99,7 +99,7 @@
             height: 100vh;
             z-index: 1;
             pointer-events: none;
-            background: radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.0) 65%);
+            background: radial-gradient(ellipse at 50% 50%, rgba(245, 247, 242, 0.4) 0%, rgba(245, 247, 242, 0.0) 65%);
         }
 
         .auth-container {
@@ -144,7 +144,7 @@
         }
 
         .brand-highlight {
-            color: #484f00;
+            color: #8D9700;
             font-weight: 700;
         }
 
@@ -163,7 +163,7 @@
             font-family: var(--font-mono);
             margin-bottom: 12px;
             border: 1px solid var(--border);
-            box-shadow: 0 4px 16px -4px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+            box-shadow: 0 4px 16px -4px rgba(11, 13, 10, 0.06), 0 1px 3px rgba(11, 13, 10, 0.04);
             position: relative;
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
@@ -194,7 +194,7 @@
 
         .auth-alert-close:hover {
             opacity: 1;
-            background-color: rgba(0, 0, 0, 0.06);
+            background-color: rgba(11, 13, 10, 0.06);
         }
 
         .auth-alert-close:active {
@@ -212,57 +212,57 @@
 
         /* Ambipar Technical Color System for Notifications */
         .auth-alert-info {
-            color: #303700 !important;
+            color: #8D9700 !important;
             border-color: rgba(206, 220, 0, 0.55) !important;
-            border-left: 3.5px solid #a6b500 !important;
-            background: rgba(251, 253, 230, 0.95) !important;
+            border-left: 3.5px solid #CEDC00 !important;
+            background: rgba(245, 247, 242, 0.95) !important;
         }
         .auth-alert-info i,
         .auth-alert-info svg {
-            color: #556000 !important;
+            color: #8D9700 !important;
         }
 
         .auth-alert-success {
-            color: #14532d !important;
-            border-color: #bbf7d0 !important;
-            border-left: 3.5px solid #16a34a !important;
-            background: rgba(240, 253, 244, 0.95) !important;
+            color: #8D9700 !important;
+            border-color: #E5ED66 !important;
+            border-left: 3.5px solid #CEDC00 !important;
+            background: rgba(245, 247, 242, 0.95) !important;
         }
         .auth-alert-success i,
         .auth-alert-success svg {
-            color: #16a34a !important;
+            color: #CEDC00 !important;
         }
 
         .auth-alert-warning {
-            color: #78350f !important;
-            border-color: #fde68a !important;
-            border-left: 3.5px solid #d97706 !important;
-            background: rgba(255, 251, 235, 0.95) !important;
+            color: #8D9700 !important;
+            border-color: #E5ED66 !important;
+            border-left: 3.5px solid #CEDC00 !important;
+            background: rgba(245, 247, 242, 0.95) !important;
         }
         .auth-alert-warning i,
         .auth-alert-warning svg {
-            color: #d97706 !important;
+            color: #CEDC00 !important;
         }
 
         .auth-alert-danger {
-            color: #7f1d1d !important;
-            border-color: #fecaca !important;
-            border-left: 3.5px solid #dc2626 !important;
-            background: rgba(254, 242, 242, 0.95) !important;
+            color: #8D9700 !important;
+            border-color: #E5ED66 !important;
+            border-left: 3.5px solid #8D9700 !important;
+            background: rgba(245, 247, 242, 0.95) !important;
         }
         .auth-alert-danger i,
         .auth-alert-danger svg {
-            color: #dc2626 !important;
+            color: #8D9700 !important;
         }
 
         .auth-card {
             width: 100%;
-            background: rgba(255, 255, 255, 0.92);
+            background: rgba(245, 247, 242, 0.92);
             backdrop-filter: blur(14px);
             -webkit-backdrop-filter: blur(14px);
-            border: 1px solid rgba(226, 232, 240, 0.95);
+            border: 1px solid rgba(245, 247, 242, 0.95);
             border-radius: 8px;
-            box-shadow: 0 20px 45px -12px rgba(15, 23, 42, 0.08), 0 2px 6px rgba(15, 23, 42, 0.04);
+            box-shadow: 0 20px 45px -12px rgba(11, 13, 10, 0.08), 0 2px 6px rgba(11, 13, 10, 0.04);
             overflow: hidden;
         }
 
@@ -335,7 +335,7 @@
         }
 
         .cv-input-box:focus-within .cv-input-icon {
-            color: #484f00;
+            color: #8D9700;
         }
 
         .cv-input-field {
@@ -353,7 +353,11 @@
         }
 
         .cv-input-field::placeholder {
-            color: #94a3b8;
+            /* CAUSA: placeholders herdavam o verde de destaque e competiam visualmente com a ação principal. */
+            /* FIX: textos de orientação usam o cinza padrão do sistema. */
+            /* ATENÇÃO: mantenha o verde reservado para ações e estados ativos. */
+            color: #A8AEA4;
+            opacity: 1;
             font-size: 0.8125rem;
         }
 
@@ -388,7 +392,7 @@
             width: 100%;
             height: 42px;
             background: var(--lime);
-            color: #050505;
+            color: #0B0D0A;
             border: none;
             border-radius: var(--radius);
             font-size: 0.875rem;
@@ -442,13 +446,13 @@
         /* ===== CAVERE AUTH REFINEMENT ===== */
         :root { --radius: 9px; }
         body {
-            background-color: #f8fafc;
+            background-color: #F5F7F2;
             background-image: none;
             min-height: 100svh;
         }
 
         .shader-overlay {
-            background: radial-gradient(ellipse at 50% 50%, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.08) 35%, transparent 64%);
+            background: radial-gradient(ellipse at 50% 50%, rgba(245, 247, 242, 0.3) 0%, rgba(245, 247, 242, 0.08) 35%, transparent 64%);
         }
         .auth-container {
             max-width: 430px;
@@ -475,7 +479,7 @@
             align-items: center;
             gap: 7px;
             margin-bottom: 10px;
-            color: #64748b;
+            color: #CEDC00;
             font-size: 0.82rem;
             font-weight: 700;
             letter-spacing: 0.15em;
@@ -515,22 +519,22 @@
             background: linear-gradient(90deg, transparent, var(--lime));
         }
         .brand-meta::after {
-            background: linear-gradient(90deg, rgba(15,23,42,0.24), transparent);
+            background: linear-gradient(90deg, rgba(11, 13, 10, 0.24), transparent);
         }
         .auth-card {
             position: relative;
             isolation: isolate;
             transform: translateZ(0);
             background:
-                linear-gradient(145deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.22));
-            border: 1px solid rgba(255, 255, 255, 0.82);
+                linear-gradient(145deg, rgba(245, 247, 242, 0.5), rgba(245, 247, 242, 0.22));
+            border: 1px solid rgba(245, 247, 242, 0.82);
             border-radius: 22px;
             box-shadow:
-                0 32px 80px -30px rgba(15, 23, 42, 0.34),
-                0 12px 30px -18px rgba(15, 23, 42, 0.2),
-                inset 2px 2px 0 rgba(255, 255, 255, 0.72),
-                inset -2px -2px 0 rgba(15, 23, 42, 0.07),
-                inset 0 0 34px rgba(255, 255, 255, 0.15);
+                0 32px 80px -30px rgba(11, 13, 10, 0.34),
+                0 12px 30px -18px rgba(11, 13, 10, 0.2),
+                inset 2px 2px 0 rgba(245, 247, 242, 0.72),
+                inset -2px -2px 0 rgba(11, 13, 10, 0.07),
+                inset 0 0 34px rgba(245, 247, 242, 0.15);
             backdrop-filter: blur(20px) saturate(185%) contrast(105%);
             -webkit-backdrop-filter: blur(20px) saturate(185%) contrast(105%);
             margin-left: auto;
@@ -544,9 +548,9 @@
             pointer-events: none;
             border-radius: 38% 62% 58% 42% / 44% 38% 62% 56%;
             background:
-                radial-gradient(ellipse at 24% 22%, rgba(255, 255, 255, 0.86) 0%, rgba(255, 255, 255, 0.3) 20%, transparent 43%),
+                radial-gradient(ellipse at 24% 22%, rgba(245, 247, 242, 0.86) 0%, rgba(245, 247, 242, 0.3) 20%, transparent 43%),
                 radial-gradient(ellipse at 74% 70%, rgba(206, 220, 0, 0.2) 0%, rgba(206, 220, 0, 0.06) 28%, transparent 52%),
-                conic-gradient(from 125deg at 52% 48%, transparent 0 24%, rgba(255, 255, 255, 0.3) 31%, transparent 40% 68%, rgba(206, 220, 0, 0.09) 76%, transparent 84%);
+                conic-gradient(from 125deg at 52% 48%, transparent 0 24%, rgba(245, 247, 242, 0.3) 31%, transparent 40% 68%, rgba(206, 220, 0, 0.09) 76%, transparent 84%);
             filter: blur(11px);
             mix-blend-mode: screen;
             opacity: 0.82;
@@ -560,12 +564,12 @@
             pointer-events: none;
             border-radius: inherit;
             background:
-                linear-gradient(135deg, rgba(255,255,255,0.68), transparent 18% 76%, rgba(255,255,255,0.28)),
-                linear-gradient(315deg, rgba(15,23,42,0.08), transparent 22%);
+                linear-gradient(135deg, rgba(245, 247, 242, 0.68), transparent 18% 76%, rgba(245, 247, 242, 0.28)),
+                linear-gradient(315deg, rgba(11, 13, 10, 0.08), transparent 22%);
             box-shadow:
-                inset 0 1px 0 rgba(255, 255, 255, 0.88),
-                inset 1px 0 0 rgba(255, 255, 255, 0.5),
-                inset 0 -1px 0 rgba(15, 23, 42, 0.09);
+                inset 0 1px 0 rgba(245, 247, 242, 0.88),
+                inset 1px 0 0 rgba(245, 247, 242, 0.5),
+                inset 0 -1px 0 rgba(11, 13, 10, 0.09);
         }
         @keyframes liquid-glass-flow {
             0%, 100% {
@@ -597,12 +601,12 @@
         }
         .cv-input-box {
             height: 44px;
-            background: rgba(255, 255, 255, 0.5);
-            border-color: rgba(255, 255, 255, 0.88);
+            background: rgba(245, 247, 242, 0.5);
+            border-color: rgba(245, 247, 242, 0.88);
             border-radius: 9px;
             box-shadow:
-                inset 0 1px 0 rgba(255, 255, 255, 0.9),
-                0 1px 3px rgba(15, 23, 42, 0.09);
+                inset 0 1px 0 rgba(245, 247, 242, 0.9),
+                0 1px 3px rgba(11, 13, 10, 0.09);
             backdrop-filter: blur(12px) saturate(135%);
             -webkit-backdrop-filter: blur(12px) saturate(135%);
             transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
@@ -618,14 +622,14 @@
             transition: background-color 180ms ease, box-shadow 180ms ease, transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
         }
         .btn-submit:hover {
-            box-shadow: 0 9px 22px rgba(130, 140, 0, 0.18);
+            box-shadow: 0 9px 22px rgba(206, 220, 0, 0.18);
             transform: translateY(-1px);
         }
         .auth-system-footer {
             width: 100%;
             padding: 0;
             font-family: var(--font-sans);
-            color: #475569;
+            color: #0B0D0A;
             background: transparent;
             border: 0;
             border-radius: 0;
@@ -633,14 +637,14 @@
             backdrop-filter: none;
             -webkit-backdrop-filter: none;
             text-shadow:
-                0 1px 1px rgba(255, 255, 255, 0.95),
-                0 0 10px rgba(255, 255, 255, 0.9),
-                0 1px 2px rgba(15, 23, 42, 0.14);
+                0 1px 1px rgba(245, 247, 242, 0.95),
+                0 0 10px rgba(245, 247, 242, 0.9),
+                0 1px 2px rgba(11, 13, 10, 0.14);
             margin-left: auto;
             margin-right: auto;
         }
-        .auth-system-footer strong { color: #334155; }
-        .auth-system-security { color: #64748b; }
+        .auth-system-footer strong { color: #0B0D0A; }
+        .auth-system-security { color: #CEDC00; }
         @keyframes auth-enter {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -691,6 +695,41 @@
             transition: transform 600ms cubic-bezier(0.4, 0, 1, 1), opacity 280ms ease;
         }
         #cavere-loader.fade-out canvas { transform: scale(1.06); opacity: 0; }
+        /* CAUSA: a tela de login possuía uma paleta própria com cores semânticas fora do sistema. */
+        /* FIX: aplica o mesmo contrato cromático reduzido das telas autenticadas. */
+        :root {
+            --background: #F5F7F2;
+            --background-card: #F5F7F2;
+            --background-input: #F5F7F2;
+            --border: rgba(168, 174, 164, 0.34);
+            --border-hover: rgba(168, 174, 164, 0.55);
+            --border-focus: #CEDC00;
+            --text-primary: #0B0D0A;
+            --text-secondary: #A8AEA4;
+            --text-muted: #A8AEA4;
+            --lime: #CEDC00;
+            --lime-hover: #E5ED66;
+        }
+
+        .auth-alert-info,
+        .auth-alert-success,
+        .auth-alert-warning,
+        .auth-alert-danger {
+            color: #0B0D0A !important;
+            background: rgba(206, 220, 0, 0.12) !important;
+            border-color: rgba(141, 151, 0, 0.45) !important;
+        }
+
+        .auth-alert-info i,
+        .auth-alert-success i,
+        .auth-alert-warning i,
+        .auth-alert-danger i,
+        .auth-alert-info svg,
+        .auth-alert-success svg,
+        .auth-alert-warning svg,
+        .auth-alert-danger svg {
+            color: #8D9700 !important;
+        }
     </style>
 </head>
 <body>
@@ -803,9 +842,9 @@
             var b = parseInt(hex.slice(5,7),16)/255;
             return [r,g,b];
         }
-        var c0 = hexToVec3('#e5f782'); /* verde-lima etéreo */
-        var c1 = hexToVec3('#f2fbc0'); /* quase branco-lima luminoso */
-        var c2 = hexToVec3('#def56b'); /* verde-lima pastel delicado */
+        var c0 = hexToVec3('#E5ED66'); /* verde-lima etéreo */
+        var c1 = hexToVec3('#E5ED66'); /* quase branco-lima luminoso */
+        var c2 = hexToVec3('#E5ED66'); /* verde-lima pastel delicado */
 
         var uTime       = gl.getUniformLocation(prog, 'uTime');
         var uAmplitude  = gl.getUniformLocation(prog, 'uAmplitude');
@@ -881,7 +920,7 @@
         canvas.style.height = H + 'px';
         ctx.scale(DPR, DPR);
 
-        const COLOR = '#000000';
+        const COLOR = '#0B0D0A';
         const FONT_SIZE = W < 380 ? 58 : 72;
 
         function sampleText(text) {
@@ -894,7 +933,7 @@
                 fStr = '900 ' + FONT_SIZE + 'px Arial, sans-serif';
                 oc.font = fStr;
             }
-            oc.fillStyle = '#000';
+            oc.fillStyle = '#0B0D0A';
             oc.textAlign = 'center';
             oc.textBaseline = 'middle';
             const chars = text.split('');
@@ -1123,7 +1162,7 @@
                 spinner.className = 'spinner-border spinner-border-sm';
                 spinner.setAttribute('role', 'status');
                 spinner.setAttribute('aria-hidden', 'true');
-                spinner.style.color = '#050505';
+                spinner.style.color = '#0B0D0A';
                 const label = document.createElement('span');
                 label.textContent = 'Validando credenciais...';
                 btnAcessar.replaceChildren(spinner, label);

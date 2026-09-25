@@ -1,6 +1,33 @@
 {% extends "base.html" %}
 {% block content %}
 
+<style>
+    /* CAUSA: o botao do termo herdava o verde global, enquanto os demais identificadores tecnicos usam a cor de codigo. */
+    /* FIX: texto, icone e contorno do PDF reutilizam exatamente a cor de Patrimonio/SN e RDO nos dois temas. */
+    /* ATENÇÃO: este acento identifica dados tecnicos e deve permanecer igual no modo claro e escuro. */
+    :root {
+        --cv-history-data-accent: #d63384;
+    }
+
+    .cv-pdf-link,
+    .cv-pdf-link i[data-lucide],
+    html[data-theme="dark"] .cv-pdf-link,
+    html[data-theme="dark"] .cv-pdf-link i[data-lucide] {
+        color: var(--cv-history-data-accent) !important;
+    }
+
+    .cv-pdf-link {
+        border-color: color-mix(in srgb, var(--cv-history-data-accent) 38%, transparent) !important;
+    }
+
+    .cv-pdf-link:hover,
+    html[data-theme="dark"] .cv-pdf-link:hover {
+        color: var(--cv-history-data-accent) !important;
+        background: color-mix(in srgb, var(--cv-history-data-accent) 10%, transparent) !important;
+        border-color: var(--cv-history-data-accent) !important;
+    }
+</style>
+
 <!-- Coleta de tipos, coordenadores e bases únicos para os filtros -->
 {% set tipos_unicos = [] %}
 {% set coords_unicos = [] %}
@@ -84,7 +111,7 @@
 <!-- Painel de Pesquisa & Filtros (AETHER Command Box) -->
 <!-- CAUSA: filtros e exportacao estavam duplicados em dois cards para a mesma tabela, e o overflow cortava o menu. -->
 <!-- FIX: filtros, acoes e listagem agora compartilham um unico painel com overflow visivel. -->
-<div class="surface-card" style="margin-bottom:var(--space-5); overflow:visible;" id="painelPesquisaCautelas">
+<div class="surface-card cv-table-card" style="margin-bottom:var(--space-5); overflow:visible;" id="painelPesquisaCautelas">
     <div class="surface-card-header cv-table-head">
         <div class="cv-table-head-main">
             <div class="cv-table-title-line">
@@ -120,12 +147,14 @@
         </div>
     </div>
     <div class="surface-card-body cv-table-filter-panel">
-        <div class="row g-3">
+        <!-- CAUSA: datas e contador ficavam isolados por uma linha tracejada e espaçamento excessivo. -->
+        <!-- FIX: todos os filtros compartilham a mesma grade compacta usada nas demais tabelas. -->
+        <div class="row g-2 align-items-end w-100 cv-history-filters">
             <div class="col-lg-{% if current_user.role == 'admin' %}3{% else %}4{% endif %} col-md-12">
                 <label class="form-label" for="campoBuscaTexto">
                     Busca Geral por Palavra-chave
                 </label>
-                <div class="input-group">
+                <div class="input-group input-group-sm">
                     <span class="input-group-text"><i data-lucide="search"></i></span>
                     <input type="text" id="campoBuscaTexto" class="form-control"
                         placeholder="Buscar por RDO, modelo, SN, coord..." oninput="executarFiltrosCautelas()">
@@ -133,14 +162,13 @@
                         <i data-lucide="x"></i>
                     </button>
                 </div>
-                <div class="form-text">Pesquise por qualquer termo, serial ou RDO.</div>
             </div>
 
             <div class="col-lg-{% if current_user.role == 'admin' %}2{% else %}3{% endif %} col-md-4 col-sm-6">
                 <label class="form-label" for="filtroStatusSelect">
                     Situação
                 </label>
-                <select class="form-select" id="filtroStatusSelect" onchange="executarFiltrosCautelas()">
+                <select class="form-select form-select-sm" id="filtroStatusSelect" onchange="executarFiltrosCautelas()">
                     <option value="Todos" selected>Todas as Situações</option>
                     <option value="Em Campo">Em Campo (Ativo)</option>
                     <option value="Devolvido">Devolvido à Base</option>
@@ -152,17 +180,11 @@
                 <label class="form-label" for="filtroBaseSelect">
                     Base Operacional
                 </label>
-                <select class="form-select" id="filtroBaseSelect" onchange="executarFiltrosCautelas()">
+                <select class="form-select form-select-sm" id="filtroBaseSelect" onchange="executarFiltrosCautelas()">
                     <option value="Todas" selected>Todas as Bases</option>
-                    <option value="Tank">Tank (Base Niterói)</option>
-                    <option value="TDBR">TDBR (Macaé)</option>
-                    <option value="Repair">Repair (Naval)</option>
                     <option value="Operação">Operação Geral</option>
-                    <option value="Escritório Central">Escritório Central</option>
-                    {% for b in bases_unicas|sort %}
-                        {% if b not in ['Tank', 'TDBR', 'Repair', 'Operação', 'Escritório Central'] %}
-                        <option value="{{ b }}">{{ b }}</option>
-                        {% endif %}
+                    {% for base in bases_operacionais %}
+                    <option value="{{ base }}">{{ base }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -172,7 +194,7 @@
                 <label class="form-label" for="filtroTipoSelect">
                     Tipo de Equipamento
                 </label>
-                <select class="form-select" id="filtroTipoSelect" onchange="executarFiltrosCautelas()">
+                <select class="form-select form-select-sm" id="filtroTipoSelect" onchange="executarFiltrosCautelas()">
                     <option value="Todos" selected>Todos os Tipos</option>
                     {% for t in tipos_unicos|sort %}
                     <option value="{{ t }}">{{ t }}</option>
@@ -185,7 +207,7 @@
                 <label class="form-label" for="filtroCoordSelect">
                     Coordenador
                 </label>
-                <select class="form-select" id="filtroCoordSelect" onchange="executarFiltrosCautelas()">
+                <select class="form-select form-select-sm" id="filtroCoordSelect" onchange="executarFiltrosCautelas()">
                     <option value="Todos" selected>Todos os Coordenadores</option>
                     {% for co in coords_unicos|sort %}
                     <option value="{{ co }}">{{ co }}</option>
@@ -197,40 +219,29 @@
                 <label class="form-label">
                     Sua Base Designada
                 </label>
-                <div class="d-flex align-items-center gap-2 form-control" style="background:var(--bg-surface-soft, rgba(255,255,255,0.02)); border-color:var(--border); color:var(--text-primary); cursor:default; height:38px;">
+                <div class="d-flex align-items-center gap-2 form-control" style="background:var(--bg-surface-soft, rgba(245, 247, 242, 0.02)); border-color:var(--border); color:var(--text-primary); cursor:default; height:38px;">
                     <i data-lucide="building-2" style="width:15px; height:15px; color:var(--lime); flex-shrink:0;"></i>
                     <strong style="color:var(--lime); font-family:var(--font-mono); font-size:0.875rem;">{{ base_usuario }}</strong>
                 </div>
             </div>
             {% endif %}
-        </div>
-
-        <div class="row g-3 mt-1 pt-3" style="border-top:1px dashed var(--border);">
             <div class="col-lg-3 col-md-6">
                 <label class="form-label" for="filtroDataInicio">
                     Data de Saída (A partir de)
                 </label>
-                <input type="date" class="form-control" id="filtroDataInicio" onchange="executarFiltrosCautelas()">
+                <input type="date" class="form-control form-control-sm" id="filtroDataInicio" onchange="executarFiltrosCautelas()">
             </div>
             <div class="col-lg-3 col-md-6">
                 <label class="form-label" for="filtroDataFim">
                     Data de Saída (Até)
                 </label>
-                <input type="date" class="form-control" id="filtroDataFim" onchange="executarFiltrosCautelas()">
+                <input type="date" class="form-control form-control-sm" id="filtroDataFim" onchange="executarFiltrosCautelas()">
             </div>
 
-            <div class="col-lg-6 col-md-12 d-flex align-items-end">
-                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 w-100">
-                    <div style="font-size:0.875rem; color:var(--text-secondary); display:flex; align-items:center; gap:var(--space-2);">
-                        <i data-lucide="filter" style="color:var(--lime);"></i>
-                        <span>Exibindo <strong id="contadorResultados" style="color:var(--lime); font-family:var(--font-mono); font-size:1rem;">{{ cautelas|length }}</strong> de <strong style="font-family:var(--font-mono); color:var(--text-primary);">{{ cautelas|length }}</strong> cautela(s)</span>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 
-    <div style="overflow-x:auto;">
+    <div class="table-responsive">
         {% if cautelas %}
         <table class="table table-hover align-middle table-enterprise cv-table-uniform mb-0" id="tabelaHistorico">
             <thead>
@@ -310,8 +321,8 @@
 
                     <td class="text-center">
                         {% if c.pdf_nome %}
-                        <a href="/cautelas/{{ c.pdf_nome }}" target="_blank" class="cv-btn-action cv-btn-action-secondary" style="height:28px; font-size:0.75rem; padding:0 10px;" title="Visualizar Termo em PDF">
-                            <i data-lucide="file-text" class="text-danger"></i> PDF
+                        <a href="/cautelas/{{ c.pdf_nome }}" target="_blank" class="cv-btn-action cv-btn-action-secondary cv-pdf-link" style="height:28px; font-size:0.75rem; padding:0 10px;" title="Visualizar Termo em PDF">
+                            <i data-lucide="file-text"></i> PDF
                         </a>
                         {% else %}
                         <span style="color:var(--text-muted);">&mdash;</span>
@@ -357,6 +368,14 @@
             <div class="cv-empty-text">O histórico completo de cautelas emitidas aparecerá aqui.</div>
         </div>
         {% endif %}
+    </div>
+    <!-- CAUSA: a contagem ocupava uma coluna da grade de filtros, diferente das demais tabelas. -->
+    <!-- FIX: o resumo passa para o rodapé padrão e preserva o contador atualizado pelo filtro. -->
+    <div class="surface-card-footer">
+        <span style="font-size:0.8125rem; color:var(--text-muted); font-family:var(--font-mono);">
+            Mostrando <strong id="contadorResultados">{{ cautelas|length }}</strong> de
+            <strong>{{ cautelas|length }}</strong> cautelas registradas.
+        </span>
     </div>
 </div>
 
